@@ -6,6 +6,7 @@ packages:
 
 allowBuilds:
   "@scarf/scarf": false
+  bcrypt: true
   lefthook: true
   msgpackr-extract: false
 
