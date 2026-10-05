@@ -1,0 +1,9 @@
+node_modules
+dist
+.pnpm-store
+__pycache__
+.venv
+.env
+*.pyc
+.DS_Store
+coverage

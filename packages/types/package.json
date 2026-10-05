@@ -1,0 +1,9 @@
+{
+  "name": "@hh/types",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}

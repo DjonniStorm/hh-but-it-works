@@ -1,0 +1,30 @@
+{
+  "name": "@hh/api",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@hh/assessment-engine": "workspace:*",
+    "@hh/contracts": "workspace:*",
+    "@hh/types": "workspace:*",
+    "@nestjs/bullmq": "^11.0.5",
+    "@nestjs/common": "^11.2.7",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.2.7",
+    "@nestjs/platform-express": "^11.2.7",
+    "@nestjs/swagger": "^11.4.7",
+    "@nestjs/typeorm": "^11.0.3",
+    "bullmq": "^6.3.11",
+    "ioredis": "^5.11.1",
+    "nestjs-zod": "^5.5.0",
+    "pg": "^8.23.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "typeorm": "^0.3.31",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.4",
+    "typescript": "^6.0.3"
+  }
+}

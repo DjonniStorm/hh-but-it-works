@@ -1,0 +1,13 @@
+packages:
+  - apps/web
+  - apps/api
+  - apps/mock
+  - packages/*
+
+allowBuilds:
+  "@scarf/scarf": false
+  lefthook: true
+  msgpackr-extract: false
+
+onlyBuiltDependencies:
+  - bcrypt

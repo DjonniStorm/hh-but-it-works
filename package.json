@@ -1,0 +1,22 @@
+{
+  "name": "hh-but-it-works",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.6.0",
+  "scripts": {
+    "prepare": "lefthook install",
+    "build": "pnpm -r --filter \"./packages/*\" build && pnpm --filter @hh/api --filter @hh/web build",
+    "test": "pnpm --filter @hh/api test"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "lefthook": "^2.1.16",
+    "prettier": "^3.9.9",
+    "typescript-eslint": "^8.71.0"
+  }
+}

@@ -1,0 +1,14 @@
+pre-commit:
+  parallel: true
+  commands:
+    format:
+      glob: "*.{js,ts,tsx,json,md,yml,yaml}"
+      run: pnpm exec prettier --check --ignore-unknown {staged_files}
+    lint:
+      glob: "*.{js,ts,tsx}"
+      run: pnpm exec eslint --max-warnings 0 {staged_files}
+
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm exec commitlint --edit {1}
