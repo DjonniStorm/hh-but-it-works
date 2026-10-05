@@ -1,8 +1,11 @@
 import { StrictMode } from "react";
 
+import { RequestOverlay } from "@/app/store/request-overlay";
+import { StoreProvider } from "@/app/store/store-context";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/700.css";
 import "@mantine/core/styles.css";
+import "@mantine/notifications/styles.css";
 import { createRoot } from "react-dom/client";
 
 import { Router, Theme } from "./providers";
@@ -26,8 +29,12 @@ const root = createRoot(element, {
 
 root.render(
   <StrictMode>
-    <Theme>
-      <Router />
-    </Theme>
+    <StoreProvider>
+      <Theme>
+        <RequestOverlay>
+          <Router />
+        </RequestOverlay>
+      </Theme>
+    </StoreProvider>
   </StrictMode>,
 );

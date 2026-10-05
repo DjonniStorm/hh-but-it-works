@@ -1,14 +1,28 @@
+import { useStore } from "@/app/store/store-context";
+import { StoreKey } from "@/app/store/store-key";
 import { ROUTES } from "@/shared/router/routes";
-import { Anchor, Stack, Title } from "@mantine/core";
-import { Link } from "react-router";
+import { Button, Stack, Text, Title } from "@mantine/core";
+import { observer } from "mobx-react-lite";
+import { useNavigate } from "react-router";
 
-export const HomePage = () => {
+export const HomePage = observer(() => {
+  const auth = useStore(StoreKey.Auth);
+  const navigate = useNavigate();
+
   return (
     <Stack p="xl" gap="md">
       <Title order={1}>ЛЦТ</Title>
-      <Anchor component={Link} to={ROUTES.TEST}>
-        Тестовая страница темы
-      </Anchor>
+      <Text>{auth.user?.email}</Text>
+      <Button
+        variant="default"
+        onClick={() => {
+          void auth.logout({
+            onSuccess: () => navigate(ROUTES.AUTH.LOGIN),
+          });
+        }}
+      >
+        Выйти
+      </Button>
     </Stack>
   );
-};
+});

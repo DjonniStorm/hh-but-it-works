@@ -13,6 +13,8 @@
     "@hh/contracts": "workspace:*",
     "@hh/types": "workspace:*",
     "@mantine/core": "^9.6.3",
+    "@mantine/form": "^9.6.3",
+    "@mantine/notifications": "^9.6.3",
     "@unhead/react": "^3.4.2",
     "mobx": "^7.0.6",
     "mobx-react-lite": "^5.1.0",

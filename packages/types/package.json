@@ -2,7 +2,11 @@
   "name": "@hh/types",
   "version": "0.0.0",
   "private": true,
-  "main": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
   "devDependencies": {
     "typescript": "^6.0.3"
   }
