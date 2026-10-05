@@ -8,4 +8,8 @@ HTTP API на NestJS.
 docker compose --env-file infra/dev/.env.example -f infra/dev/docker-compose.yml up
 ```
 
-Команда запускается из корня репозитория.
+Команды запускаются из корня репозитория. Скопируйте `apps/api/.env.example` в `apps/api/.env`, затем:
+
+```bash
+pnpm --filter @hh/api dev
+```

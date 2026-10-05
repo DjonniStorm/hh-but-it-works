@@ -2,10 +2,19 @@
   "name": "@hh/web",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
   "dependencies": {
+    "@fontsource/jetbrains-mono": "^5.3.0",
     "@hh/contracts": "workspace:*",
     "@hh/types": "workspace:*",
     "@mantine/core": "^9.6.3",
+    "@mantine/form": "^9.6.3",
+    "@mantine/notifications": "^9.6.3",
     "@unhead/react": "^3.4.2",
     "mobx": "^7.0.6",
     "mobx-react-lite": "^5.1.0",
@@ -19,6 +28,9 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "postcss": "^8.5.28",
+    "postcss-preset-mantine": "^1.18.0",
+    "postcss-simple-vars": "^7.0.1",
     "typescript": "^6.0.3",
     "vite": "^8.3.2"
   }
