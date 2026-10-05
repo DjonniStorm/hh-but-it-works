@@ -1,9 +1,10 @@
 pre-commit:
-  parallel: true
   commands:
     format:
+      priority: 2
       glob: "*.{js,ts,tsx,json,md,yml,yaml}"
-      run: pnpm exec prettier --check --ignore-unknown {staged_files}
+      run: pnpm exec prettier --write --ignore-unknown {staged_files}
+      stage_fixed: true
     lint:
       glob: "*.{js,ts,tsx}"
       run: pnpm exec eslint --max-warnings 0 {staged_files}
