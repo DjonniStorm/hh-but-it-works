@@ -269,6 +269,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@fontsource/jetbrains-mono':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@hh/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
@@ -280,7 +283,7 @@ importers:
         version: 9.6.3(@mantine/hooks@9.6.3(react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@unhead/react':
         specifier: ^3.4.2
-        version: 3.4.2(@oxc-project/types@0.152.0)(lightningcss@1.33.0)(react@19.3.0)(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1))
+        version: 3.4.2(@oxc-project/types@0.152.0)(lightningcss@1.33.0)(react@19.3.0)(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28)))
       mobx:
         specifier: ^7.0.6
         version: 7.0.6
@@ -298,7 +301,7 @@ importers:
         version: 8.4.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       unhead:
         specifier: ^3.4.2
-        version: 3.4.2(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1))
+        version: 3.4.2(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28)))
       zod:
         specifier: ^4.6.5
         version: 4.6.5
@@ -311,13 +314,22 @@ importers:
         version: 19.3.0(@types/react@19.3.0)
       '@vitejs/plugin-react':
         specifier: ^6.1.1
-        version: 6.1.1(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1))
+        version: 6.1.1(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28)))
+      postcss:
+        specifier: ^8.5.28
+        version: 8.5.28
+      postcss-preset-mantine:
+        specifier: ^1.18.0
+        version: 1.18.0(postcss@8.5.28)
+      postcss-simple-vars:
+        specifier: ^7.0.1
+        version: 7.0.1(postcss@8.5.28)
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
       vite:
         specifier: ^8.3.2
-        version: 8.3.2(@types/node@26.6.4)(jiti@2.6.1)
+        version: 8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28))
 
   packages/assessment-engine:
     devDependencies:
@@ -557,6 +569,9 @@ packages:
 
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
+
+  '@fontsource/jetbrains-mono@5.3.0':
+    resolution: {integrity: sha512-fqDfB5I9f1p1TV486aUgB9t8zP84P0O1FtQR5Ol9vjwPy+S+EIGlVYm1cvj2W5shcZMTg2nZFdVMoH5wFu8a1A==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -1207,6 +1222,10 @@ packages:
     resolution: {integrity: sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==}
     engines: {node: '>=6'}
 
+  camelcase-css@2.0.1:
+    resolution: {integrity: sha512-QOSvevhslijgYwRx6Rv7zKdMF8lbRmx+uQGx2+vDc+KI/eBnsy9kit5aj23AgGu3pa4t9AgwbnXWqS+iOY+2aA==}
+    engines: {node: '>= 6'}
+
   caniuse-lite@1.0.30001814:
     resolution: {integrity: sha512-/Uaf1lAzr59XcMpW0o96WoEfr+VXK2OX4U9AgFoiSHsVJ4HppnIFUjtYzsyDH2+tgANaQb2/oxYGwCPapN1FpA==}
 
@@ -1304,6 +1323,11 @@ packages:
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
+
+  cssesc@3.0.0:
+    resolution: {integrity: sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg==}
+    engines: {node: '>=4'}
+    hasBin: true
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
@@ -2180,6 +2204,39 @@ packages:
     resolution: {integrity: sha512-/+5VFTchJDoVj3bhoqi6UeymcD00DAwb1nJwamzPvHEszJ4FpF6SNNbUbOS8yI56qHzdV8eK0qEfOSiodkTdxg==}
     engines: {node: '>= 0.4'}
 
+  postcss-js@4.1.0:
+    resolution: {integrity: sha512-oIAOTqgIo7q2EOwbhb8UalYePMvYoIeRY2YKntdpFQXNosSu3vLrniGgmH9OKs/qAkfoj5oB3le/7mINW1LCfw==}
+    engines: {node: ^12 || ^14 || >= 16}
+    peerDependencies:
+      postcss: ^8.4.21
+
+  postcss-mixins@12.1.2:
+    resolution: {integrity: sha512-90pSxmZVfbX9e5xCv7tI5RV1mnjdf16y89CJKbf/hD7GyOz1FCxcYMl8ZYA8Hc56dbApTKKmU9HfvgfWdCxlwg==}
+    engines: {node: ^20.0 || ^22.0 || >=24.0}
+    peerDependencies:
+      postcss: ^8.2.14
+
+  postcss-nested@7.0.2:
+    resolution: {integrity: sha512-5osppouFc0VR9/VYzYxO03VaDa3e8F23Kfd6/9qcZTUI8P58GIYlArOET2Wq0ywSl2o2PjELhYOFI4W7l5QHKw==}
+    engines: {node: '>=18.0'}
+    peerDependencies:
+      postcss: ^8.2.14
+
+  postcss-preset-mantine@1.18.0:
+    resolution: {integrity: sha512-sP6/s1oC7cOtBdl4mw/IRKmKvYTuzpRrH/vT6v9enMU/EQEQ31eQnHcWtFghOXLH87AAthjL/Q75rLmin1oZoA==}
+    peerDependencies:
+      postcss: '>=8.0.0'
+
+  postcss-selector-parser@7.1.6:
+    resolution: {integrity: sha512-7qASPzhKF2l2KLboRZux8CCTRMdGiV08vWmyKzPz22qZ7ZjQBOeY7rNzNoCLSUiftJ7HUq0GERHmxw/t0dCdMw==}
+    engines: {node: '>=4'}
+
+  postcss-simple-vars@7.0.1:
+    resolution: {integrity: sha512-5GLLXaS8qmzHMOjVxqkk1TZPf1jMqesiI7qLhnlyERalG0sMbHIbJqrcnrpmZdKCLglHnRHoEBB61RtGTsj++A==}
+    engines: {node: '>=14.0'}
+    peerDependencies:
+      postcss: ^8.2.1
+
   postcss@8.5.28:
     resolution: {integrity: sha512-RRuzqDtt5Y9h3quz5hWhK+TPnsmVs6WwSU6LkJMeY4HstUEDuYTG8UJSdawMRzmzAtV+KEoG8N3Qg2qLy5vM/A==}
     engines: {node: ^10 || ^12 || >=14}
@@ -2444,6 +2501,12 @@ packages:
     resolution: {integrity: sha512-ki4hZQfh5rX0QDLLkOCj+h+CVNkqmp/CMf8v8kZpkNVK6jGQooMytqzLZYUVYIZcFZ6yDB70EfD8POcFXiF5oA==}
     engines: {node: '>=18'}
 
+  sugarss@5.0.1:
+    resolution: {integrity: sha512-ctS5RYCBVvPoZAnzIaX5QSShK8ZiZxD5HUqSxlusvEMC+QZQIPCPOIJg6aceFX+K2rf4+SH89eu++h1Zmsr2nw==}
+    engines: {node: '>=18.0'}
+    peerDependencies:
+      postcss: ^8.3.3
+
   swagger-ui-dist@5.32.13:
     resolution: {integrity: sha512-qQobzb3DeC2LeK0j3E8812Ef4aIq1y9flJxvZkimkqUC/w4u7wS+yCc+VakqGJLweUUBrI24effhwo8OsAvNAw==}
 
@@ -2657,6 +2720,9 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  util-deprecate@1.0.2:
+    resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
   uuid@11.1.1:
     resolution: {integrity: sha512-vIYxrBCC/N/K+Js3qSN88go7kIfNPssr/hHCesKCQNAjmgvYS2oqr69kIufEG+O4+PfezOH4EbIeHCfFov8ZgQ==}
@@ -3070,6 +3136,8 @@ snapshots:
 
   '@floating-ui/utils@0.2.12': {}
 
+  '@fontsource/jetbrains-mono@5.3.0': {}
+
   '@humanfs/core@0.19.2':
     dependencies:
       '@humanfs/types': 0.15.0
@@ -3482,16 +3550,16 @@ snapshots:
       '@typescript-eslint/types': 8.71.0
       eslint-visitor-keys: 5.0.1
 
-  '@unhead/bundler@3.4.2(@oxc-project/types@0.152.0)(lightningcss@1.33.0)(rolldown@1.2.12)(unhead@3.4.2(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)))(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1))':
+  '@unhead/bundler@3.4.2(@oxc-project/types@0.152.0)(lightningcss@1.33.0)(rolldown@1.2.12)(unhead@3.4.2(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28))))(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28)))':
     dependencies:
       magic-string: 1.4.2
       oxc-walker: 1.1.1(@oxc-project/types@0.152.0)(rolldown@1.2.12)
-      unhead: 3.4.2(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1))
-      unplugin: 3.4.0(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1))
+      unhead: 3.4.2(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28)))
+      unplugin: 3.4.0(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28)))
     optionalDependencies:
       lightningcss: 1.33.0
       rolldown: 1.2.12
-      vite: 8.3.2(@types/node@26.6.4)(jiti@2.6.1)
+      vite: 8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28))
     transitivePeerDependencies:
       - '@farmfe/core'
       - '@oxc-project/types'
@@ -3501,16 +3569,16 @@ snapshots:
       - rollup
       - unloader
 
-  '@unhead/react@3.4.2(@oxc-project/types@0.152.0)(lightningcss@1.33.0)(react@19.3.0)(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1))':
+  '@unhead/react@3.4.2(@oxc-project/types@0.152.0)(lightningcss@1.33.0)(react@19.3.0)(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28)))':
     dependencies:
-      '@unhead/bundler': 3.4.2(@oxc-project/types@0.152.0)(lightningcss@1.33.0)(rolldown@1.2.12)(unhead@3.4.2(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)))(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1))
+      '@unhead/bundler': 3.4.2(@oxc-project/types@0.152.0)(lightningcss@1.33.0)(rolldown@1.2.12)(unhead@3.4.2(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28))))(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28)))
       magic-string: 1.4.2
       oxc-walker: 1.1.1(@oxc-project/types@0.152.0)(rolldown@1.2.12)
       react: 19.3.0
-      unhead: 3.4.2(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1))
-      unplugin: 3.4.0(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1))
+      unhead: 3.4.2(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28)))
+      unplugin: 3.4.0(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28)))
     optionalDependencies:
-      vite: 8.3.2(@types/node@26.6.4)(jiti@2.6.1)
+      vite: 8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28))
     transitivePeerDependencies:
       - '@farmfe/core'
       - '@oxc-project/types'
@@ -3526,10 +3594,10 @@ snapshots:
       - rollup
       - unloader
 
-  '@vitejs/plugin-react@6.1.1(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1))':
+  '@vitejs/plugin-react@6.1.1(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28)))':
     dependencies:
       '@rolldown/pluginutils': 1.0.1
-      vite: 8.3.2(@types/node@26.6.4)(jiti@2.6.1)
+      vite: 8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28))
 
   accepts@2.0.0:
     dependencies:
@@ -3667,6 +3735,8 @@ snapshots:
 
   callsites@3.1.0: {}
 
+  camelcase-css@2.0.1: {}
+
   caniuse-lite@1.0.30001814: {}
 
   cliui@8.0.1:
@@ -3750,6 +3820,8 @@ snapshots:
       path-key: 3.1.1
       shebang-command: 2.0.0
       which: 2.0.2
+
+  cssesc@3.0.0: {}
 
   csstype@3.2.3: {}
 
@@ -4538,6 +4610,39 @@ snapshots:
 
   possible-typed-array-names@1.1.0: {}
 
+  postcss-js@4.1.0(postcss@8.5.28):
+    dependencies:
+      camelcase-css: 2.0.1
+      postcss: 8.5.28
+
+  postcss-mixins@12.1.2(postcss@8.5.28):
+    dependencies:
+      postcss: 8.5.28
+      postcss-js: 4.1.0(postcss@8.5.28)
+      postcss-simple-vars: 7.0.1(postcss@8.5.28)
+      sugarss: 5.0.1(postcss@8.5.28)
+      tinyglobby: 0.2.17
+
+  postcss-nested@7.0.2(postcss@8.5.28):
+    dependencies:
+      postcss: 8.5.28
+      postcss-selector-parser: 7.1.6
+
+  postcss-preset-mantine@1.18.0(postcss@8.5.28):
+    dependencies:
+      postcss: 8.5.28
+      postcss-mixins: 12.1.2(postcss@8.5.28)
+      postcss-nested: 7.0.2(postcss@8.5.28)
+
+  postcss-selector-parser@7.1.6:
+    dependencies:
+      cssesc: 3.0.0
+      util-deprecate: 1.0.2
+
+  postcss-simple-vars@7.0.1(postcss@8.5.28):
+    dependencies:
+      postcss: 8.5.28
+
   postcss@8.5.28:
     dependencies:
       nanoid: 3.3.19
@@ -4816,6 +4921,10 @@ snapshots:
     dependencies:
       '@tokenizer/token': 0.3.0
 
+  sugarss@5.0.1(postcss@8.5.28):
+    dependencies:
+      postcss: 8.5.28
+
   swagger-ui-dist@5.32.13:
     dependencies:
       '@scarf/scarf': 1.4.0
@@ -4921,12 +5030,12 @@ snapshots:
 
   undici-types@8.9.0: {}
 
-  unhead@3.4.2(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)):
+  unhead@3.4.2(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28))):
     dependencies:
       hookable: 6.1.2
-      unplugin: 3.4.0(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1))
+      unplugin: 3.4.0(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28)))
     optionalDependencies:
-      vite: 8.3.2(@types/node@26.6.4)(jiti@2.6.1)
+      vite: 8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28))
     transitivePeerDependencies:
       - '@farmfe/core'
       - '@rsbuild/core'
@@ -4940,14 +5049,14 @@ snapshots:
 
   unpipe@1.0.0: {}
 
-  unplugin@3.4.0(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)):
+  unplugin@3.4.0(rolldown@1.2.12)(vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28))):
     dependencies:
       '@jridgewell/remapping': 2.3.5
       picomatch: 4.0.7
       webpack-virtual-modules: 0.6.2
     optionalDependencies:
       rolldown: 1.2.12
-      vite: 8.3.2(@types/node@26.6.4)(jiti@2.6.1)
+      vite: 8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28))
 
   update-browserslist-db@1.3.3(browserslist@4.29.3):
     dependencies:
@@ -4974,11 +5083,13 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.3.0
 
+  util-deprecate@1.0.2: {}
+
   uuid@11.1.1: {}
 
   vary@1.1.2: {}
 
-  vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1):
+  vite@8.3.2(@types/node@26.6.4)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.28)):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
@@ -4989,6 +5100,7 @@ snapshots:
       '@types/node': 26.6.4
       fsevents: 2.3.3
       jiti: 2.6.1
+      sugarss: 5.0.1(postcss@8.5.28)
 
   webpack-virtual-modules@0.6.2: {}
 
