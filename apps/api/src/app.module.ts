@@ -17,18 +17,23 @@ import { UsersModule } from "./modules/users/users.module";
         url: config.getOrThrow<string>("DATABASE_URL"),
         autoLoadEntities: true,
         synchronize: true,
+        manualInitialization: process.env.OPENAPI_EXPORT === "1",
       }),
     }),
     UsersModule,
     AuthModule,
-    BullModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        connection: {
-          url: config.getOrThrow<string>("REDIS_URL"),
-        },
-      }),
-    }),
+    ...(process.env.OPENAPI_EXPORT === "1"
+      ? []
+      : [
+          BullModule.forRootAsync({
+            inject: [ConfigService],
+            useFactory: (config: ConfigService) => ({
+              connection: {
+                url: config.getOrThrow<string>("REDIS_URL"),
+              },
+            }),
+          }),
+        ]),
   ],
   controllers: [HealthController],
 })

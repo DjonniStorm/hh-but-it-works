@@ -12,7 +12,9 @@ export class SessionStore implements OnModuleDestroy {
   private readonly redis: Redis;
 
   constructor(config: ConfigService) {
-    this.redis = new Redis(config.getOrThrow<string>("REDIS_URL"));
+    this.redis = new Redis(config.getOrThrow<string>("REDIS_URL"), {
+      lazyConnect: process.env.OPENAPI_EXPORT === "1",
+    });
   }
 
   async saveEmailConfirm(token: string, userId: string): Promise<void> {

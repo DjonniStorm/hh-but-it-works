@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "nest start --watch",
     "build": "nest build",
-    "start": "node dist/main"
+    "start": "node dist/main",
+    "openapi": "nest build && node dist/openapi.js"
   },
   "dependencies": {
     "@hh/assessment-engine": "workspace:*",

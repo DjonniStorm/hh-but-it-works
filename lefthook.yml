@@ -7,7 +7,7 @@ pre-commit:
       stage_fixed: true
     lint:
       glob: "*.{js,ts,tsx}"
-      run: pnpm exec eslint --max-warnings 0 {staged_files}
+      run: pnpm exec eslint --max-warnings 0 --no-warn-ignored {staged_files}
 
 commit-msg:
   commands:

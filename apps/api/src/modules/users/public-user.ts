@@ -6,7 +6,7 @@ export type PublicUser = {
   id: string;
   email: string;
   role: Role;
-  emailVerifiedAt: Date | null;
+  emailVerifiedAt: string | null;
 };
 
 export function toPublicUser(user: User): PublicUser {
@@ -14,6 +14,6 @@ export function toPublicUser(user: User): PublicUser {
     id: user.id,
     email: user.email,
     role: user.role,
-    emailVerifiedAt: user.emailVerifiedAt,
+    emailVerifiedAt: user.emailVerifiedAt?.toISOString() ?? null,
   };
 }
