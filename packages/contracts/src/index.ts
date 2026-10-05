@@ -5,15 +5,15 @@ import { Role } from "@hh/types";
 export const roleSchema = z.enum(Role);
 
 export const registerSchema = z.object({
-  email: z.email(),
-  password: z.string().min(8),
+  email: z.email("Укажите почту"),
+  password: z.string().min(8, "Минимум 8 символов"),
   role: roleSchema,
-  consent: z.literal(true),
+  consent: z.literal(true, "Нужно согласие на обработку данных"),
 });
 
 export const loginSchema = z.object({
-  email: z.email(),
-  password: z.string().min(1),
+  email: z.email("Укажите почту"),
+  password: z.string().min(1, "Введите пароль"),
 });
 
 export const confirmEmailSchema = z.object({

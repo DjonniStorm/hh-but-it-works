@@ -28,6 +28,11 @@ const fspRed: MantineColorsTuple = [
   "#6E0916",
 ];
 
+export const feedbackColor = {
+  error: "fspRed",
+  success: "fsp",
+} as const;
+
 export const theme = createTheme({
   primaryColor: "fsp",
   primaryShade: 6,

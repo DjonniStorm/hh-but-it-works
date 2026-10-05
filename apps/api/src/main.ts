@@ -8,7 +8,9 @@ import { createOpenApiDocument } from "./swagger";
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
-  app.enableCors({ origin: "http://localhost:5173" });
+  app.enableCors({
+    origin: ["http://localhost:5173", "http://localhost:5174"],
+  });
   app.useGlobalPipes(new ZodValidationPipe());
 
   SwaggerModule.setup("docs", app, createOpenApiDocument(app));

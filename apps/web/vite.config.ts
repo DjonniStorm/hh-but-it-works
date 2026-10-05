@@ -9,6 +9,14 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(process.cwd(), "./src"),
+      "@hh/types": path.resolve(
+        process.cwd(),
+        "../../packages/types/src/index.ts",
+      ),
+      "@hh/contracts": path.resolve(
+        process.cwd(),
+        "../../packages/contracts/src/index.ts",
+      ),
     },
   },
 });

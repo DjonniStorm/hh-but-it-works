@@ -120,8 +120,9 @@ export class AuthService {
   }
 
   private confirmationLink(token: string): string {
-    const port = this.config.get<string>("PORT") ?? "3000";
-    return `http://localhost:${port}/auth/confirm?token=${encodeURIComponent(token)}`;
+    const origin =
+      this.config.get<string>("WEB_URL") ?? "http://localhost:5173";
+    return `${origin}/auth/confirm?token=${encodeURIComponent(token)}`;
   }
 }
 
