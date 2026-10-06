@@ -30,15 +30,26 @@ export const AuthedShell = observer(() => {
   return (
     <AppShell header={{ height: headerHeight }} padding="md">
       <AppShell.Header>
-        <Group h="100%" px="md" justify="space-between">
-          <Group gap="lg">
+        <Group h="100%" px="md" justify="space-between" wrap="nowrap">
+          {/* На узком экране ссылки прокручиваются по горизонтали, а не переносятся под шапку.
+              Полосу прокрутки прячем: в шапке высотой 64px она съедает место под ссылками. */}
+          <Group
+            gap="lg"
+            wrap="nowrap"
+            style={{
+              flex: 1,
+              minWidth: 0,
+              overflowX: "auto",
+              scrollbarWidth: "none",
+            }}
+          >
             <Text
               fw={700}
               c="white"
               bg="fsp.6"
               px="sm"
               py={4}
-              style={{ borderRadius: 6 }}
+              style={{ borderRadius: 6, flexShrink: 0 }}
             >
               ЛЦТ
             </Text>
@@ -74,6 +85,7 @@ export const AuthedShell = observer(() => {
           </Group>
           <Button
             variant="default"
+            style={{ flexShrink: 0 }}
             onClick={() => {
               void auth.logout({
                 onSuccess: () => {

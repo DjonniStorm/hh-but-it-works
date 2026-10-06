@@ -25,16 +25,18 @@ export const CandidateInvitationCard = observer(
       <Paper withBorder radius="md" p="lg">
         <Stack gap="md">
           <Group justify="space-between" align="flex-start" wrap="nowrap">
-            <Stack gap={2}>
+            <Stack gap={2} style={{ minWidth: 0 }}>
               <Title order={3}>{invitation.companyName}</Title>
               <Text c="dimmed" size="sm">
                 {subtitle}
               </Text>
             </Stack>
+            {/* Статус читается целиком: сжимается название компании, не бейдж. */}
             <Badge
               variant="light"
               color={candidateInvitationColor[invitation.status]}
               tt="none"
+              style={{ flexShrink: 0 }}
             >
               {candidateStatusLabel[invitation.status]}
             </Badge>
