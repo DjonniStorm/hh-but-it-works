@@ -339,6 +339,45 @@ export const invitationListSchema = z.object({
   items: z.array(invitationSchema),
 });
 
+export const startAssessmentSchema = z.object({
+  grade: gradeSchema,
+});
+
+export const assessmentItemSchema = z.object({
+  itemId: z.string(),
+  skillId: z.uuid(),
+  prompt: z.string(),
+  choices: z.array(z.string()),
+});
+
+export const assessmentAttemptSchema = z.object({
+  attemptId: z.uuid(),
+  grade: gradeSchema,
+  items: z.array(assessmentItemSchema),
+});
+
+export const submitAssessmentSchema = z.object({
+  attemptId: z.uuid(),
+  answers: z.array(
+    z.object({
+      itemId: z.string().min(1),
+      choice: z.number().int().nonnegative(),
+    }),
+  ),
+});
+
+export const assessmentResultSchema = z.object({
+  passed: z.boolean(),
+  score: z.number().int().min(0).max(100),
+  grade: gradeSchema,
+  skills: z.array(
+    z.object({
+      skillId: z.uuid(),
+      score: z.number().int().min(0).max(100),
+    }),
+  ),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ConfirmEmailInput = z.infer<typeof confirmEmailSchema>;
@@ -364,3 +403,7 @@ export type Shortlist = z.infer<typeof shortlistSchema>;
 export type InvitationInput = z.infer<typeof invitationInputSchema>;
 export type Invitation = z.infer<typeof invitationSchema>;
 export type InvitationList = z.infer<typeof invitationListSchema>;
+export type StartAssessmentInput = z.infer<typeof startAssessmentSchema>;
+export type AssessmentAttempt = z.infer<typeof assessmentAttemptSchema>;
+export type SubmitAssessmentInput = z.infer<typeof submitAssessmentSchema>;
+export type AssessmentResult = z.infer<typeof assessmentResultSchema>;

@@ -89,6 +89,39 @@ export type SaveProfileDto = {
     }>;
 };
 
+export type StartAssessmentDto = {
+    grade: 'junior' | 'middle' | 'senior';
+};
+
+export type AssessmentAttemptDtoOutput = {
+    attemptId: string;
+    grade: 'junior' | 'middle' | 'senior';
+    items: Array<{
+        itemId: string;
+        skillId: string;
+        prompt: string;
+        choices: Array<string>;
+    }>;
+};
+
+export type SubmitAssessmentDto = {
+    attemptId: string;
+    answers: Array<{
+        itemId: string;
+        choice: number;
+    }>;
+};
+
+export type AssessmentResultDtoOutput = {
+    passed: boolean;
+    score: number;
+    grade: 'junior' | 'middle' | 'senior';
+    skills: Array<{
+        skillId: string;
+        score: number;
+    }>;
+};
+
 export type CompanyResponseDtoOutput = {
     company: {
         name: string;
@@ -371,6 +404,32 @@ export type ProfilesControllerSaveResponses = {
 };
 
 export type ProfilesControllerSaveResponse = ProfilesControllerSaveResponses[keyof ProfilesControllerSaveResponses];
+
+export type AssessmentsControllerStartData = {
+    body: StartAssessmentDto;
+    path?: never;
+    query?: never;
+    url: '/assessment/attempts';
+};
+
+export type AssessmentsControllerStartResponses = {
+    201: AssessmentAttemptDtoOutput;
+};
+
+export type AssessmentsControllerStartResponse = AssessmentsControllerStartResponses[keyof AssessmentsControllerStartResponses];
+
+export type AssessmentsControllerSubmitData = {
+    body: SubmitAssessmentDto;
+    path?: never;
+    query?: never;
+    url: '/assessment/attempts/submit';
+};
+
+export type AssessmentsControllerSubmitResponses = {
+    200: AssessmentResultDtoOutput;
+};
+
+export type AssessmentsControllerSubmitResponse = AssessmentsControllerSubmitResponses[keyof AssessmentsControllerSubmitResponses];
 
 export type EmployersControllerGetCompanyData = {
     body?: never;

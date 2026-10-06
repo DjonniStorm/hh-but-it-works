@@ -1,10 +1,15 @@
-import { BadRequestException, Injectable, OnModuleInit } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  OnModuleInit,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { In, Repository } from "typeorm";
 
 import type { CandidateProfile as CandidateProfileView } from "@hh/contracts";
 import type { SaveProfileInput } from "@hh/contracts";
-import { SearchStatus, SkillLevel, SkillVerification } from "@hh/types";
+import { Grade, SearchStatus, SkillLevel, SkillVerification } from "@hh/types";
 
 import { CandidateProfile } from "./candidate-profile.entity";
 import { CandidateSkill } from "./candidate-skill.entity";
@@ -15,6 +20,15 @@ type SkillSignal = {
   level: SkillLevel;
   verification: SkillVerification;
 };
+
+type AssessmentOutcome = {
+  grade: Grade;
+  passed: boolean;
+  score: number;
+  skills: { skillId: string; score: number }[];
+};
+
+const gradeChangeCooldownMs = 90 * 24 * 60 * 60 * 1000;
 
 @Injectable()
 export class ProfilesService implements OnModuleInit {
@@ -40,6 +54,89 @@ export class ProfilesService implements OnModuleInit {
     const signals = await this.signalsOf(profile?.id);
     const catalog = await this.visibleSkills(profile?.id, signals);
     return this.toView(profile, catalog, signals);
+  }
+
+  async assessmentSkills(
+    userId: string,
+  ): Promise<{ skillId: string; slug: string }[]> {
+    const profile = await this.profiles.findOne({ where: { userId } });
+    if (!profile) {
+      throw new BadRequestException("Сначала сохраните анкету");
+    }
+    const rows = await this.candidateSkills.find({
+      where: { profileId: profile.id },
+    });
+    if (rows.length === 0) {
+      return [];
+    }
+    const known = await this.skills.find({
+      where: {
+        id: In(
+          rows.map((row) => {
+            return row.skillId;
+          }),
+        ),
+      },
+    });
+    const slugs = new Map(
+      known.map((skill) => {
+        return [skill.id, skill.slug] as const;
+      }),
+    );
+    return rows.flatMap((row) => {
+      const slug = slugs.get(row.skillId);
+      if (!slug) {
+        return [];
+      }
+      return [{ skillId: row.skillId, slug }];
+    });
+  }
+
+  async applyAssessment(
+    userId: string,
+    result: AssessmentOutcome,
+  ): Promise<void> {
+    const profile = await this.profiles.findOne({ where: { userId } });
+    if (!profile) {
+      throw new BadRequestException("Сначала сохраните анкету");
+    }
+    const gradeChanges =
+      result.passed && profile.verifiedGrade !== result.grade;
+    if (
+      gradeChanges &&
+      profile.verifiedAt &&
+      Date.now() - profile.verifiedAt.getTime() < gradeChangeCooldownMs
+    ) {
+      throw new ConflictException("Сменить грейд можно раз в 90 дней");
+    }
+
+    for (const skill of result.skills) {
+      const row = await this.candidateSkills.findOne({
+        where: { profileId: profile.id, skillId: skill.skillId },
+      });
+      if (!row) {
+        continue;
+      }
+      if (skill.score === 100) {
+        row.verification = SkillVerification.Verified;
+        row.score = 100;
+      } else {
+        row.verification = SkillVerification.Unverified;
+        row.score = null;
+      }
+      await this.candidateSkills.save(row);
+    }
+
+    if (!result.passed) {
+      return;
+    }
+    profile.assessmentScore = result.score;
+    profile.listed = true;
+    if (gradeChanges) {
+      profile.verifiedGrade = result.grade;
+      profile.verifiedAt = new Date();
+    }
+    await this.profiles.save(profile);
   }
 
   async save(
@@ -142,6 +239,12 @@ export class ProfilesService implements OnModuleInit {
     profileId: string,
     skills: SaveProfileInput["skills"],
   ): Promise<void> {
+    const previous = await this.candidateSkills.find({ where: { profileId } });
+    const kept = new Map(
+      previous.map((row) => {
+        return [row.skillId, row] as const;
+      }),
+    );
     await this.candidateSkills.delete({ profileId });
     const assessed = new Map<string, SkillLevel>();
     for (const skill of skills) {
@@ -156,11 +259,16 @@ export class ProfilesService implements OnModuleInit {
     }
     await this.candidateSkills.save(
       [...assessed.entries()].map(([skillId, level]) => {
+        const prior = kept.get(skillId);
+        const sameLevel = prior?.level === level;
         return this.candidateSkills.create({
           profileId,
           skillId,
           level,
-          verification: SkillVerification.Unverified,
+          verification: sameLevel
+            ? prior.verification
+            : SkillVerification.Unverified,
+          score: sameLevel ? prior.score : null,
         });
       }),
     );

@@ -75,6 +75,10 @@ export class CandidateProfile {
   @Column({ type: "int", nullable: true })
   assessmentScore!: number | null;
 
+  /** Когда подтвердили грейд. От этой даты считается пауза перед сменой. */
+  @Column({ type: "timestamptz", nullable: true })
+  verifiedAt!: Date | null;
+
   @Column({ type: "real", nullable: true })
   experienceYears!: number | null;
 
