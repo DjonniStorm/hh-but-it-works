@@ -83,6 +83,80 @@ export type SaveProfileDto = {
     }>;
 };
 
+export type CompanyResponseDtoOutput = {
+    company: {
+        name: string;
+        industry: string;
+        description: string;
+        website: '' | string;
+        contactEmail: string;
+        contactTelegram: string;
+    } | null;
+};
+
+export type CompanyProfileDto = {
+    name: string;
+    industry: string;
+    description: string;
+    website: string | string;
+    contactEmail: string;
+    contactTelegram: string;
+};
+
+export type CompanyProfileDtoOutput = {
+    name: string;
+    industry: string;
+    description: string;
+    website: string | string;
+    contactEmail: string;
+    contactTelegram: string;
+};
+
+export type HiringNeedListDtoOutput = {
+    items: Array<{
+        title: string;
+        specialization: 'backend' | 'frontend' | 'data' | 'security';
+        gradeFrom: 'junior' | 'middle' | 'senior';
+        gradeTo: 'junior' | 'middle' | 'senior';
+        mustSkills: Array<string>;
+        niceSkills: Array<string>;
+        workFormat: 'office' | 'hybrid' | 'remote';
+        salaryFrom: number;
+        salaryTo: number;
+        description: string;
+        id: string;
+        createdAt: string;
+    }>;
+};
+
+export type HiringNeedInputDto = {
+    title: string;
+    specialization: 'backend' | 'frontend' | 'data' | 'security';
+    gradeFrom: 'junior' | 'middle' | 'senior';
+    gradeTo: 'junior' | 'middle' | 'senior';
+    mustSkills: Array<string>;
+    niceSkills: Array<string>;
+    workFormat: 'office' | 'hybrid' | 'remote';
+    salaryFrom: number;
+    salaryTo: number;
+    description: string;
+};
+
+export type HiringNeedDtoOutput = {
+    title: string;
+    specialization: 'backend' | 'frontend' | 'data' | 'security';
+    gradeFrom: 'junior' | 'middle' | 'senior';
+    gradeTo: 'junior' | 'middle' | 'senior';
+    mustSkills: Array<string>;
+    niceSkills: Array<string>;
+    workFormat: 'office' | 'hybrid' | 'remote';
+    salaryFrom: number;
+    salaryTo: number;
+    description: string;
+    id: string;
+    createdAt: string;
+};
+
 export type HealthControllerHealthData = {
     body?: never;
     path?: never;
@@ -199,3 +273,70 @@ export type ProfilesControllerSaveResponses = {
 };
 
 export type ProfilesControllerSaveResponse = ProfilesControllerSaveResponses[keyof ProfilesControllerSaveResponses];
+
+export type EmployersControllerGetCompanyData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/employer/company';
+};
+
+export type EmployersControllerGetCompanyResponses = {
+    200: CompanyResponseDtoOutput;
+};
+
+export type EmployersControllerGetCompanyResponse = EmployersControllerGetCompanyResponses[keyof EmployersControllerGetCompanyResponses];
+
+export type EmployersControllerSaveCompanyData = {
+    body: CompanyProfileDto;
+    path?: never;
+    query?: never;
+    url: '/employer/company';
+};
+
+export type EmployersControllerSaveCompanyResponses = {
+    200: CompanyProfileDtoOutput;
+};
+
+export type EmployersControllerSaveCompanyResponse = EmployersControllerSaveCompanyResponses[keyof EmployersControllerSaveCompanyResponses];
+
+export type EmployersControllerListNeedsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/employer/needs';
+};
+
+export type EmployersControllerListNeedsResponses = {
+    200: HiringNeedListDtoOutput;
+};
+
+export type EmployersControllerListNeedsResponse = EmployersControllerListNeedsResponses[keyof EmployersControllerListNeedsResponses];
+
+export type EmployersControllerCreateNeedData = {
+    body: HiringNeedInputDto;
+    path?: never;
+    query?: never;
+    url: '/employer/needs';
+};
+
+export type EmployersControllerCreateNeedResponses = {
+    201: HiringNeedDtoOutput;
+};
+
+export type EmployersControllerCreateNeedResponse = EmployersControllerCreateNeedResponses[keyof EmployersControllerCreateNeedResponses];
+
+export type EmployersControllerGetNeedData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/employer/needs/{id}';
+};
+
+export type EmployersControllerGetNeedResponses = {
+    200: HiringNeedDtoOutput;
+};
+
+export type EmployersControllerGetNeedResponse = EmployersControllerGetNeedResponses[keyof EmployersControllerGetNeedResponses];

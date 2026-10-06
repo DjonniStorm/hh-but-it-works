@@ -64,7 +64,15 @@ export class InvitationStore {
     return request(
       this.root,
       async () => {
-        const invitation = readData(await employerApi.createInvitation(input));
+        // Название компании и потребности берём из кабинета: в API сервер возьмёт их сам.
+        const { employer } = this.root;
+        const need = input.needId ? employer.needById(input.needId) : null;
+        const invitation = readData(
+          await employerApi.createInvitation(input, {
+            companyName: employer.company?.name ?? null,
+            needTitle: need?.title ?? null,
+          }),
+        );
         runInAction(() => {
           this.items.unshift(invitation);
         });

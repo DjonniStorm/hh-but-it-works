@@ -1,18 +1,16 @@
-// Мок ручек работодателя до появления модуля в Nest. Отвечает в форме сгенерированного клиента:
-// { data } или { error }. Когда ручки появятся, сторы переключаются на sdk.gen без правок UI.
+// Мок того, что ещё не переехало в Nest: подборка, «не подходит» и приглашения.
+// Профиль компании и потребности уже в API (employersController* в sdk.gen).
+// Отвечает в форме сгенерированного клиента: { data } или { error }.
 import { randomId } from "@/shared/lib/random-id";
 import type { ZodType } from "zod";
 
 import {
-  type CompanyProfile,
   type HiringNeed,
-  type HiringNeedInput,
+  type HiringNeedRecord,
   type Invitation,
   type InvitationInput,
   type Match,
   type Shortlist,
-  companyProfileSchema,
-  hiringNeedInputSchema,
   invitationInputSchema,
 } from "@hh/contracts";
 import { InvitationStatus } from "@hh/types";
@@ -24,16 +22,17 @@ type MockResult<T> =
   | { data: T; error?: undefined }
   | { data?: undefined; error: { message: string } };
 
-type StoredInvitation = Omit<Invitation, "candidateContact" | "companyName"> & {
-  // Пусто у демо-приглашений: название берём из текущего профиля компании.
-  companyName: string;
-};
+type StoredInvitation = Omit<Invitation, "candidateContact">;
 
 type MockState = {
-  company: CompanyProfile | null;
-  needs: Omit<HiringNeed, "candidateCount">[];
   dismissed: Record<string, string[]>;
   invitations: StoredInvitation[];
+};
+
+// Что нужно приглашению от остального кабинета. В API это возьмёт сервер сам.
+type InvitationContext = {
+  companyName: string | null;
+  needTitle: string | null;
 };
 
 const storageKey = "hh.mock.employer.v2";
@@ -59,104 +58,48 @@ function parse<T>(schema: ZodType<T>, input: unknown): ParseResult<T> {
   return { data: result.data };
 }
 
-export async function getCompany(): Promise<MockResult<CompanyProfile | null>> {
-  await delay();
-  return ok(read().company);
-}
-
-export async function saveCompany(
-  input: CompanyProfile,
-): Promise<MockResult<CompanyProfile>> {
-  await delay();
-  const parsed = parse(companyProfileSchema, input);
-  if (parsed.error !== undefined) {
-    return fail(parsed.error);
-  }
-  const current = read();
-  current.company = parsed.data;
-  write(current);
-  return ok(current.company);
-}
-
-export async function listNeeds(): Promise<MockResult<HiringNeed[]>> {
-  await delay();
-  const current = read();
-  return ok(
-    current.needs.map((need) => {
-      return withCount(need, current);
-    }),
-  );
-}
-
-export async function createNeed(
-  input: HiringNeedInput,
-): Promise<MockResult<HiringNeed>> {
-  await delay();
-  const parsed = parse(hiringNeedInputSchema, input);
-  if (parsed.error !== undefined) {
-    return fail(parsed.error);
-  }
-  const current = read();
-  const need = {
-    ...parsed.data,
-    id: randomId(),
-    createdAt: new Date().toISOString(),
-  };
-  current.needs.unshift(need);
-  write(current);
-  return ok(withCount(need, current));
-}
-
 export async function getShortlist(
-  needId: string,
+  need: HiringNeedRecord,
 ): Promise<MockResult<Shortlist>> {
   await delay();
-  const current = read();
-  const need = current.needs.find((item) => {
-    return item.id === needId;
-  });
-  if (!need) {
-    return fail("Потребность не найдена");
-  }
-  return ok({ needId, modelVersion, items: rank(need, current) });
+  return ok({ needId: need.id, modelVersion, items: rank(need, read()) });
 }
 
 export async function setDismissed(
-  needId: string,
+  need: HiringNeedRecord,
   candidateId: string,
   dismissed: boolean,
 ): Promise<MockResult<Shortlist>> {
   await delay();
   const current = read();
-  const need = current.needs.find((item) => {
-    return item.id === needId;
-  });
-  if (!need) {
-    return fail("Потребность не найдена");
-  }
-  const ids = new Set(current.dismissed[needId] ?? []);
+  const ids = new Set(current.dismissed[need.id] ?? []);
   if (dismissed) {
     ids.add(candidateId);
   } else {
     ids.delete(candidateId);
   }
-  current.dismissed[needId] = [...ids];
+  current.dismissed[need.id] = [...ids];
   write(current);
-  return ok({ needId, modelVersion, items: rank(need, current) });
+  return ok({ needId: need.id, modelVersion, items: rank(need, current) });
+}
+
+// Потребность из API + число кандидатов в подборке без отклонённых.
+// Пока подборка в моке, число считает её же правило; потом его отдаст ручка подборки.
+export function withCandidateCount(need: HiringNeedRecord): HiringNeed {
+  const candidateCount = rank(need, read()).filter((match) => {
+    return !match.dismissed;
+  }).length;
+  return { ...need, candidateCount };
 }
 
 export async function listInvitations(): Promise<MockResult<Invitation[]>> {
   await delay();
-  const current = read();
-  return ok(
-    current.invitations.map((invitation) => {
-      return present(invitation, current);
-    }),
-  );
+  return ok(read().invitations.map(present));
 }
 
 export async function createInvitation(
   input: InvitationInput,
+  context: InvitationContext,
 ): Promise<MockResult<Invitation>> {
   await delay();
   const parsed = parse(invitationInputSchema, input);
@@ -164,8 +107,7 @@ export async function createInvitation(
     return fail(parsed.error);
   }
   const body = parsed.data;
-  const current = read();
-  if (!current.company) {
+  if (!context.companyName) {
     return fail("Сначала заполните профиль компании");
   }
   const candidate = candidates.find((item) => {
@@ -174,8 +116,9 @@ export async function createInvitation(
   if (!candidate) {
     return fail("Кандидат не найден");
   }
+  const current = read();
   // Одно активное предложение кандидату от компании, в какой бы потребности оно ни было.
-  // После отказа можно пригласить снова. Это же правило в InvitationStore.activeFor.
+  // После отказа можно пригласить снова. Это же правило в InvitationStore.hasActive.
   const duplicate = current.invitations.some((item) => {
     return (
       item.candidateId === body.candidateId &&
@@ -185,9 +128,6 @@ export async function createInvitation(
   if (duplicate) {
     return fail("Этому кандидату уже отправлено приглашение");
   }
-  const need = current.needs.find((item) => {
-    return item.id === body.needId;
-  });
   const now = new Date().toISOString();
   const invitation: StoredInvitation = {
     ...body,
@@ -195,16 +135,16 @@ export async function createInvitation(
     status: InvitationStatus.Sent,
     createdAt: now,
     updatedAt: now,
-    companyName: current.company.name,
+    companyName: context.companyName,
     candidateAlias: candidate.alias,
-    needTitle: need?.title ?? null,
+    needTitle: context.needTitle,
   };
   current.invitations.unshift(invitation);
   write(current);
-  return ok(present(invitation, current));
+  return ok(present(invitation));
 }
 
-function rank(need: MockState["needs"][number], current: MockState): Match[] {
+function rank(need: HiringNeedRecord, current: MockState): Match[] {
   return rankCandidates(
     need,
     candidates,
@@ -212,23 +152,11 @@ function rank(need: MockState["needs"][number], current: MockState): Match[] {
   );
 }
 
-function withCount(
-  need: MockState["needs"][number],
-  current: MockState,
-): HiringNeed {
-  const active = rank(need, current).filter((match) => {
-    return !match.dismissed;
-  });
-  return { ...need, candidateCount: active.length };
-}
-
 // Правило видимости из ТЗ 2.2.2: контакт кандидата открывается только после принятия.
-function present(invitation: StoredInvitation, current: MockState): Invitation {
+function present(invitation: StoredInvitation): Invitation {
   const accepted = invitation.status === InvitationStatus.Accepted;
   return {
     ...invitation,
-    companyName:
-      invitation.companyName || current.company?.name || "Ваша компания",
     candidateContact: accepted
       ? (candidateContacts[invitation.candidateId] ?? null)
       : null,
@@ -285,14 +213,12 @@ function seedState(): MockState {
       status,
       createdAt: at(daysAgo),
       updatedAt: at(Math.max(0, daysAgo - 1)),
-      companyName: "",
+      companyName: "Демо-компания",
       candidateAlias: `Кандидат #${candidateId}`,
       needTitle: null,
     };
   };
   return {
-    company: null,
-    needs: [],
     dismissed: {},
     invitations: [
       demo("B102", InvitationStatus.Accepted, 6, 350000, 420000),

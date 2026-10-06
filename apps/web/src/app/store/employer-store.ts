@@ -1,4 +1,11 @@
-import * as employerApi from "@/shared/api/mock/employer-api";
+import {
+  employersControllerCreateNeed,
+  employersControllerGetCompany,
+  employersControllerListNeeds,
+  employersControllerSaveCompany,
+} from "@/shared/api/generated/sdk.gen";
+import { mapCompany, mapNeed } from "@/shared/api/map-employer";
+import * as shortlistMock from "@/shared/api/mock/employer-api";
 import { makeAutoObservable, observable, runInAction } from "mobx";
 
 import type {
@@ -48,13 +55,17 @@ export class EmployerStore {
     return request(
       this.root,
       async () => {
-        const [company, needs] = await Promise.all([
-          employerApi.getCompany(),
-          employerApi.listNeeds(),
+        const [companyResult, needsResult] = await Promise.all([
+          employersControllerGetCompany(),
+          employersControllerListNeeds(),
         ]);
+        const { company } = readData(companyResult);
+        const { items } = readData(needsResult);
         runInAction(() => {
-          this.company = readData(company);
-          this.needs = readData(needs);
+          this.company = company ? mapCompany(company) : null;
+          this.needs = items.map((item) => {
+            return shortlistMock.withCandidateCount(mapNeed(item));
+          });
         });
       },
       // Кабинет ждёт профиль и потребности: id попадает в лоадер оболочки.
@@ -66,7 +77,8 @@ export class EmployerStore {
     return request(
       this.root,
       async () => {
-        const company = readData(await employerApi.saveCompany(input));
+        const result = await employersControllerSaveCompany({ body: input });
+        const company = mapCompany(readData(result));
         runInAction(() => {
           this.company = company;
         });
@@ -80,7 +92,10 @@ export class EmployerStore {
     return request(
       this.root,
       async () => {
-        const need = readData(await employerApi.createNeed(input));
+        const result = await employersControllerCreateNeed({ body: input });
+        const need = shortlistMock.withCandidateCount(
+          mapNeed(readData(result)),
+        );
         runInAction(() => {
           this.needs.unshift(need);
         });
@@ -94,7 +109,9 @@ export class EmployerStore {
     return request(
       this.root,
       async () => {
-        const shortlist = readData(await employerApi.getShortlist(needId));
+        const shortlist = readData(
+          await shortlistMock.getShortlist(this.requireNeed(needId)),
+        );
         runInAction(() => {
           this.shortlists.set(needId, shortlist);
         });
@@ -114,18 +131,30 @@ export class EmployerStore {
     return request(
       this.root,
       async () => {
+        const need = this.requireNeed(needId);
         const shortlist = readData(
-          await employerApi.setDismissed(needId, candidateId, dismissed),
+          await shortlistMock.setDismissed(need, candidateId, dismissed),
         );
-        // Число кандидатов в карточках считает сервер, поэтому берём список заново.
-        const needs = readData(await employerApi.listNeeds());
         runInAction(() => {
           this.shortlists.set(needId, shortlist);
-          this.needs = needs;
+          // Число в карточке берём у подборки, а не считаем в сторе.
+          this.needs = this.needs.map((item) => {
+            return item.id === needId
+              ? shortlistMock.withCandidateCount(item)
+              : item;
+          });
         });
       },
       { loader: true, ...options },
     );
+  }
+
+  private requireNeed(needId: string): HiringNeed {
+    const need = this.needById(needId);
+    if (!need) {
+      throw new Error("Потребность не найдена");
+    }
+    return need;
   }
 
   private syncOwner(): void {
@@ -138,7 +167,7 @@ export class EmployerStore {
     this.needs = [];
     this.shortlists.clear();
     if (userId) {
-      employerApi.bindMockUser(userId);
+      shortlistMock.bindMockUser(userId);
     }
   }
 }

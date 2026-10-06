@@ -201,10 +201,24 @@ export const hiringNeedInputSchema = z
   )
   .refine(salaryRangeValid, salaryRangeIssue);
 
-export const hiringNeedSchema = z.object({
+// Ответы API работодателя. Списки и «может не быть» завёрнуты в объект,
+// чтобы DTO в Nest оставался обычной схемой-объектом.
+export const companyResponseSchema = z.object({
+  company: companyProfileSchema.nullable(),
+});
+
+export const hiringNeedRecordSchema = z.object({
   ...hiringNeedShape,
-  id: z.string(),
+  id: z.uuid(),
   createdAt: z.iso.datetime(),
+});
+
+export const hiringNeedListSchema = z.object({
+  items: z.array(hiringNeedRecordSchema),
+});
+
+// Потребность на фронте. Число кандидатов приходит из подборки, а не из ручки потребностей.
+export const hiringNeedSchema = hiringNeedRecordSchema.extend({
   candidateCount: z.number().int().min(0),
 });
 
@@ -315,6 +329,9 @@ export type SaveProfileInput = z.infer<typeof saveProfileSchema>;
 export type CompanyProfile = z.infer<typeof companyProfileSchema>;
 export type HiringNeedInput = z.infer<typeof hiringNeedInputSchema>;
 export type HiringNeed = z.infer<typeof hiringNeedSchema>;
+export type HiringNeedRecord = z.infer<typeof hiringNeedRecordSchema>;
+export type CompanyResponse = z.infer<typeof companyResponseSchema>;
+export type HiringNeedList = z.infer<typeof hiringNeedListSchema>;
 export type CandidateSkill = z.infer<typeof candidateSkillSchema>;
 export type FspAchievement = z.infer<typeof fspAchievementSchema>;
 export type CandidatePreferences = z.infer<typeof candidatePreferencesSchema>;
