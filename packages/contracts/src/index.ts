@@ -149,7 +149,14 @@ export const companyProfileSchema = z.object({
     .string()
     .trim()
     .min(20, "Расскажите о компании хотя бы в паре предложений"),
-  website: z.union([z.literal(""), z.url("Ссылка целиком, с https://")]),
+  // Только http и https: иначе пройдёт javascript:, а сайт потом покажут ссылкой.
+  website: z.union([
+    z.literal(""),
+    z.url({
+      protocol: /^https?$/,
+      error: "Ссылка целиком, с http:// или https://",
+    }),
+  ]),
   contactEmail: z.email("Укажите почту"),
   contactTelegram: z.string().trim(),
 });

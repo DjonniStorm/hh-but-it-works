@@ -3,8 +3,9 @@ import {
   refinementKeys,
   refinementLabel,
 } from "@/pages/employer/model/refinements";
-import { Chip, Group, Text } from "@mantine/core";
+import { Button, Group, Text } from "@mantine/core";
 
+// Переключатели в стиле остальных кнопок кабинета: выключенный — как «Отмена», включённый — основной цвет.
 export const RefinementBar = ({
   value,
   onChange,
@@ -18,23 +19,31 @@ export const RefinementBar = ({
 }) => {
   return (
     <Group justify="space-between" align="center">
-      <Chip.Group
-        multiple
-        value={value}
-        onChange={(next) => {
-          onChange(next as Refinement[]);
-        }}
-      >
-        <Group gap="xs">
-          {refinementKeys.map((key) => {
-            return (
-              <Chip key={key} value={key} size="sm">
-                {refinementLabel[key]}
-              </Chip>
-            );
-          })}
-        </Group>
-      </Chip.Group>
+      <Group gap="xs">
+        {refinementKeys.map((key) => {
+          const active = value.includes(key);
+          return (
+            <Button
+              key={key}
+              size="xs"
+              variant={active ? "filled" : "default"}
+              aria-pressed={active}
+              leftSection={active ? "✓" : null}
+              onClick={() => {
+                onChange(
+                  active
+                    ? value.filter((item) => {
+                        return item !== key;
+                      })
+                    : [...value, key],
+                );
+              }}
+            >
+              {refinementLabel[key]}
+            </Button>
+          );
+        })}
+      </Group>
       <Text size="sm" c="dimmed">
         Показано {shown} из {total}
       </Text>

@@ -1,4 +1,4 @@
-import { type MantineColorsTuple, createTheme } from "@mantine/core";
+import { Input, type MantineColorsTuple, createTheme } from "@mantine/core";
 
 import { InvitationStatus, SkillVerification } from "@hh/types";
 
@@ -67,5 +67,11 @@ export const theme = createTheme({
   colors: {
     fsp,
     fspRed,
+  },
+  components: {
+    // Лигатуры JetBrains Mono склеивают «://» в один знак: в поле «https://site» читалось как «https: /site».
+    Input: Input.extend({
+      styles: { input: { fontVariantLigatures: "none" } },
+    }),
   },
 });

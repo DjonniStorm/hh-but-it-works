@@ -2,6 +2,9 @@ import { notifier } from "@/app/store/notifier";
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { industryOptions } from "@/pages/employer/model/options";
+import { websiteOnBlur, websiteOnFocus } from "@/pages/employer/model/website";
+import { ROUTES } from "@/shared/router/routes";
+import { useReturnPath } from "@/shared/router/use-return-path";
 import {
   Button,
   Group,
@@ -16,6 +19,7 @@ import {
 } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
 import { observer } from "mobx-react-lite";
+import { useNavigate } from "react-router";
 
 import { companyProfileSchema } from "@hh/contracts";
 
@@ -30,17 +34,35 @@ const emptyCompany = {
 
 export const CompanyPage = observer(() => {
   const employer = useStore(StoreKey.Employer);
+  const navigate = useNavigate();
+  const returnPath = useReturnPath();
   // Раскладка рендерит страницу после загрузки профиля, поэтому начальные значения уже актуальны.
   const form = useForm({
     initialValues: employer.company ?? emptyCompany,
     validate: schemaResolver(companyProfileSchema, { sync: true }),
   });
 
+  const websiteProps = form.getInputProps("website");
+
   const onSubmit = form.onSubmit((values) => {
+    const firstSave = !employer.hasCompany;
     void employer.saveCompany(values, {
       onSuccess: (company) => {
         form.resetDirty(company);
         notifier.showSuccess("Профиль компании сохранён");
+        // Пришли из приглашения: возвращаем туда, откуда позвали.
+        if (returnPath !== ROUTES.HOME) {
+          navigate(returnPath);
+          return;
+        }
+        // Первый профиль: дальше по пути работодателя — описать, кого ищем.
+        if (firstSave) {
+          navigate(
+            employer.needs.length > 0
+              ? ROUTES.EMPLOYER.NEEDS
+              : ROUTES.EMPLOYER.NEED_NEW,
+          );
+        }
       },
     });
   });
@@ -76,7 +98,18 @@ export const CompanyPage = observer(() => {
           <TextInput
             label="Сайт"
             placeholder="https://"
-            {...form.getInputProps("website")}
+            {...websiteProps}
+            onFocus={(event) => {
+              form.setFieldValue(
+                "website",
+                websiteOnFocus(form.values.website),
+              );
+              websiteProps.onFocus?.(event);
+            }}
+            onBlur={(event) => {
+              form.setFieldValue("website", websiteOnBlur(form.values.website));
+              websiteProps.onBlur?.(event);
+            }}
           />
           <SimpleGrid cols={{ base: 1, sm: 2 }}>
             <TextInput
