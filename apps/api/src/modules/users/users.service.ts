@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import bcrypt from "bcrypt";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 
 import { Role } from "@hh/types";
 
@@ -68,6 +68,15 @@ export class UsersService {
   async markEmailVerified(id: string): Promise<User> {
     await this.users.update(id, { emailVerifiedAt: new Date() });
     return this.requireById(id);
+  }
+
+  // Один хеш на всех: bcrypt медленный, а пароль у этих пользователей общий.
+  async setPassword(ids: string[], password: string): Promise<void> {
+    if (ids.length === 0) {
+      return;
+    }
+    const passwordHash = await bcrypt.hash(password, passwordCost);
+    await this.users.update({ id: In(ids) }, { passwordHash });
   }
 
   async passwordMatches(user: User, password: string): Promise<boolean> {

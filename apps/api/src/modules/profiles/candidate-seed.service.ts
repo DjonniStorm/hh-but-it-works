@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 
 import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
@@ -17,14 +18,16 @@ import { CandidateSkill } from "./candidate-skill.entity";
 import { slugFromTitle } from "./skill-catalog";
 import { Skill } from "./skill.entity";
 
-// Сид-кандидаты для подборки работодателя. Под каждого — пользователь с паролем,
-// который никто не знает: войти под ними нельзя, они нужны только на бирже.
+// Сид-кандидаты для подборки работодателя. Под каждого — пользователь со случайным паролем.
+// Если задан SEED_CANDIDATE_PASSWORD (только для разработки), под ними можно войти
+// и ответить на приглашение: seed.<код>@candidates.hh.test, например seed.b101@….
 @Injectable()
 export class CandidateSeedService implements OnApplicationBootstrap {
   private readonly logger = new Logger(CandidateSeedService.name);
 
   constructor(
     private readonly users: UsersService,
+    private readonly config: ConfigService,
     @InjectRepository(CandidateProfile)
     private readonly profiles: Repository<CandidateProfile>,
     @InjectRepository(Skill)
@@ -48,11 +51,29 @@ export class CandidateSeedService implements OnApplicationBootstrap {
     if (created > 0) {
       this.logger.log(`Сид-кандидатов создано: ${created}`);
     }
+    await this.applyKnownPassword();
+  }
+
+  // Каждый старт: пароль из .env действует и для засеянных раньше, и после его смены.
+  private async applyKnownPassword(): Promise<void> {
+    const password = this.config.get<string>("SEED_CANDIDATE_PASSWORD");
+    if (!password) {
+      return;
+    }
+    const ids: string[] = [];
+    for (const seed of candidateSeeds) {
+      const user = await this.users.findByEmail(seedEmail(seed));
+      if (user) {
+        ids.push(user.id);
+      }
+    }
+    await this.users.setPassword(ids, password);
+    this.logger.log(`Вход под сид-кандидатами открыт: ${ids.length}`);
   }
 
   private async ensure(seed: CandidateSeed): Promise<boolean> {
     const code = seed.id.toLowerCase();
-    const email = `seed.${code}@candidates.hh.test`;
+    const email = seedEmail(seed);
     // Уже засеян — не трогаем, чтобы повторный старт не перетирал правки.
     if (await this.users.findByEmail(email)) {
       return false;
@@ -109,4 +130,8 @@ export class CandidateSeedService implements OnApplicationBootstrap {
     const created = await this.skills.save(this.skills.create({ slug, title }));
     return created.id;
   }
+}
+
+function seedEmail(seed: CandidateSeed): string {
+  return `seed.${seed.id.toLowerCase()}@candidates.hh.test`;
 }
