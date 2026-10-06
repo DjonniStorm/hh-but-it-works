@@ -1,16 +1,15 @@
 import { useState } from "react";
 
+import { candidateMeta } from "@/pages/employer/model/candidate-meta";
 import { inviteLabel } from "@/pages/employer/model/invite-label";
 import { ReasonList } from "@/pages/employer/ui/ReasonList";
 import { ScoreBar } from "@/pages/employer/ui/ScoreBar";
 import { ScoreRing } from "@/pages/employer/ui/ScoreRing";
 import { WhyMatch } from "@/pages/employer/ui/WhyMatch";
-import { formatSalaryFrom, formatYears } from "@/shared/lib/format";
 import {
   gradeLabel,
   invitationStatusLabel,
   specializationLabel,
-  workFormatLabel,
 } from "@/shared/lib/labels";
 import { invitationStatusColor } from "@/shared/theme";
 import {
@@ -49,11 +48,6 @@ export const MatchCard = ({
   const { candidate } = match;
   const verified = candidate.verifiedGrade;
   const grade = verified ?? candidate.claimedGrade;
-  const formats = candidate.preferences.workFormats
-    .map((format) => {
-      return workFormatLabel[format];
-    })
-    .join(", ");
 
   return (
     <Paper withBorder radius="md" p="lg">
@@ -96,9 +90,7 @@ export const MatchCard = ({
               ) : null}
             </Group>
             <Text size="sm" c="dimmed">
-              {formatYears(candidate.experienceYears)} опыта ·{" "}
-              {formatSalaryFrom(candidate.preferences.desiredSalaryFrom)} ·{" "}
-              {formats}
+              {candidateMeta(candidate)}
             </Text>
           </Stack>
           <ScoreRing value={match.matchScore} />

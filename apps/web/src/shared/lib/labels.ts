@@ -61,6 +61,7 @@ export const gradeOptions = gradeOrder.map((grade) => {
   return { value: grade, label: gradeLabel[grade] };
 });
 export const workFormatOptions = enumOptions(workFormatLabel);
+export const searchStatusOptions = enumOptions(searchStatusLabel);
 
 function enumOptions<T extends string>(labels: Record<T, string>) {
   return (Object.keys(labels) as T[]).map((value) => {

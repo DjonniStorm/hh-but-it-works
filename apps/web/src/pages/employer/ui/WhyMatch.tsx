@@ -1,4 +1,5 @@
 import { BreakdownGroup } from "@/pages/employer/ui/BreakdownGroup";
+import { FspHistory } from "@/pages/employer/ui/FspHistory";
 import { verificationLabel } from "@/shared/lib/labels";
 import { verificationColor } from "@/shared/theme";
 import { Badge, Divider, Group, SimpleGrid, Stack, Text } from "@mantine/core";
@@ -9,13 +10,17 @@ import type { Match } from "@hh/contracts";
 export const WhyMatch = ({ match }: { match: Match }) => {
   return (
     <Stack gap="md">
-      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-        {match.breakdown.map((item) => {
-          return <BreakdownGroup key={item.group} item={item} />;
-        })}
-      </SimpleGrid>
-
-      <Divider />
+      {/* Разбор по группам отдаёт сервис ранжирования. Пока он заглушка, групп нет. */}
+      {match.breakdown.length > 0 ? (
+        <>
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+            {match.breakdown.map((item) => {
+              return <BreakdownGroup key={item.group} item={item} />;
+            })}
+          </SimpleGrid>
+          <Divider />
+        </>
+      ) : null}
 
       <Stack gap={6}>
         <Text size="sm" fw={600}>
@@ -37,6 +42,8 @@ export const WhyMatch = ({ match }: { match: Match }) => {
           })}
         </Group>
       </Stack>
+
+      <FspHistory achievements={match.candidate.fspAchievements} />
     </Stack>
   );
 };

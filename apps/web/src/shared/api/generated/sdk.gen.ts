@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AuthControllerConfirmData, AuthControllerConfirmResponses, AuthControllerLoginData, AuthControllerLoginResponses, AuthControllerLogoutData, AuthControllerLogoutResponses, AuthControllerMeData, AuthControllerMeResponses, AuthControllerRefreshData, AuthControllerRefreshResponses, AuthControllerRegisterData, AuthControllerRegisterResponses, EmployersControllerCreateNeedData, EmployersControllerCreateNeedResponses, EmployersControllerGetCompanyData, EmployersControllerGetCompanyResponses, EmployersControllerGetNeedData, EmployersControllerGetNeedResponses, EmployersControllerListNeedsData, EmployersControllerListNeedsResponses, EmployersControllerSaveCompanyData, EmployersControllerSaveCompanyResponses, HealthControllerHealthData, HealthControllerHealthResponses, ProfilesControllerGetData, ProfilesControllerGetResponses, ProfilesControllerSaveData, ProfilesControllerSaveResponses } from './types.gen';
+import type { AuthControllerConfirmData, AuthControllerConfirmResponses, AuthControllerLoginData, AuthControllerLoginResponses, AuthControllerLogoutData, AuthControllerLogoutResponses, AuthControllerMeData, AuthControllerMeResponses, AuthControllerRefreshData, AuthControllerRefreshResponses, AuthControllerRegisterData, AuthControllerRegisterResponses, EmployersControllerCreateInvitationData, EmployersControllerCreateInvitationResponses, EmployersControllerCreateNeedData, EmployersControllerCreateNeedResponses, EmployersControllerDismissData, EmployersControllerDismissResponses, EmployersControllerGetCompanyData, EmployersControllerGetCompanyResponses, EmployersControllerGetNeedData, EmployersControllerGetNeedResponses, EmployersControllerListInvitationsData, EmployersControllerListInvitationsResponses, EmployersControllerListNeedsData, EmployersControllerListNeedsResponses, EmployersControllerRestoreData, EmployersControllerRestoreResponses, EmployersControllerSaveCompanyData, EmployersControllerSaveCompanyResponses, EmployersControllerShortlistData, EmployersControllerShortlistResponses, HealthControllerHealthData, HealthControllerHealthResponses, ProfilesControllerGetData, ProfilesControllerGetResponses, ProfilesControllerSaveData, ProfilesControllerSaveResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -123,4 +123,38 @@ export const employersControllerGetNeed = <ThrowOnError extends boolean = false>
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/employer/needs/{id}',
     ...options
+});
+
+export const employersControllerShortlist = <ThrowOnError extends boolean = false>(options: Options<EmployersControllerShortlistData, ThrowOnError>): RequestResult<EmployersControllerShortlistResponses, unknown, ThrowOnError> => (options.client ?? client).get<EmployersControllerShortlistResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/employer/needs/{id}/shortlist',
+    ...options
+});
+
+export const employersControllerRestore = <ThrowOnError extends boolean = false>(options: Options<EmployersControllerRestoreData, ThrowOnError>): RequestResult<EmployersControllerRestoreResponses, unknown, ThrowOnError> => (options.client ?? client).delete<EmployersControllerRestoreResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/employer/needs/{id}/dismissed/{candidateId}',
+    ...options
+});
+
+export const employersControllerDismiss = <ThrowOnError extends boolean = false>(options: Options<EmployersControllerDismissData, ThrowOnError>): RequestResult<EmployersControllerDismissResponses, unknown, ThrowOnError> => (options.client ?? client).put<EmployersControllerDismissResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/employer/needs/{id}/dismissed/{candidateId}',
+    ...options
+});
+
+export const employersControllerListInvitations = <ThrowOnError extends boolean = false>(options?: Options<EmployersControllerListInvitationsData, ThrowOnError>): RequestResult<EmployersControllerListInvitationsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<EmployersControllerListInvitationsResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/employer/invitations',
+    ...options
+});
+
+export const employersControllerCreateInvitation = <ThrowOnError extends boolean = false>(options: Options<EmployersControllerCreateInvitationData, ThrowOnError>): RequestResult<EmployersControllerCreateInvitationResponses, unknown, ThrowOnError> => (options.client ?? client).post<EmployersControllerCreateInvitationResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/employer/invitations',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });

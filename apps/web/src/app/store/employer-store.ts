@@ -1,11 +1,13 @@
 import {
   employersControllerCreateNeed,
+  employersControllerDismiss,
   employersControllerGetCompany,
   employersControllerListNeeds,
+  employersControllerRestore,
   employersControllerSaveCompany,
+  employersControllerShortlist,
 } from "@/shared/api/generated/sdk.gen";
-import { mapCompany, mapNeed } from "@/shared/api/map-employer";
-import * as shortlistMock from "@/shared/api/mock/employer-api";
+import { mapCompany, mapNeed, mapShortlist } from "@/shared/api/map-employer";
 import { makeAutoObservable, observable, runInAction } from "mobx";
 
 import type {
@@ -63,9 +65,7 @@ export class EmployerStore {
         const { items } = readData(needsResult);
         runInAction(() => {
           this.company = company ? mapCompany(company) : null;
-          this.needs = items.map((item) => {
-            return shortlistMock.withCandidateCount(mapNeed(item));
-          });
+          this.needs = items.map(mapNeed);
         });
       },
       // Кабинет ждёт профиль и потребности: id попадает в лоадер оболочки.
@@ -93,9 +93,7 @@ export class EmployerStore {
       this.root,
       async () => {
         const result = await employersControllerCreateNeed({ body: input });
-        const need = shortlistMock.withCandidateCount(
-          mapNeed(readData(result)),
-        );
+        const need = mapNeed(readData(result));
         runInAction(() => {
           this.needs.unshift(need);
         });
@@ -109,9 +107,10 @@ export class EmployerStore {
     return request(
       this.root,
       async () => {
-        const shortlist = readData(
-          await shortlistMock.getShortlist(this.requireNeed(needId)),
-        );
+        const result = await employersControllerShortlist({
+          path: { id: needId },
+        });
+        const shortlist = mapShortlist(readData(result));
         runInAction(() => {
           this.shortlists.set(needId, shortlist);
         });
@@ -131,30 +130,25 @@ export class EmployerStore {
     return request(
       this.root,
       async () => {
-        const need = this.requireNeed(needId);
-        const shortlist = readData(
-          await shortlistMock.setDismissed(need, candidateId, dismissed),
-        );
+        const path = { id: needId, candidateId };
+        const result = dismissed
+          ? await employersControllerDismiss({ path })
+          : await employersControllerRestore({ path });
+        const shortlist = mapShortlist(readData(result));
+        const active = shortlist.items.filter((match) => {
+          return !match.dismissed;
+        }).length;
         runInAction(() => {
           this.shortlists.set(needId, shortlist);
-          // Число в карточке берём у подборки, а не считаем в сторе.
-          this.needs = this.needs.map((item) => {
-            return item.id === needId
-              ? shortlistMock.withCandidateCount(item)
-              : item;
-          });
+          // Число в карточке потребности — то, что вернул сервер в подборке.
+          const need = this.needById(needId);
+          if (need) {
+            need.candidateCount = active;
+          }
         });
       },
       { loader: true, ...options },
     );
-  }
-
-  private requireNeed(needId: string): HiringNeed {
-    const need = this.needById(needId);
-    if (!need) {
-      throw new Error("Потребность не найдена");
-    }
-    return need;
   }
 
   private syncOwner(): void {
@@ -166,8 +160,5 @@ export class EmployerStore {
     this.company = null;
     this.needs = [];
     this.shortlists.clear();
-    if (userId) {
-      shortlistMock.bindMockUser(userId);
-    }
   }
 }

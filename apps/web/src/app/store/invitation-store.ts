@@ -1,4 +1,8 @@
-import * as employerApi from "@/shared/api/mock/employer-api";
+import {
+  employersControllerCreateInvitation,
+  employersControllerListInvitations,
+} from "@/shared/api/generated/sdk.gen";
+import { mapInvitation } from "@/shared/api/map-employer";
 import { makeAutoObservable, runInAction } from "mobx";
 
 import type { Invitation, InvitationInput } from "@hh/contracts";
@@ -34,8 +38,8 @@ export class InvitationStore {
     );
   }
 
-  // Правило то же, что в моке: одно активное предложение кандидату от компании,
-  // после отказа можно пригласить снова.
+  // Правило то же, что на сервере (InvitationsService.create): одно активное предложение
+  // кандидату от компании, после отказа можно пригласить снова.
   hasActive(candidateId: string): boolean {
     return this.items.some((invitation) => {
       return (
@@ -50,7 +54,8 @@ export class InvitationStore {
     return request(
       this.root,
       async () => {
-        const items = readData(await employerApi.listInvitations());
+        const result = await employersControllerListInvitations();
+        const items = readData(result).items.map(mapInvitation);
         runInAction(() => {
           this.items = items;
         });
@@ -64,15 +69,10 @@ export class InvitationStore {
     return request(
       this.root,
       async () => {
-        // Название компании и потребности берём из кабинета: в API сервер возьмёт их сам.
-        const { employer } = this.root;
-        const need = input.needId ? employer.needById(input.needId) : null;
-        const invitation = readData(
-          await employerApi.createInvitation(input, {
-            companyName: employer.company?.name ?? null,
-            needTitle: need?.title ?? null,
-          }),
-        );
+        const result = await employersControllerCreateInvitation({
+          body: input,
+        });
+        const invitation = mapInvitation(readData(result));
         runInAction(() => {
           this.items.unshift(invitation);
         });
@@ -89,8 +89,5 @@ export class InvitationStore {
     }
     this.ownerId = userId;
     this.items = [];
-    if (userId) {
-      employerApi.bindMockUser(userId);
-    }
   }
 }

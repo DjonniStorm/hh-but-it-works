@@ -11,6 +11,7 @@ import {
 } from "@/pages/profile/model/save-skills";
 import type { ContactValues } from "@/pages/profile/model/types";
 import { ContactIcon } from "@/pages/profile/ui/ContactIcon";
+import { ExpectationsFields } from "@/pages/profile/ui/ExpectationsFields";
 import {
   Button,
   Paper,
@@ -23,7 +24,7 @@ import {
 import { schemaResolver, useForm } from "@mantine/form";
 
 import { type CandidateProfile, saveContactsSchema } from "@hh/contracts";
-import { Grade, Specialization } from "@hh/types";
+import { Grade, SearchStatus, Specialization, WorkFormat } from "@hh/types";
 
 export const ContactsPanel = ({
   profile,
@@ -43,6 +44,9 @@ export const ContactsPanel = ({
       github: profile.github ?? "",
       linkedin: profile.linkedin ?? "",
       website: profile.website ?? "",
+      desiredSalaryFrom: profile.desiredSalaryFrom ?? "",
+      workFormats: profile.workFormats,
+      searchStatus: profile.searchStatus,
     },
     validate: schemaResolver(saveContactsSchema, { sync: true }),
   });
@@ -59,6 +63,10 @@ export const ContactsPanel = ({
         github: values.github,
         linkedin: values.linkedin,
         website: values.website,
+        desiredSalaryFrom:
+          values.desiredSalaryFrom === "" ? null : values.desiredSalaryFrom,
+        workFormats: values.workFormats as WorkFormat[],
+        searchStatus: values.searchStatus as SearchStatus,
         skills: saveSkills(assessedFromProfile(profile.skills)),
       },
       {
@@ -121,6 +129,7 @@ export const ContactsPanel = ({
           leftSection={<ContactIcon kind="website" />}
           {...form.getInputProps("website")}
         />
+        <ExpectationsFields form={form} />
         <Text>
           {profile.listed
             ? "Профиль на бирже."
