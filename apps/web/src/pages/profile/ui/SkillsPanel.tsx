@@ -44,6 +44,10 @@ export const SkillsPanel = ({ profile }: { profile: CandidateProfile }) => {
         github: profile.github ?? "",
         linkedin: profile.linkedin ?? "",
         website: profile.website ?? "",
+        // Ожидания сохраняет форма контактов, здесь отдаём их как есть.
+        desiredSalaryFrom: profile.desiredSalaryFrom,
+        workFormats: profile.workFormats,
+        searchStatus: profile.searchStatus,
         skills: saveSkills(values.skills),
       },
       {

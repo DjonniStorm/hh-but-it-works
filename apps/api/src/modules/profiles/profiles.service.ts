@@ -4,7 +4,7 @@ import { In, Repository } from "typeorm";
 
 import type { CandidateProfile as CandidateProfileView } from "@hh/contracts";
 import type { SaveProfileInput } from "@hh/contracts";
-import { SkillLevel, SkillVerification } from "@hh/types";
+import { SearchStatus, SkillLevel, SkillVerification } from "@hh/types";
 
 import { CandidateProfile } from "./candidate-profile.entity";
 import { CandidateSkill } from "./candidate-skill.entity";
@@ -120,6 +120,7 @@ export class ProfilesService implements OnModuleInit {
           claimedGrade: input.claimedGrade,
           listed: false,
           ...links,
+          ...expectations(input),
         }),
       );
     }
@@ -132,6 +133,7 @@ export class ProfilesService implements OnModuleInit {
     existing.github = links.github;
     existing.linkedin = links.linkedin;
     existing.website = links.website;
+    Object.assign(existing, expectations(input));
     // listed не трогаем: на биржу выводит только подтверждение.
     return this.profiles.save(existing);
   }
@@ -204,6 +206,9 @@ export class ProfilesService implements OnModuleInit {
       github: profile?.github ?? null,
       linkedin: profile?.linkedin ?? null,
       website: profile?.website ?? null,
+      desiredSalaryFrom: profile?.desiredSalaryFrom ?? null,
+      workFormats: profile?.workFormats ?? [],
+      searchStatus: profile?.searchStatus ?? SearchStatus.OpenToOffers,
       listed: profile?.listed ?? false,
       skills: catalog.map((skill) => {
         const signal = signals.get(skill.id);
@@ -232,6 +237,19 @@ function blankLinks(input: SaveProfileInput): {
     github: blank(input.github),
     linkedin: blank(input.linkedin),
     website: blank(input.website),
+  };
+}
+
+function expectations(
+  input: SaveProfileInput,
+): Pick<
+  CandidateProfile,
+  "desiredSalaryFrom" | "workFormats" | "searchStatus"
+> {
+  return {
+    desiredSalaryFrom: input.desiredSalaryFrom,
+    workFormats: input.workFormats,
+    searchStatus: input.searchStatus,
   };
 }
 

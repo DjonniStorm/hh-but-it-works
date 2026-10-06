@@ -16,6 +16,10 @@ export type ContactValues = {
   github: string;
   linkedin: string;
   website: string;
+  // Пустое поле NumberInput — "". Схема переводит его в null.
+  desiredSalaryFrom: number | "";
+  workFormats: string[];
+  searchStatus: string;
 };
 
 export type SkillsFormValues = {

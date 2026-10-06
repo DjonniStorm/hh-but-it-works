@@ -11,6 +11,12 @@ import { Outlet, useLocation, useNavigate } from "react-router";
 
 import { Role } from "@hh/types";
 
+const employerLinks = [
+  { to: ROUTES.EMPLOYER.NEEDS, label: "Подборки" },
+  { to: ROUTES.EMPLOYER.INVITATIONS, label: "Приглашения" },
+  { to: ROUTES.EMPLOYER.COMPANY, label: "Компания" },
+];
+
 export const AuthedShell = observer(() => {
   const auth = useStore(StoreKey.Auth);
   const navigate = useNavigate();
@@ -43,6 +49,18 @@ export const AuthedShell = observer(() => {
                 active={location.pathname === ROUTES.PROFILE}
               />
             ) : null}
+            {auth.user?.role === Role.Employer
+              ? employerLinks.map((link) => {
+                  return (
+                    <ShellLink
+                      key={link.to}
+                      to={link.to}
+                      label={link.label}
+                      active={location.pathname.startsWith(link.to)}
+                    />
+                  );
+                })
+              : null}
           </Group>
           <Button
             variant="default"

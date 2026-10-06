@@ -1,5 +1,7 @@
 import { AuthStore } from "./auth-store";
+import { EmployerStore } from "./employer-store";
 import { ErrorStore } from "./error-store";
+import { InvitationStore } from "./invitation-store";
 import { LoadingStore } from "./loading-store";
 import { ProfileStore } from "./profile-store";
 import { StoreKey } from "./store-key";
@@ -9,6 +11,8 @@ export interface StoreMap {
   [StoreKey.Errors]: ErrorStore;
   [StoreKey.Auth]: AuthStore;
   [StoreKey.Profile]: ProfileStore;
+  [StoreKey.Employer]: EmployerStore;
+  [StoreKey.Invitations]: InvitationStore;
 }
 
 export class RootStore {
@@ -16,6 +20,8 @@ export class RootStore {
   readonly errors = new ErrorStore();
   readonly auth: AuthStore;
   readonly profile: ProfileStore;
+  readonly employer: EmployerStore;
+  readonly invitations: InvitationStore;
   private readonly stores = new Map<StoreKey, StoreMap[StoreKey]>();
 
   constructor() {
@@ -25,6 +31,10 @@ export class RootStore {
     this.register(this.auth);
     this.profile = new ProfileStore(this);
     this.register(this.profile);
+    this.employer = new EmployerStore(this);
+    this.register(this.employer);
+    this.invitations = new InvitationStore(this);
+    this.register(this.invitations);
   }
 
   register<K extends StoreKey>(store: StoreMap[K] & { readonly key: K }): void {

@@ -1,9 +1,11 @@
 import type { CandidateProfile } from "@hh/contracts";
 import {
   Grade,
+  SearchStatus,
   SkillLevel,
   SkillVerification,
   Specialization,
+  WorkFormat,
 } from "@hh/types";
 
 export function mapCandidateProfile(profile: {
@@ -15,6 +17,9 @@ export function mapCandidateProfile(profile: {
   github: string | null;
   linkedin: string | null;
   website: string | null;
+  desiredSalaryFrom: number | null;
+  workFormats: string[];
+  searchStatus: string;
   listed: boolean;
   skills: {
     skillId: string;
@@ -33,6 +38,9 @@ export function mapCandidateProfile(profile: {
     github: profile.github,
     linkedin: profile.linkedin,
     website: profile.website,
+    desiredSalaryFrom: profile.desiredSalaryFrom,
+    workFormats: profile.workFormats.map(mapWorkFormat),
+    searchStatus: mapSearchStatus(profile.searchStatus),
     listed: profile.listed,
     skills: profile.skills.map((skill) => {
       return {
@@ -87,6 +95,28 @@ function mapVerification(value: string | null): SkillVerification | null {
     return value;
   }
   throw new Error("Неизвестный статус навыка");
+}
+
+function mapWorkFormat(value: string): WorkFormat {
+  if (
+    value === WorkFormat.Office ||
+    value === WorkFormat.Hybrid ||
+    value === WorkFormat.Remote
+  ) {
+    return value;
+  }
+  throw new Error("Неизвестный формат работы");
+}
+
+function mapSearchStatus(value: string): SearchStatus {
+  if (
+    value === SearchStatus.ActivelyLooking ||
+    value === SearchStatus.OpenToOffers ||
+    value === SearchStatus.Hidden
+  ) {
+    return value;
+  }
+  throw new Error("Неизвестный статус поиска");
 }
 
 function mapSkillLevel(value: string | null): SkillLevel | null {

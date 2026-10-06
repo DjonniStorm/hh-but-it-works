@@ -1,0 +1,23 @@
+import { createZodDto } from "nestjs-zod";
+
+import {
+  companyProfileSchema,
+  companyResponseSchema,
+  hiringNeedInputSchema,
+  hiringNeedListSchema,
+  hiringNeedSchema,
+  invitationInputSchema,
+  invitationListSchema,
+  invitationSchema,
+  shortlistSchema,
+} from "@hh/contracts";
+
+export class CompanyProfileDto extends createZodDto(companyProfileSchema) {}
+export class CompanyResponseDto extends createZodDto(companyResponseSchema) {}
+export class HiringNeedInputDto extends createZodDto(hiringNeedInputSchema) {}
+export class HiringNeedDto extends createZodDto(hiringNeedSchema) {}
+export class HiringNeedListDto extends createZodDto(hiringNeedListSchema) {}
+export class ShortlistDto extends createZodDto(shortlistSchema) {}
+export class InvitationInputDto extends createZodDto(invitationInputSchema) {}
+export class InvitationDto extends createZodDto(invitationSchema) {}
+export class InvitationListDto extends createZodDto(invitationListSchema) {}
