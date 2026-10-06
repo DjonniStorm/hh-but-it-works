@@ -21,6 +21,7 @@ type RequestHost = {
   loading: LoadingStore;
   errors: ErrorStore;
   auth: {
+    renewSession: () => Promise<boolean>;
     dropSession: () => void;
   };
 };
@@ -67,7 +68,9 @@ export async function request<T>(
   const id = options?.loader ? root.loading.start() : null;
 
   try {
-    const result = await runWithRetry(run, options?.retry);
+    const result = await runWithRenew(root, () => {
+      return runWithRetry(run, options?.retry);
+    });
     options?.onSuccess?.(result);
     return result;
   } catch (error) {
@@ -79,6 +82,35 @@ export async function request<T>(
       root.loading.stop(id);
     }
   }
+}
+
+// Access-токен живёт 15 минут. На 401 один раз обновляем сессию и повторяем запрос.
+// Повтор безопасен и для записи: на 401 guard отклонил запрос до обработчика.
+async function runWithRenew<T>(
+  root: RequestHost,
+  attempt: () => Promise<T>,
+): Promise<T> {
+  try {
+    return await attempt();
+  } catch (error) {
+    if (!isExpiredAccess(error)) {
+      throw error;
+    }
+    const renewed = await root.auth.renewSession();
+    if (!renewed) {
+      throw error;
+    }
+    return attempt();
+  }
+}
+
+function isExpiredAccess(error: unknown): boolean {
+  return (
+    error instanceof RequestFailed &&
+    error.status === 401 &&
+    !isCredentialRequest(error.url) &&
+    !isSessionRequest(error.url)
+  );
 }
 
 // Тост и onError — только после последней попытки, лоадер висит все попытки.
@@ -159,13 +191,17 @@ function statusCodeOf(error: unknown): number | null {
 }
 
 function isCredentialRequest(url: string): boolean {
+  return hasPath(url, ["/auth/login", "/auth/register", "/auth/confirm"]);
+}
+
+// Эти ручки сами работают с refresh-токеном: обновлять сессию ради них бессмысленно.
+function isSessionRequest(url: string): boolean {
+  return hasPath(url, ["/auth/refresh", "/auth/logout"]);
+}
+
+function hasPath(url: string, paths: string[]): boolean {
   try {
-    const path = new URL(url).pathname;
-    return (
-      path === "/auth/login" ||
-      path === "/auth/register" ||
-      path === "/auth/confirm"
-    );
+    return paths.includes(new URL(url).pathname);
   } catch {
     return false;
   }
