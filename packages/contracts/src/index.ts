@@ -55,6 +55,9 @@ export const specializationSchema = z.enum(Specialization);
 export const gradeSchema = z.enum(Grade);
 export const skillLevelSchema = z.enum(SkillLevel);
 export const skillVerificationSchema = z.enum(SkillVerification);
+export const workFormatSchema = z.enum(WorkFormat, "Выберите формат работы");
+export const invitationStatusSchema = z.enum(InvitationStatus);
+export const searchStatusSchema = z.enum(SearchStatus);
 
 export const profileSkillSchema = z.object({
   skillId: z.uuid(),
@@ -75,9 +78,27 @@ export const candidateProfileSchema = z.object({
   github: z.string().max(120).nullable(),
   linkedin: z.string().max(120).nullable(),
   website: z.string().max(120).nullable(),
+  // Ожидания кандидата: по ним подборка сверяет вилку и формат работодателя.
+  desiredSalaryFrom: z.number().int().positive().nullable(),
+  workFormats: z.array(workFormatSchema),
+  searchStatus: searchStatusSchema,
   listed: z.boolean(),
   skills: z.array(profileSkillSchema),
 });
+
+// Пустое поле зарплаты в форме — "", на сервер уходит null.
+const optionalSalarySchema = z
+  .union([
+    z.literal(""),
+    z
+      .number("Укажите сумму")
+      .int("Только целые рубли")
+      .positive("Сумма должна быть больше нуля"),
+  ])
+  .nullable()
+  .transform((value) => {
+    return value === "" ? null : value;
+  });
 
 export const saveContactsSchema = z.object({
   displayName: z.string().trim().min(1, "Укажите имя"),
@@ -88,6 +109,9 @@ export const saveContactsSchema = z.object({
   github: linkField,
   linkedin: linkField,
   website: linkField,
+  desiredSalaryFrom: optionalSalarySchema,
+  workFormats: z.array(workFormatSchema).max(3),
+  searchStatus: searchStatusSchema,
 });
 
 export const saveSkillSchema = z.union([
@@ -113,11 +137,7 @@ export const saveProfileSchema = saveContactsSchema.extend({
   skills: saveSkillsSchema.shape.skills,
 });
 
-// Черновик модели работодателя. Ручек под неё ещё нет, веб пока ходит в мок.
-
-export const workFormatSchema = z.enum(WorkFormat, "Выберите формат работы");
-export const invitationStatusSchema = z.enum(InvitationStatus);
-export const searchStatusSchema = z.enum(SearchStatus);
+// Модель работодателя: профиль компании, потребности, подборка, приглашения.
 
 const salaryShape = {
   salaryFrom: z
@@ -207,22 +227,19 @@ export const companyResponseSchema = z.object({
   company: companyProfileSchema.nullable(),
 });
 
-export const hiringNeedRecordSchema = z.object({
+// candidateCount — сколько кандидатов в подборке без отклонённых. Считает сервер.
+export const hiringNeedSchema = z.object({
   ...hiringNeedShape,
   id: z.uuid(),
   createdAt: z.iso.datetime(),
-});
-
-export const hiringNeedListSchema = z.object({
-  items: z.array(hiringNeedRecordSchema),
-});
-
-// Потребность на фронте. Число кандидатов приходит из подборки, а не из ручки потребностей.
-export const hiringNeedSchema = hiringNeedRecordSchema.extend({
   candidateCount: z.number().int().min(0),
 });
 
-// Навык в форме profileSkillSchema плюс балл теста, если навык подтверждён.
+export const hiringNeedListSchema = z.object({
+  items: z.array(hiringNeedSchema),
+});
+
+// Навык в форме profileSkillSchema плюс балл теста, если тест его оценил.
 export const candidateSkillSchema = z.object({
   title: z.string(),
   level: skillLevelSchema.nullable(),
@@ -237,8 +254,8 @@ export const fspAchievementSchema = z.object({
 });
 
 export const candidatePreferencesSchema = z.object({
-  desiredSalaryFrom: z.number().int().positive(),
-  workFormats: z.array(workFormatSchema).min(1),
+  desiredSalaryFrom: z.number().int().positive().nullable(),
+  workFormats: z.array(workFormatSchema),
   searchStatus: searchStatusSchema,
 });
 
@@ -250,7 +267,7 @@ export const candidateSnapshotSchema = z.object({
   claimedGrade: gradeSchema,
   verifiedGrade: gradeSchema.nullable(),
   gradeConfidence: z.number().min(0).max(1).nullable(),
-  experienceYears: z.number().min(0),
+  experienceYears: z.number().min(0).nullable(),
   skills: z.array(candidateSkillSchema),
   assessmentScore: z.number().min(0).max(100).nullable(),
   fspAchievements: z.array(fspAchievementSchema),
@@ -290,8 +307,9 @@ export const shortlistSchema = z.object({
 });
 
 const invitationShape = {
-  candidateId: z.string().min(1),
-  needId: z.string().nullable(),
+  candidateId: z.uuid(),
+  // У голого z.string().nullable() генератор OpenAPI ломает тип: держим ограничение.
+  needId: z.uuid().nullable(),
   message: z
     .string()
     .trim()
@@ -312,9 +330,13 @@ export const invitationSchema = z.object({
   updatedAt: z.iso.datetime(),
   companyName: z.string(),
   candidateAlias: z.string(),
-  needTitle: z.string().nullable(),
+  needTitle: z.string().min(1).nullable(),
   // Контакт кандидата раскрывается только после принятия приглашения.
-  candidateContact: z.string().nullable(),
+  candidateContact: z.string().min(1).nullable(),
+});
+
+export const invitationListSchema = z.object({
+  items: z.array(invitationSchema),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
@@ -329,7 +351,6 @@ export type SaveProfileInput = z.infer<typeof saveProfileSchema>;
 export type CompanyProfile = z.infer<typeof companyProfileSchema>;
 export type HiringNeedInput = z.infer<typeof hiringNeedInputSchema>;
 export type HiringNeed = z.infer<typeof hiringNeedSchema>;
-export type HiringNeedRecord = z.infer<typeof hiringNeedRecordSchema>;
 export type CompanyResponse = z.infer<typeof companyResponseSchema>;
 export type HiringNeedList = z.infer<typeof hiringNeedListSchema>;
 export type CandidateSkill = z.infer<typeof candidateSkillSchema>;
@@ -342,3 +363,4 @@ export type Match = z.infer<typeof matchSchema>;
 export type Shortlist = z.infer<typeof shortlistSchema>;
 export type InvitationInput = z.infer<typeof invitationInputSchema>;
 export type Invitation = z.infer<typeof invitationSchema>;
+export type InvitationList = z.infer<typeof invitationListSchema>;

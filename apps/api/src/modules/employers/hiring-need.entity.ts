@@ -38,7 +38,7 @@ export class HiringNeed {
   @Column({ type: "text", array: true })
   mustSkills!: string[];
 
-  @Column({ type: "text", array: true, default: () => "'{}'" })
+  @Column({ type: "text", array: true, default: "{}" })
   niceSkills!: string[];
 
   @Column({ type: "enum", enum: WorkFormat, enumName: "work_format" })

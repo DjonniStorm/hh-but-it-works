@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -24,15 +25,23 @@ import {
   HiringNeedDto,
   HiringNeedInputDto,
   HiringNeedListDto,
+  InvitationDto,
+  InvitationInputDto,
+  InvitationListDto,
+  ShortlistDto,
 } from "./dto";
 import { EmployersService } from "./employers.service";
+import { InvitationsService } from "./invitations.service";
 
 @Controller("employer")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.Employer)
 export class EmployersController {
-  constructor(private readonly employers: EmployersService) {}
+  constructor(
+    private readonly employers: EmployersService,
+    private readonly invitations: InvitationsService,
+  ) {}
 
   @Get("company")
   @ZodResponse({ status: 200, type: CompanyResponseDto })
@@ -65,5 +74,50 @@ export class EmployersController {
     @Param("id", new ParseUUIDPipe()) id: string,
   ) {
     return this.employers.getNeed(user.id, id);
+  }
+
+  @Get("needs/:id/shortlist")
+  @ZodResponse({ status: 200, type: ShortlistDto })
+  shortlist(
+    @CurrentUser() user: User,
+    @Param("id", new ParseUUIDPipe()) id: string,
+  ) {
+    return this.employers.shortlist(user.id, id);
+  }
+
+  // «Не подходит»: скрыть кандидата в этой потребности. Ответ — обновлённая подборка.
+  @Put("needs/:id/dismissed/:candidateId")
+  @ZodResponse({ status: 200, type: ShortlistDto })
+  dismiss(
+    @CurrentUser() user: User,
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Param("candidateId", new ParseUUIDPipe()) candidateId: string,
+  ) {
+    return this.employers.setDismissed(user.id, id, candidateId, true);
+  }
+
+  @Delete("needs/:id/dismissed/:candidateId")
+  @ZodResponse({ status: 200, type: ShortlistDto })
+  restore(
+    @CurrentUser() user: User,
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Param("candidateId", new ParseUUIDPipe()) candidateId: string,
+  ) {
+    return this.employers.setDismissed(user.id, id, candidateId, false);
+  }
+
+  @Get("invitations")
+  @ZodResponse({ status: 200, type: InvitationListDto })
+  listInvitations(@CurrentUser() user: User) {
+    return this.invitations.list(user.id);
+  }
+
+  @Post("invitations")
+  @ZodResponse({ status: 201, type: InvitationDto })
+  createInvitation(
+    @CurrentUser() user: User,
+    @Body() body: InvitationInputDto,
+  ) {
+    return this.invitations.create(user.id, body);
   }
 }

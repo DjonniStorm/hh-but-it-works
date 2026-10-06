@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 
-import { Grade, Specialization } from "@hh/types";
+import { Grade, SearchStatus, Specialization, WorkFormat } from "@hh/types";
 
 @Entity("candidate_profiles")
 export class CandidateProfile {
@@ -44,6 +44,39 @@ export class CandidateProfile {
 
   @Column({ type: "varchar", length: 120, nullable: true })
   website!: string | null;
+
+  /** Ожидания кандидата. По ним подборка сверяет вилку и формат работодателя. */
+  @Column({ type: "int", nullable: true })
+  desiredSalaryFrom!: number | null;
+
+  @Column({ type: "text", array: true, default: "{}" })
+  workFormats!: WorkFormat[];
+
+  @Column({
+    type: "enum",
+    enum: SearchStatus,
+    enumName: "search_status",
+    default: SearchStatus.OpenToOffers,
+  })
+  searchStatus!: SearchStatus;
+
+  /**
+   * Итоги тестирования для карточки в подборке. Пишет их будущий модуль теста,
+   * пока заполнены только у сид-кандидатов. Из формы профиля не приходят.
+   */
+  @Column({
+    type: "enum",
+    enum: Grade,
+    enumName: "verified_grade",
+    nullable: true,
+  })
+  verifiedGrade!: Grade | null;
+
+  @Column({ type: "int", nullable: true })
+  assessmentScore!: number | null;
+
+  @Column({ type: "real", nullable: true })
+  experienceYears!: number | null;
 
   /** На биржу выводит подтверждение, не сохранение анкеты. */
   @Column({ default: false })
