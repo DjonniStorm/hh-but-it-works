@@ -17,8 +17,16 @@ export const EmployerLayout = observer(() => {
   }, [employer, invitations]);
 
   return (
-    // Paper и поля берут фон из --mantine-color-body: в кабинете он белый, страница остаётся #EDEDED.
-    <Box style={{ "--mantine-color-body": surfaceColor } as CSSProperties}>
+    // Paper берёт фон из --mantine-color-body, поля — из --mantine-color-white (в теме это #EDEDED).
+    // В кабинете оба белые: карточки отделяются от страницы, а поля не выглядят неактивными.
+    <Box
+      style={
+        {
+          "--mantine-color-body": surfaceColor,
+          "--mantine-color-white": surfaceColor,
+        } as CSSProperties
+      }
+    >
       {employer.loadFailed ? (
         <LoadError
           title="Кабинет не загрузился"
