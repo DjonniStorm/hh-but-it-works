@@ -11,6 +11,11 @@ import { Outlet, useLocation, useNavigate } from "react-router";
 
 import { Role } from "@hh/types";
 
+const candidateLinks = [
+  { to: ROUTES.PROFILE, label: "Профиль" },
+  { to: ROUTES.INVITATIONS, label: "Приглашения" },
+];
+
 const employerLinks = [
   { to: ROUTES.EMPLOYER.NEEDS, label: "Подборки" },
   { to: ROUTES.EMPLOYER.INVITATIONS, label: "Приглашения" },
@@ -42,13 +47,18 @@ export const AuthedShell = observer(() => {
               label="Главная"
               active={location.pathname === ROUTES.HOME}
             />
-            {auth.user?.role === Role.Candidate ? (
-              <ShellLink
-                to={ROUTES.PROFILE}
-                label="Профиль"
-                active={location.pathname === ROUTES.PROFILE}
-              />
-            ) : null}
+            {auth.user?.role === Role.Candidate
+              ? candidateLinks.map((link) => {
+                  return (
+                    <ShellLink
+                      key={link.to}
+                      to={link.to}
+                      label={link.label}
+                      active={location.pathname === link.to}
+                    />
+                  );
+                })
+              : null}
             {auth.user?.role === Role.Employer
               ? employerLinks.map((link) => {
                   return (

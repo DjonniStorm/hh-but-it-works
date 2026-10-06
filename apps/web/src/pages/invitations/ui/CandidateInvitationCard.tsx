@@ -1,0 +1,85 @@
+import { useStore } from "@/app/store/store-context";
+import { StoreKey } from "@/app/store/store-key";
+import {
+  canAnswer,
+  candidateStatusLabel,
+} from "@/pages/invitations/model/answer";
+import { DeclineButton } from "@/pages/invitations/ui/DeclineButton";
+import { formatDate, formatSalary } from "@/shared/lib/format";
+import { candidateInvitationColor } from "@/shared/theme";
+import { Badge, Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
+import { observer } from "mobx-react-lite";
+
+import type { CandidateInvitation } from "@hh/contracts";
+import { InvitationStatus } from "@hh/types";
+
+export const CandidateInvitationCard = observer(
+  ({ invitation }: { invitation: CandidateInvitation }) => {
+    const invitations = useStore(StoreKey.CandidateInvitations);
+    // Отрасль и позиция одной строкой: позиции может не быть, тогда без лишней точки.
+    const subtitle = [invitation.companyIndustry, invitation.needTitle]
+      .filter(Boolean)
+      .join(" · ");
+
+    return (
+      <Paper withBorder radius="md" p="lg">
+        <Stack gap="md">
+          <Group justify="space-between" align="flex-start" wrap="nowrap">
+            <Stack gap={2}>
+              <Title order={3}>{invitation.companyName}</Title>
+              <Text c="dimmed" size="sm">
+                {subtitle}
+              </Text>
+            </Stack>
+            <Badge
+              variant="light"
+              color={candidateInvitationColor[invitation.status]}
+              tt="none"
+            >
+              {candidateStatusLabel[invitation.status]}
+            </Badge>
+          </Group>
+
+          <Text fw={700} size="lg">
+            {formatSalary(invitation.salaryFrom, invitation.salaryTo)}
+          </Text>
+          <Text style={{ whiteSpace: "pre-wrap" }}>{invitation.message}</Text>
+          <Text size="sm">
+            <Text span c="dimmed">
+              Связь с компанией:{" "}
+            </Text>
+            {invitation.contact}
+          </Text>
+
+          <Group justify="space-between" align="center">
+            <Text c="dimmed" size="xs">
+              {formatDate(invitation.createdAt)}
+            </Text>
+            {canAnswer(invitation.status) ? (
+              <Group gap="xs">
+                <DeclineButton
+                  onConfirm={() => {
+                    void invitations.decline(invitation.id);
+                  }}
+                />
+                <Button
+                  onClick={() => {
+                    void invitations.accept(invitation.id);
+                  }}
+                >
+                  Принять
+                </Button>
+              </Group>
+            ) : (
+              <Text c="dimmed" size="sm">
+                {invitation.status === InvitationStatus.Accepted
+                  ? "Компания видит ваш контакт и свяжется с вами"
+                  : "Вы отказались от этого предложения"}
+              </Text>
+            )}
+          </Group>
+        </Stack>
+      </Paper>
+    );
+  },
+);
