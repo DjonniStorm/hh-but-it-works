@@ -33,3 +33,33 @@ export enum SkillVerification {
   Verified = "verified",
   VerifiedExternal = "verified_external",
 }
+
+export enum WorkFormat {
+  Office = "office",
+  Hybrid = "hybrid",
+  Remote = "remote",
+}
+
+export enum InvitationStatus {
+  Sent = "sent",
+  Viewed = "viewed",
+  Accepted = "accepted",
+  Declined = "declined",
+}
+
+export enum SearchStatus {
+  ActivelyLooking = "actively-looking",
+  OpenToOffers = "open-to-offers",
+  Hidden = "hidden",
+}
+
+// По индексу считается расстояние между грейдами в подборке.
+export const gradeOrder: readonly Grade[] = [
+  Grade.Junior,
+  Grade.Middle,
+  Grade.Senior,
+];
+
+export function gradeIndex(grade: Grade): number {
+  return gradeOrder.indexOf(grade);
+}
