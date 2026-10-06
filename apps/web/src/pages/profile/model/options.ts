@@ -18,3 +18,17 @@ export const skillLevelOptions = [
   { value: SkillLevel.Confident, label: "Уверенный" },
   { value: SkillLevel.Strong, label: "Сильный" },
 ];
+
+export function optionLabel(
+  options: readonly { value: string; label: string }[],
+  value: string | null,
+) {
+  if (!value) {
+    return null;
+  }
+  return (
+    options.find((option) => {
+      return option.value === value;
+    })?.label ?? null
+  );
+}

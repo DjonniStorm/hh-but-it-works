@@ -9,12 +9,14 @@ import { createBrowserRouter } from "react-router";
 import { AuthLayout } from "./AuthLayout";
 import { CandidateRoute } from "./CandidateRoute";
 import { ProtectedRoute } from "./ProtectedRoute";
+import { QueryState } from "./QueryState";
 import { RouteError } from "./RouteError";
 import { ROUTES } from "./routes";
 
 export const router = createBrowserRouter([
   {
     errorElement: <RouteError />,
+    element: <QueryState />,
     children: [
       {
         element: <ProtectedRoute />,

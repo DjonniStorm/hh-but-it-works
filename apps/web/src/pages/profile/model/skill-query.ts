@@ -14,19 +14,37 @@ export function availableSkills(
   });
 }
 
+export function skillKey(title: string): string {
+  return title.trim().toLocaleLowerCase("ru").replace(/\s+/g, " ");
+}
+
 export function matchingSkills(
   skills: CatalogSkill[],
   query: string,
 ): CatalogSkill[] {
-  const needle = query.trim().toLowerCase();
+  const needle = skillKey(query);
   if (!needle) {
     return skills;
   }
   return skills.filter((skill) => {
-    return skill.title.toLowerCase().includes(needle);
+    return skillKey(skill.title).includes(needle);
   });
 }
 
 export function sameTitle(left: string, right: string): boolean {
-  return left.trim().toLowerCase() === right.trim().toLowerCase();
+  const leftKey = skillKey(left);
+  const rightKey = skillKey(right);
+  if (!leftKey || !rightKey) {
+    return false;
+  }
+  return leftKey.localeCompare(rightKey, "ru", { sensitivity: "accent" }) === 0;
+}
+
+export function findSkill(
+  catalog: CatalogSkill[],
+  query: string,
+): CatalogSkill | undefined {
+  return catalog.find((skill) => {
+    return sameTitle(skill.title, query);
+  });
 }
