@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useRootStore } from "@/app/store/store-context";
 import {
@@ -8,6 +8,7 @@ import {
 import { BackToNeeds } from "@/pages/employer/ui/BackToNeeds";
 import { DismissedList } from "@/pages/employer/ui/DismissedList";
 import { InviteModal } from "@/pages/employer/ui/InviteModal";
+import { LoadError } from "@/pages/employer/ui/LoadError";
 import { MatchCard } from "@/pages/employer/ui/MatchCard";
 import { NeedSummary } from "@/pages/employer/ui/NeedSummary";
 import { RefinementBar } from "@/pages/employer/ui/RefinementBar";
@@ -23,15 +24,28 @@ export const NeedPage = observer(() => {
   const { employer, invitations } = useRootStore();
   const [refinements, setRefinements] = useState<Refinement[]>([]);
   const [inviting, setInviting] = useState<CandidateSnapshot | null>(null);
+  const [inviteOpened, setInviteOpened] = useState(false);
+  // id потребности, чья подборка не загрузилась. Ставится только из onError.
+  const [failedId, setFailedId] = useState<string | null>(null);
 
   const need = employer.needById(needId);
+  const needExists = need !== null;
   const shortlist = employer.shortlists.get(needId);
 
+  const loadShortlist = useCallback(() => {
+    void employer.loadShortlist(needId, {
+      onError: () => {
+        setFailedId(needId);
+      },
+    });
+  }, [employer, needId]);
+
+  // Зависим от id, а не от объекта: после перезапроса списка объект новый, подборка та же.
   useEffect(() => {
-    if (need) {
-      void employer.loadShortlist(need.id);
+    if (needExists) {
+      loadShortlist();
     }
-  }, [employer, need]);
+  }, [needExists, loadShortlist]);
 
   if (!need) {
     return <Navigate to={ROUTES.EMPLOYER.NEEDS} replace />;
@@ -54,6 +68,16 @@ export const NeedPage = observer(() => {
       </Stack>
 
       <NeedSummary need={need} />
+
+      {failedId === needId && !shortlist ? (
+        <LoadError
+          title="Подборка не загрузилась"
+          onRetry={() => {
+            setFailedId(null);
+            loadShortlist();
+          }}
+        />
+      ) : null}
 
       {shortlist ? (
         <>
@@ -87,9 +111,11 @@ export const NeedPage = observer(() => {
                     key={match.candidate.id}
                     match={match}
                     rank={active.indexOf(match) + 1}
-                    invitation={invitations.byCandidate(match.candidate.id)}
+                    invitation={invitations.latestFor(match.candidate.id)}
+                    canInvite={!invitations.hasActive(match.candidate.id)}
                     onInvite={() => {
                       setInviting(match.candidate);
+                      setInviteOpened(true);
                     }}
                     onDismiss={() => {
                       void employer.setDismissed(
@@ -119,9 +145,10 @@ export const NeedPage = observer(() => {
 
       <InviteModal
         candidate={inviting}
+        opened={inviteOpened}
         need={need}
         onClose={() => {
-          setInviting(null);
+          setInviteOpened(false);
         }}
       />
     </Stack>

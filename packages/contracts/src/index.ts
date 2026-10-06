@@ -154,17 +154,31 @@ export const companyProfileSchema = z.object({
   contactTelegram: z.string().trim(),
 });
 
+// «React» и «react» — один навык: иначе ранжирование засчитает его дважды.
+const skillListSchema = z
+  .array(z.string().trim().min(1))
+  .max(10, "Не больше 10 навыков")
+  .refine(
+    (skills) => {
+      const keys = skills.map((skill) => {
+        return skill.toLowerCase();
+      });
+      return new Set(keys).size === keys.length;
+    },
+    { message: "Навык указан дважды" },
+  );
+
 const hiringNeedShape = {
   title: z.string().trim().min(3, "Назовите потребность"),
   // Свои тексты ошибок: форма показывает их под селектами.
   specialization: z.enum(Specialization, "Выберите специализацию"),
   gradeFrom: z.enum(Grade, "Выберите грейд"),
   gradeTo: z.enum(Grade, "Выберите грейд"),
-  mustSkills: z
-    .array(z.string().trim().min(1))
-    .min(1, "Добавьте хотя бы один обязательный навык")
-    .max(10, "Не больше 10 навыков"),
-  niceSkills: z.array(z.string().trim().min(1)).max(10, "Не больше 10 навыков"),
+  mustSkills: skillListSchema.min(
+    1,
+    "Добавьте хотя бы один обязательный навык",
+  ),
+  niceSkills: skillListSchema,
   workFormat: workFormatSchema,
   ...salaryShape,
   description: z.string().trim().max(2000, "Слишком длинное описание"),

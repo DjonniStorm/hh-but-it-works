@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { inviteLabel } from "@/pages/employer/model/invite-label";
 import { ReasonList } from "@/pages/employer/ui/ReasonList";
 import { ScoreBar } from "@/pages/employer/ui/ScoreBar";
 import { ScoreRing } from "@/pages/employer/ui/ScoreRing";
@@ -28,7 +29,10 @@ import type { Invitation, Match } from "@hh/contracts";
 type Props = {
   match: Match;
   rank: number;
+  // Последнее приглашение кандидату: показываем его статус.
   invitation: Invitation | null;
+  // Нет активного приглашения: можно звать, в том числе повторно после отказа.
+  canInvite: boolean;
   onInvite: () => void;
   onDismiss: () => void;
 };
@@ -37,6 +41,7 @@ export const MatchCard = ({
   match,
   rank,
   invitation,
+  canInvite,
   onInvite,
   onDismiss,
 }: Props) => {
@@ -142,8 +147,8 @@ export const MatchCard = ({
             <Button variant="default" onClick={onDismiss}>
               Не подходит
             </Button>
-            <Button onClick={onInvite} disabled={invitation !== null}>
-              {invitation ? "Приглашён" : "Пригласить"}
+            <Button onClick={onInvite} disabled={!canInvite}>
+              {inviteLabel(invitation, canInvite)}
             </Button>
           </Group>
         </Group>

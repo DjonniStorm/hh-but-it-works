@@ -1,15 +1,19 @@
 // Мок ручек работодателя до появления модуля в Nest. Отвечает в форме сгенерированного клиента:
 // { data } или { error }. Когда ручки появятся, сторы переключаются на sdk.gen без правок UI.
 import { randomId } from "@/shared/lib/random-id";
+import type { ZodType } from "zod";
 
-import type {
-  CompanyProfile,
-  HiringNeed,
-  HiringNeedInput,
-  Invitation,
-  InvitationInput,
-  Match,
-  Shortlist,
+import {
+  type CompanyProfile,
+  type HiringNeed,
+  type HiringNeedInput,
+  type Invitation,
+  type InvitationInput,
+  type Match,
+  type Shortlist,
+  companyProfileSchema,
+  hiringNeedInputSchema,
+  invitationInputSchema,
 } from "@hh/contracts";
 import { InvitationStatus } from "@hh/types";
 
@@ -32,10 +36,28 @@ type MockState = {
   invitations: StoredInvitation[];
 };
 
-const storageKey = "hh.mock.employer.v1";
+const storageKey = "hh.mock.employer.v2";
 const latencyMs = 250;
 
-let state: MockState | null = null;
+// У каждого аккаунта свои данные. Настоящий бэк узнаёт пользователя по токену,
+// мок узнаёт его от стора через bindMockUser.
+let userId = "anonymous";
+const states = new Map<string, MockState>();
+
+export function bindMockUser(id: string): void {
+  userId = id;
+}
+
+type ParseResult<T> = { data: T; error?: undefined } | { error: string };
+
+// Как ZodValidationPipe в Nest: тело проходит через схему, поэтому trim и проверки применяются.
+function parse<T>(schema: ZodType<T>, input: unknown): ParseResult<T> {
+  const result = schema.safeParse(input);
+  if (!result.success) {
+    return { error: result.error.issues[0]?.message ?? "Некорректные данные" };
+  }
+  return { data: result.data };
+}
 
 export async function getCompany(): Promise<MockResult<CompanyProfile | null>> {
   await delay();
@@ -46,8 +68,12 @@ export async function saveCompany(
   input: CompanyProfile,
 ): Promise<MockResult<CompanyProfile>> {
   await delay();
+  const parsed = parse(companyProfileSchema, input);
+  if (parsed.error !== undefined) {
+    return fail(parsed.error);
+  }
   const current = read();
-  current.company = { ...input };
+  current.company = parsed.data;
   write(current);
   return ok(current.company);
 }
@@ -66,9 +92,13 @@ export async function createNeed(
   input: HiringNeedInput,
 ): Promise<MockResult<HiringNeed>> {
   await delay();
+  const parsed = parse(hiringNeedInputSchema, input);
+  if (parsed.error !== undefined) {
+    return fail(parsed.error);
+  }
   const current = read();
   const need = {
-    ...input,
+    ...parsed.data,
     id: randomId(),
     createdAt: new Date().toISOString(),
   };
@@ -95,7 +125,7 @@ export async function setDismissed(
   needId: string,
   candidateId: string,
   dismissed: boolean,
-): Promise<MockResult<Match[]>> {
+): Promise<MockResult<Shortlist>> {
   await delay();
   const current = read();
   const need = current.needs.find((item) => {
@@ -112,7 +142,7 @@ export async function setDismissed(
   }
   current.dismissed[needId] = [...ids];
   write(current);
-  return ok(rank(need, current));
+  return ok({ needId, modelVersion, items: rank(need, current) });
 }
 
 export async function listInvitations(): Promise<MockResult<Invitation[]>> {
@@ -129,19 +159,26 @@ export async function createInvitation(
   input: InvitationInput,
 ): Promise<MockResult<Invitation>> {
   await delay();
+  const parsed = parse(invitationInputSchema, input);
+  if (parsed.error !== undefined) {
+    return fail(parsed.error);
+  }
+  const body = parsed.data;
   const current = read();
   if (!current.company) {
     return fail("Сначала заполните профиль компании");
   }
   const candidate = candidates.find((item) => {
-    return item.id === input.candidateId;
+    return item.id === body.candidateId;
   });
   if (!candidate) {
     return fail("Кандидат не найден");
   }
+  // Одно активное предложение кандидату от компании, в какой бы потребности оно ни было.
+  // После отказа можно пригласить снова. Это же правило в InvitationStore.activeFor.
   const duplicate = current.invitations.some((item) => {
     return (
-      item.candidateId === input.candidateId &&
+      item.candidateId === body.candidateId &&
       item.status !== InvitationStatus.Declined
     );
   });
@@ -149,11 +186,11 @@ export async function createInvitation(
     return fail("Этому кандидату уже отправлено приглашение");
   }
   const need = current.needs.find((item) => {
-    return item.id === input.needId;
+    return item.id === body.needId;
   });
   const now = new Date().toISOString();
   const invitation: StoredInvitation = {
-    ...input,
+    ...body,
     id: randomId(),
     status: InvitationStatus.Sent,
     createdAt: now,
@@ -199,22 +236,25 @@ function present(invitation: StoredInvitation, current: MockState): Invitation {
 }
 
 function read(): MockState {
-  if (state) {
-    return state;
+  const cached = states.get(userId);
+  if (cached) {
+    return cached;
   }
+  let loaded: MockState;
   try {
-    const raw = localStorage.getItem(storageKey);
-    state = raw ? (JSON.parse(raw) as MockState) : seedState();
+    const raw = localStorage.getItem(`${storageKey}:${userId}`);
+    loaded = raw ? (JSON.parse(raw) as MockState) : seedState();
   } catch {
-    state = seedState();
+    loaded = seedState();
   }
-  return state;
+  states.set(userId, loaded);
+  return loaded;
 }
 
 function write(next: MockState): void {
-  state = next;
+  states.set(userId, next);
   try {
-    localStorage.setItem(storageKey, JSON.stringify(next));
+    localStorage.setItem(`${storageKey}:${userId}`, JSON.stringify(next));
   } catch {
     // Без хранилища мок продолжает работать в памяти до перезагрузки.
   }
@@ -257,8 +297,8 @@ function seedState(): MockState {
     invitations: [
       demo("B102", InvitationStatus.Accepted, 6, 350000, 420000),
       demo("F201", InvitationStatus.Viewed, 3, 220000, 260000),
-      demo("M501", InvitationStatus.Declined, 5, 180000, 210000),
-      demo("D401", InvitationStatus.Sent, 1, 250000, 300000),
+      demo("D301", InvitationStatus.Declined, 5, 180000, 210000),
+      demo("S401", InvitationStatus.Sent, 1, 250000, 300000),
     ],
   };
 }

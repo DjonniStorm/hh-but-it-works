@@ -20,6 +20,9 @@ export class EmployerStore {
   needs: HiringNeed[] = [];
   readonly shortlists = observable.map<string, Shortlist>();
   loaded = false;
+  loadFailed = false;
+  // Чьи данные лежат в сторе. При входе другим аккаунтом стор очищается.
+  private ownerId: string | null = null;
 
   constructor(private readonly root: RootStore) {
     makeAutoObservable<this, "root" | "key">(
@@ -41,8 +44,17 @@ export class EmployerStore {
     );
   }
 
-  // Профиль и потребности нужны всем экранам кабинета, поэтому грузятся один раз при входе.
+  // Профиль и потребности нужны всем экранам кабинета: грузим один раз на аккаунт.
+  ensureLoaded(): void {
+    this.syncOwner();
+    if (!this.loaded) {
+      void this.load();
+    }
+  }
+
   load(options?: CallOptions<void>) {
+    this.syncOwner();
+    this.loadFailed = false;
     return request(
       this.root,
       async () => {
@@ -57,7 +69,16 @@ export class EmployerStore {
         });
       },
       // Кабинет ждёт профиль и потребности: id попадает в лоадер оболочки.
-      { loader: true, ...options },
+      {
+        loader: true,
+        ...options,
+        onError: (error) => {
+          runInAction(() => {
+            this.loadFailed = true;
+          });
+          options?.onError?.(error);
+        },
+      },
     );
   }
 
@@ -113,23 +134,33 @@ export class EmployerStore {
     return request(
       this.root,
       async () => {
-        const items = readData(
+        const shortlist = readData(
           await employerApi.setDismissed(needId, candidateId, dismissed),
         );
+        // Число кандидатов в карточках считает сервер, поэтому берём список заново.
+        const needs = readData(await employerApi.listNeeds());
         runInAction(() => {
-          const shortlist = this.shortlists.get(needId);
-          if (shortlist) {
-            this.shortlists.set(needId, { ...shortlist, items });
-          }
-          const need = this.needById(needId);
-          if (need) {
-            need.candidateCount = items.filter((match) => {
-              return !match.dismissed;
-            }).length;
-          }
+          this.shortlists.set(needId, shortlist);
+          this.needs = needs;
         });
       },
       { loader: true, ...options },
     );
+  }
+
+  private syncOwner(): void {
+    const userId = this.root.auth.user?.id ?? null;
+    if (userId === this.ownerId) {
+      return;
+    }
+    this.ownerId = userId;
+    this.company = null;
+    this.needs = [];
+    this.shortlists.clear();
+    this.loaded = false;
+    this.loadFailed = false;
+    if (userId) {
+      employerApi.bindMockUser(userId);
+    }
   }
 }

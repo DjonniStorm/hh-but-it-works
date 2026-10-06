@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
+import { LoadError } from "@/pages/employer/ui/LoadError";
 import { formatDate, formatSalary } from "@/shared/lib/format";
 import { invitationStatusLabel } from "@/shared/lib/labels";
 import { ROUTES } from "@/shared/router/routes";
@@ -43,6 +44,17 @@ export const InvitationsPage = observer(() => {
   const rows = invitations.items.filter((item) => {
     return filter === "all" || item.status === filter;
   });
+
+  if (invitations.loadFailed) {
+    return (
+      <LoadError
+        title="Приглашения не загрузились"
+        onRetry={() => {
+          void invitations.load();
+        }}
+      />
+    );
+  }
 
   return (
     <Stack gap="lg" maw={1100}>
