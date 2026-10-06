@@ -46,6 +46,215 @@ export type RefreshDto = {
     refreshToken: string;
 };
 
+export type CandidateProfileDtoOutput = {
+    displayName: string;
+    specialization: 'backend' | 'frontend' | 'data' | 'security' | null;
+    claimedGrade: 'junior' | 'middle' | 'senior' | null;
+    fspId: string | null;
+    telegram: string | null;
+    github: string | null;
+    linkedin: string | null;
+    website: string | null;
+    desiredSalaryFrom: number | null;
+    workFormats: Array<'office' | 'hybrid' | 'remote'>;
+    searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden';
+    listed: boolean;
+    skills: Array<{
+        skillId: string;
+        slug: string;
+        title: string;
+        level: 'basic' | 'confident' | 'strong' | null;
+        verification: 'unverified' | 'verified' | 'verified_external' | null;
+    }>;
+};
+
+export type SaveProfileDto = {
+    displayName: string;
+    specialization: 'backend' | 'frontend' | 'data' | 'security';
+    claimedGrade: 'junior' | 'middle' | 'senior';
+    fspId: string;
+    telegram: string;
+    github: string;
+    linkedin: string;
+    website: string;
+    desiredSalaryFrom: '' | number | null;
+    workFormats: Array<'office' | 'hybrid' | 'remote'>;
+    searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden';
+    skills: Array<{
+        skillId: string;
+        level: 'basic' | 'confident' | 'strong' | null;
+    } | {
+        title: string;
+        level: 'basic' | 'confident' | 'strong' | null;
+    }>;
+};
+
+export type CompanyResponseDtoOutput = {
+    company: {
+        name: string;
+        industry: string;
+        description: string;
+        website: '' | string;
+        contactEmail: string;
+        contactTelegram: string;
+    } | null;
+};
+
+export type CompanyProfileDto = {
+    name: string;
+    industry: string;
+    description: string;
+    website: string | string;
+    contactEmail: string;
+    contactTelegram: string;
+};
+
+export type CompanyProfileDtoOutput = {
+    name: string;
+    industry: string;
+    description: string;
+    website: string | string;
+    contactEmail: string;
+    contactTelegram: string;
+};
+
+export type HiringNeedListDtoOutput = {
+    items: Array<{
+        title: string;
+        specialization: 'backend' | 'frontend' | 'data' | 'security';
+        gradeFrom: 'junior' | 'middle' | 'senior';
+        gradeTo: 'junior' | 'middle' | 'senior';
+        mustSkills: Array<string>;
+        niceSkills: Array<string>;
+        workFormat: 'office' | 'hybrid' | 'remote';
+        salaryFrom: number;
+        salaryTo: number;
+        description: string;
+        id: string;
+        createdAt: string;
+        candidateCount: number;
+    }>;
+};
+
+export type HiringNeedInputDto = {
+    title: string;
+    specialization: 'backend' | 'frontend' | 'data' | 'security';
+    gradeFrom: 'junior' | 'middle' | 'senior';
+    gradeTo: 'junior' | 'middle' | 'senior';
+    mustSkills: Array<string>;
+    niceSkills: Array<string>;
+    workFormat: 'office' | 'hybrid' | 'remote';
+    salaryFrom: number;
+    salaryTo: number;
+    description: string;
+};
+
+export type HiringNeedDtoOutput = {
+    title: string;
+    specialization: 'backend' | 'frontend' | 'data' | 'security';
+    gradeFrom: 'junior' | 'middle' | 'senior';
+    gradeTo: 'junior' | 'middle' | 'senior';
+    mustSkills: Array<string>;
+    niceSkills: Array<string>;
+    workFormat: 'office' | 'hybrid' | 'remote';
+    salaryFrom: number;
+    salaryTo: number;
+    description: string;
+    id: string;
+    createdAt: string;
+    candidateCount: number;
+};
+
+export type ShortlistDtoOutput = {
+    needId: string;
+    modelVersion: string;
+    items: Array<{
+        candidate: {
+            id: string;
+            alias: string;
+            specialization: 'backend' | 'frontend' | 'data' | 'security';
+            claimedGrade: 'junior' | 'middle' | 'senior';
+            verifiedGrade: 'junior' | 'middle' | 'senior' | null;
+            gradeConfidence: number | null;
+            experienceYears: number | null;
+            skills: Array<{
+                title: string;
+                level: 'basic' | 'confident' | 'strong' | null;
+                verification: 'unverified' | 'verified' | 'verified_external';
+                score: number | null;
+            }>;
+            assessmentScore: number | null;
+            fspAchievements: Array<{
+                title: string;
+                year: number;
+                place: number | null;
+            }>;
+            preferences: {
+                desiredSalaryFrom: number | null;
+                workFormats: Array<'office' | 'hybrid' | 'remote'>;
+                searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden';
+            };
+        };
+        matchScore: number;
+        qualification: number;
+        opportunityFit: number;
+        reasons: Array<string>;
+        risks: Array<string>;
+        breakdown: Array<{
+            group: 'category' | 'skills' | 'assessment' | 'fsp' | 'preferences';
+            score: number;
+            weight: number;
+            details: Array<string>;
+        }>;
+        dismissed: boolean;
+    }>;
+};
+
+export type InvitationListDtoOutput = {
+    items: Array<{
+        candidateId: string;
+        needId: string | null;
+        message: string;
+        contact: string;
+        salaryFrom: number;
+        salaryTo: number;
+        id: string;
+        status: 'sent' | 'viewed' | 'accepted' | 'declined';
+        createdAt: string;
+        updatedAt: string;
+        companyName: string;
+        candidateAlias: string;
+        needTitle: string | null;
+        candidateContact: string | null;
+    }>;
+};
+
+export type InvitationInputDto = {
+    candidateId: string;
+    needId: string | null;
+    message: string;
+    contact: string;
+    salaryFrom: number;
+    salaryTo: number;
+};
+
+export type InvitationDtoOutput = {
+    candidateId: string;
+    needId: string | null;
+    message: string;
+    contact: string;
+    salaryFrom: number;
+    salaryTo: number;
+    id: string;
+    status: 'sent' | 'viewed' | 'accepted' | 'declined';
+    createdAt: string;
+    updatedAt: string;
+    companyName: string;
+    candidateAlias: string;
+    needTitle: string | null;
+    candidateContact: string | null;
+};
+
 export type HealthControllerHealthData = {
     body?: never;
     path?: never;
@@ -136,3 +345,169 @@ export type AuthControllerMeResponses = {
 };
 
 export type AuthControllerMeResponse = AuthControllerMeResponses[keyof AuthControllerMeResponses];
+
+export type ProfilesControllerGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/profile';
+};
+
+export type ProfilesControllerGetResponses = {
+    200: CandidateProfileDtoOutput;
+};
+
+export type ProfilesControllerGetResponse = ProfilesControllerGetResponses[keyof ProfilesControllerGetResponses];
+
+export type ProfilesControllerSaveData = {
+    body: SaveProfileDto;
+    path?: never;
+    query?: never;
+    url: '/profile';
+};
+
+export type ProfilesControllerSaveResponses = {
+    200: CandidateProfileDtoOutput;
+};
+
+export type ProfilesControllerSaveResponse = ProfilesControllerSaveResponses[keyof ProfilesControllerSaveResponses];
+
+export type EmployersControllerGetCompanyData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/employer/company';
+};
+
+export type EmployersControllerGetCompanyResponses = {
+    200: CompanyResponseDtoOutput;
+};
+
+export type EmployersControllerGetCompanyResponse = EmployersControllerGetCompanyResponses[keyof EmployersControllerGetCompanyResponses];
+
+export type EmployersControllerSaveCompanyData = {
+    body: CompanyProfileDto;
+    path?: never;
+    query?: never;
+    url: '/employer/company';
+};
+
+export type EmployersControllerSaveCompanyResponses = {
+    200: CompanyProfileDtoOutput;
+};
+
+export type EmployersControllerSaveCompanyResponse = EmployersControllerSaveCompanyResponses[keyof EmployersControllerSaveCompanyResponses];
+
+export type EmployersControllerListNeedsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/employer/needs';
+};
+
+export type EmployersControllerListNeedsResponses = {
+    200: HiringNeedListDtoOutput;
+};
+
+export type EmployersControllerListNeedsResponse = EmployersControllerListNeedsResponses[keyof EmployersControllerListNeedsResponses];
+
+export type EmployersControllerCreateNeedData = {
+    body: HiringNeedInputDto;
+    path?: never;
+    query?: never;
+    url: '/employer/needs';
+};
+
+export type EmployersControllerCreateNeedResponses = {
+    201: HiringNeedDtoOutput;
+};
+
+export type EmployersControllerCreateNeedResponse = EmployersControllerCreateNeedResponses[keyof EmployersControllerCreateNeedResponses];
+
+export type EmployersControllerGetNeedData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/employer/needs/{id}';
+};
+
+export type EmployersControllerGetNeedResponses = {
+    200: HiringNeedDtoOutput;
+};
+
+export type EmployersControllerGetNeedResponse = EmployersControllerGetNeedResponses[keyof EmployersControllerGetNeedResponses];
+
+export type EmployersControllerShortlistData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/employer/needs/{id}/shortlist';
+};
+
+export type EmployersControllerShortlistResponses = {
+    200: ShortlistDtoOutput;
+};
+
+export type EmployersControllerShortlistResponse = EmployersControllerShortlistResponses[keyof EmployersControllerShortlistResponses];
+
+export type EmployersControllerRestoreData = {
+    body?: never;
+    path: {
+        id: string;
+        candidateId: string;
+    };
+    query?: never;
+    url: '/employer/needs/{id}/dismissed/{candidateId}';
+};
+
+export type EmployersControllerRestoreResponses = {
+    200: ShortlistDtoOutput;
+};
+
+export type EmployersControllerRestoreResponse = EmployersControllerRestoreResponses[keyof EmployersControllerRestoreResponses];
+
+export type EmployersControllerDismissData = {
+    body?: never;
+    path: {
+        id: string;
+        candidateId: string;
+    };
+    query?: never;
+    url: '/employer/needs/{id}/dismissed/{candidateId}';
+};
+
+export type EmployersControllerDismissResponses = {
+    200: ShortlistDtoOutput;
+};
+
+export type EmployersControllerDismissResponse = EmployersControllerDismissResponses[keyof EmployersControllerDismissResponses];
+
+export type EmployersControllerListInvitationsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/employer/invitations';
+};
+
+export type EmployersControllerListInvitationsResponses = {
+    200: InvitationListDtoOutput;
+};
+
+export type EmployersControllerListInvitationsResponse = EmployersControllerListInvitationsResponses[keyof EmployersControllerListInvitationsResponses];
+
+export type EmployersControllerCreateInvitationData = {
+    body: InvitationInputDto;
+    path?: never;
+    query?: never;
+    url: '/employer/invitations';
+};
+
+export type EmployersControllerCreateInvitationResponses = {
+    201: InvitationDtoOutput;
+};
+
+export type EmployersControllerCreateInvitationResponse = EmployersControllerCreateInvitationResponses[keyof EmployersControllerCreateInvitationResponses];

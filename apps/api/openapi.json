@@ -181,6 +181,376 @@
         ],
         "tags": ["Auth"]
       }
+    },
+    "/profile": {
+      "get": {
+        "operationId": "ProfilesController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateProfileDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Profiles"]
+      },
+      "put": {
+        "operationId": "ProfilesController_save",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateProfileDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Profiles"]
+      }
+    },
+    "/employer/company": {
+      "get": {
+        "operationId": "EmployersController_getCompany",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyResponseDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      },
+      "put": {
+        "operationId": "EmployersController_saveCompany",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyProfileDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      }
+    },
+    "/employer/needs": {
+      "get": {
+        "operationId": "EmployersController_listNeeds",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HiringNeedListDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      },
+      "post": {
+        "operationId": "EmployersController_createNeed",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HiringNeedInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HiringNeedDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      }
+    },
+    "/employer/needs/{id}": {
+      "get": {
+        "operationId": "EmployersController_getNeed",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HiringNeedDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      }
+    },
+    "/employer/needs/{id}/shortlist": {
+      "get": {
+        "operationId": "EmployersController_shortlist",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortlistDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      }
+    },
+    "/employer/needs/{id}/dismissed/{candidateId}": {
+      "put": {
+        "operationId": "EmployersController_dismiss",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "candidateId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortlistDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      },
+      "delete": {
+        "operationId": "EmployersController_restore",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "candidateId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortlistDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      }
+    },
+    "/employer/invitations": {
+      "get": {
+        "operationId": "EmployersController_listInvitations",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationListDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      },
+      "post": {
+        "operationId": "EmployersController_createInvitation",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvitationInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      }
     }
   },
   "info": {
@@ -335,6 +705,1103 @@
           }
         },
         "required": ["refreshToken"]
+      },
+      "CandidateProfileDto_Output": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "specialization": {
+            "type": "string",
+            "enum": ["backend", "frontend", "data", "security", null],
+            "nullable": true
+          },
+          "claimedGrade": {
+            "type": "string",
+            "enum": ["junior", "middle", "senior", null],
+            "nullable": true
+          },
+          "fspId": {
+            "type": "string",
+            "maxLength": 64,
+            "nullable": true
+          },
+          "telegram": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "github": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "linkedin": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "desiredSalaryFrom": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "nullable": true
+          },
+          "workFormats": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["office", "hybrid", "remote"]
+            }
+          },
+          "searchStatus": {
+            "type": "string",
+            "enum": ["actively-looking", "open-to-offers", "hidden"]
+          },
+          "listed": {
+            "type": "boolean"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "skillId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "slug": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "level": {
+                  "type": "string",
+                  "enum": ["basic", "confident", "strong", null],
+                  "nullable": true
+                },
+                "verification": {
+                  "type": "string",
+                  "enum": ["unverified", "verified", "verified_external", null],
+                  "nullable": true
+                }
+              },
+              "required": ["skillId", "slug", "title", "level", "verification"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "displayName",
+          "specialization",
+          "claimedGrade",
+          "fspId",
+          "telegram",
+          "github",
+          "linkedin",
+          "website",
+          "desiredSalaryFrom",
+          "workFormats",
+          "searchStatus",
+          "listed",
+          "skills"
+        ],
+        "additionalProperties": false
+      },
+      "SaveProfileDto": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "specialization": {
+            "type": "string",
+            "enum": ["backend", "frontend", "data", "security"]
+          },
+          "claimedGrade": {
+            "type": "string",
+            "enum": ["junior", "middle", "senior"]
+          },
+          "fspId": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "telegram": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "github": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "linkedin": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "desiredSalaryFrom": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [""]
+              },
+              {
+                "type": "integer",
+                "exclusiveMinimum": true,
+                "maximum": 9007199254740991,
+                "minimum": 0
+              }
+            ],
+            "nullable": true
+          },
+          "workFormats": {
+            "maxItems": 3,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["office", "hybrid", "remote"]
+            }
+          },
+          "searchStatus": {
+            "type": "string",
+            "enum": ["actively-looking", "open-to-offers", "hidden"]
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "skillId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "level": {
+                      "type": "string",
+                      "enum": ["basic", "confident", "strong", null],
+                      "nullable": true
+                    }
+                  },
+                  "required": ["skillId", "level"]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "level": {
+                      "type": "string",
+                      "enum": ["basic", "confident", "strong", null],
+                      "nullable": true
+                    }
+                  },
+                  "required": ["title", "level"]
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "displayName",
+          "specialization",
+          "claimedGrade",
+          "fspId",
+          "telegram",
+          "github",
+          "linkedin",
+          "website",
+          "desiredSalaryFrom",
+          "workFormats",
+          "searchStatus",
+          "skills"
+        ]
+      },
+      "CompanyResponseDto_Output": {
+        "type": "object",
+        "properties": {
+          "company": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 2
+              },
+              "industry": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": {
+                "type": "string",
+                "minLength": 20
+              },
+              "website": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [""]
+                  },
+                  {
+                    "type": "string",
+                    "format": "uri"
+                  }
+                ]
+              },
+              "contactEmail": {
+                "type": "string",
+                "format": "email",
+                "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              "contactTelegram": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "industry",
+              "description",
+              "website",
+              "contactEmail",
+              "contactTelegram"
+            ],
+            "additionalProperties": false,
+            "nullable": true
+          }
+        },
+        "required": ["company"],
+        "additionalProperties": false
+      },
+      "CompanyProfileDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2
+          },
+          "industry": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 20
+          },
+          "website": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": ""
+              },
+              {
+                "type": "string",
+                "format": "uri"
+              }
+            ]
+          },
+          "contactEmail": {
+            "type": "string",
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "contactTelegram": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "industry",
+          "description",
+          "website",
+          "contactEmail",
+          "contactTelegram"
+        ]
+      },
+      "CompanyProfileDto_Output": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2
+          },
+          "industry": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 20
+          },
+          "website": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": ""
+              },
+              {
+                "type": "string",
+                "format": "uri"
+              }
+            ]
+          },
+          "contactEmail": {
+            "type": "string",
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "contactTelegram": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "industry",
+          "description",
+          "website",
+          "contactEmail",
+          "contactTelegram"
+        ],
+        "additionalProperties": false
+      },
+      "HiringNeedListDto_Output": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "minLength": 3
+                },
+                "specialization": {
+                  "type": "string",
+                  "enum": ["backend", "frontend", "data", "security"]
+                },
+                "gradeFrom": {
+                  "type": "string",
+                  "enum": ["junior", "middle", "senior"]
+                },
+                "gradeTo": {
+                  "type": "string",
+                  "enum": ["junior", "middle", "senior"]
+                },
+                "mustSkills": {
+                  "minItems": 1,
+                  "maxItems": 10,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "niceSkills": {
+                  "maxItems": 10,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "workFormat": {
+                  "type": "string",
+                  "enum": ["office", "hybrid", "remote"]
+                },
+                "salaryFrom": {
+                  "type": "integer",
+                  "exclusiveMinimum": true,
+                  "maximum": 9007199254740991,
+                  "minimum": 0
+                },
+                "salaryTo": {
+                  "type": "integer",
+                  "exclusiveMinimum": true,
+                  "maximum": 9007199254740991,
+                  "minimum": 0
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 2000
+                },
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                },
+                "candidateCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "title",
+                "specialization",
+                "gradeFrom",
+                "gradeTo",
+                "mustSkills",
+                "niceSkills",
+                "workFormat",
+                "salaryFrom",
+                "salaryTo",
+                "description",
+                "id",
+                "createdAt",
+                "candidateCount"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "HiringNeedInputDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 3
+          },
+          "specialization": {
+            "type": "string",
+            "enum": ["backend", "frontend", "data", "security"]
+          },
+          "gradeFrom": {
+            "type": "string",
+            "enum": ["junior", "middle", "senior"]
+          },
+          "gradeTo": {
+            "type": "string",
+            "enum": ["junior", "middle", "senior"]
+          },
+          "mustSkills": {
+            "minItems": 1,
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "niceSkills": {
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "workFormat": {
+            "type": "string",
+            "enum": ["office", "hybrid", "remote"]
+          },
+          "salaryFrom": {
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991,
+            "minimum": 0
+          },
+          "salaryTo": {
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991,
+            "minimum": 0
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "title",
+          "specialization",
+          "gradeFrom",
+          "gradeTo",
+          "mustSkills",
+          "niceSkills",
+          "workFormat",
+          "salaryFrom",
+          "salaryTo",
+          "description"
+        ]
+      },
+      "HiringNeedDto_Output": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 3
+          },
+          "specialization": {
+            "type": "string",
+            "enum": ["backend", "frontend", "data", "security"]
+          },
+          "gradeFrom": {
+            "type": "string",
+            "enum": ["junior", "middle", "senior"]
+          },
+          "gradeTo": {
+            "type": "string",
+            "enum": ["junior", "middle", "senior"]
+          },
+          "mustSkills": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "niceSkills": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "workFormat": {
+            "type": "string",
+            "enum": ["office", "hybrid", "remote"]
+          },
+          "salaryFrom": {
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991,
+            "minimum": 0
+          },
+          "salaryTo": {
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991,
+            "minimum": 0
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "candidateCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "title",
+          "specialization",
+          "gradeFrom",
+          "gradeTo",
+          "mustSkills",
+          "niceSkills",
+          "workFormat",
+          "salaryFrom",
+          "salaryTo",
+          "description",
+          "id",
+          "createdAt",
+          "candidateCount"
+        ],
+        "additionalProperties": false
+      },
+      "ShortlistDto_Output": {
+        "type": "object",
+        "properties": {
+          "needId": {
+            "type": "string"
+          },
+          "modelVersion": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "candidate": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "alias": {
+                      "type": "string"
+                    },
+                    "specialization": {
+                      "type": "string",
+                      "enum": ["backend", "frontend", "data", "security"]
+                    },
+                    "claimedGrade": {
+                      "type": "string",
+                      "enum": ["junior", "middle", "senior"]
+                    },
+                    "verifiedGrade": {
+                      "type": "string",
+                      "enum": ["junior", "middle", "senior", null],
+                      "nullable": true
+                    },
+                    "gradeConfidence": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "nullable": true
+                    },
+                    "experienceYears": {
+                      "type": "number",
+                      "minimum": 0,
+                      "nullable": true
+                    },
+                    "skills": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string"
+                          },
+                          "level": {
+                            "type": "string",
+                            "enum": ["basic", "confident", "strong", null],
+                            "nullable": true
+                          },
+                          "verification": {
+                            "type": "string",
+                            "enum": [
+                              "unverified",
+                              "verified",
+                              "verified_external"
+                            ]
+                          },
+                          "score": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "nullable": true
+                          }
+                        },
+                        "required": ["title", "level", "verification", "score"],
+                        "additionalProperties": false
+                      }
+                    },
+                    "assessmentScore": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 100,
+                      "nullable": true
+                    },
+                    "fspAchievements": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string"
+                          },
+                          "year": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "place": {
+                            "type": "integer",
+                            "exclusiveMinimum": 0,
+                            "maximum": 9007199254740991,
+                            "nullable": true
+                          }
+                        },
+                        "required": ["title", "year", "place"],
+                        "additionalProperties": false
+                      }
+                    },
+                    "preferences": {
+                      "type": "object",
+                      "properties": {
+                        "desiredSalaryFrom": {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991,
+                          "nullable": true
+                        },
+                        "workFormats": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": ["office", "hybrid", "remote"]
+                          }
+                        },
+                        "searchStatus": {
+                          "type": "string",
+                          "enum": [
+                            "actively-looking",
+                            "open-to-offers",
+                            "hidden"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "desiredSalaryFrom",
+                        "workFormats",
+                        "searchStatus"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "alias",
+                    "specialization",
+                    "claimedGrade",
+                    "verifiedGrade",
+                    "gradeConfidence",
+                    "experienceYears",
+                    "skills",
+                    "assessmentScore",
+                    "fspAchievements",
+                    "preferences"
+                  ],
+                  "additionalProperties": false
+                },
+                "matchScore": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "qualification": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "opportunityFit": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "reasons": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "risks": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "breakdown": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "group": {
+                        "type": "string",
+                        "enum": [
+                          "category",
+                          "skills",
+                          "assessment",
+                          "fsp",
+                          "preferences"
+                        ]
+                      },
+                      "score": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                      },
+                      "weight": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "details": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": ["group", "score", "weight", "details"],
+                    "additionalProperties": false
+                  }
+                },
+                "dismissed": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "candidate",
+                "matchScore",
+                "qualification",
+                "opportunityFit",
+                "reasons",
+                "risks",
+                "breakdown",
+                "dismissed"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["needId", "modelVersion", "items"],
+        "additionalProperties": false
+      },
+      "InvitationListDto_Output": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "candidateId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "needId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                  "nullable": true
+                },
+                "message": {
+                  "type": "string",
+                  "minLength": 20
+                },
+                "contact": {
+                  "type": "string",
+                  "minLength": 3
+                },
+                "salaryFrom": {
+                  "type": "integer",
+                  "exclusiveMinimum": true,
+                  "maximum": 9007199254740991,
+                  "minimum": 0
+                },
+                "salaryTo": {
+                  "type": "integer",
+                  "exclusiveMinimum": true,
+                  "maximum": 9007199254740991,
+                  "minimum": 0
+                },
+                "id": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["sent", "viewed", "accepted", "declined"]
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                },
+                "companyName": {
+                  "type": "string"
+                },
+                "candidateAlias": {
+                  "type": "string"
+                },
+                "needTitle": {
+                  "type": "string",
+                  "minLength": 1,
+                  "nullable": true
+                },
+                "candidateContact": {
+                  "type": "string",
+                  "minLength": 1,
+                  "nullable": true
+                }
+              },
+              "required": [
+                "candidateId",
+                "needId",
+                "message",
+                "contact",
+                "salaryFrom",
+                "salaryTo",
+                "id",
+                "status",
+                "createdAt",
+                "updatedAt",
+                "companyName",
+                "candidateAlias",
+                "needTitle",
+                "candidateContact"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "InvitationInputDto": {
+        "type": "object",
+        "properties": {
+          "candidateId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "needId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "minLength": 20
+          },
+          "contact": {
+            "type": "string",
+            "minLength": 3
+          },
+          "salaryFrom": {
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991,
+            "minimum": 0
+          },
+          "salaryTo": {
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991,
+            "minimum": 0
+          }
+        },
+        "required": [
+          "candidateId",
+          "needId",
+          "message",
+          "contact",
+          "salaryFrom",
+          "salaryTo"
+        ]
+      },
+      "InvitationDto_Output": {
+        "type": "object",
+        "properties": {
+          "candidateId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "needId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "minLength": 20
+          },
+          "contact": {
+            "type": "string",
+            "minLength": 3
+          },
+          "salaryFrom": {
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991,
+            "minimum": 0
+          },
+          "salaryTo": {
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991,
+            "minimum": 0
+          },
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["sent", "viewed", "accepted", "declined"]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "candidateAlias": {
+            "type": "string"
+          },
+          "needTitle": {
+            "type": "string",
+            "minLength": 1,
+            "nullable": true
+          },
+          "candidateContact": {
+            "type": "string",
+            "minLength": 1,
+            "nullable": true
+          }
+        },
+        "required": [
+          "candidateId",
+          "needId",
+          "message",
+          "contact",
+          "salaryFrom",
+          "salaryTo",
+          "id",
+          "status",
+          "createdAt",
+          "updatedAt",
+          "companyName",
+          "candidateAlias",
+          "needTitle",
+          "candidateContact"
+        ],
+        "additionalProperties": false
       }
     }
   }

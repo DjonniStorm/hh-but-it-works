@@ -1,28 +1,24 @@
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { ROUTES } from "@/shared/router/routes";
-import { Button, Stack, Text, Title } from "@mantine/core";
+import { Stack, Text, Title } from "@mantine/core";
 import { observer } from "mobx-react-lite";
-import { useNavigate } from "react-router";
+import { Navigate } from "react-router";
+
+import { Role } from "@hh/types";
 
 export const HomePage = observer(() => {
   const auth = useStore(StoreKey.Auth);
-  const navigate = useNavigate();
+
+  // У работодателя своя главная: подборки.
+  if (auth.user?.role === Role.Employer) {
+    return <Navigate to={ROUTES.EMPLOYER.ROOT} replace />;
+  }
 
   return (
-    <Stack p="xl" gap="md">
+    <Stack gap="md">
       <Title order={1}>ЛЦТ</Title>
       <Text>{auth.user?.email}</Text>
-      <Button
-        variant="default"
-        onClick={() => {
-          void auth.logout({
-            onSuccess: () => navigate(ROUTES.AUTH.LOGIN),
-          });
-        }}
-      >
-        Выйти
-      </Button>
     </Stack>
   );
 });
