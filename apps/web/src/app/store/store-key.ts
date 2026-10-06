@@ -3,4 +3,6 @@ export enum StoreKey {
   Errors = "errors",
   Auth = "auth",
   Profile = "profile",
+  Employer = "employer",
+  Invitations = "invitations",
 }

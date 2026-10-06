@@ -1,5 +1,7 @@
 import { type MantineColorsTuple, createTheme } from "@mantine/core";
 
+import { InvitationStatus, SkillVerification } from "@hh/types";
+
 /** #402FFF, оттенок 6 — цвет из брендбука. */
 const fsp: MantineColorsTuple = [
   "#F2F3FF",
@@ -31,6 +33,29 @@ const fspRed: MantineColorsTuple = [
 export const feedbackColor = {
   error: "fspRed",
   success: "fsp",
+} as const;
+
+export const invitationStatusColor: Record<InvitationStatus, string> = {
+  [InvitationStatus.Sent]: "gray",
+  [InvitationStatus.Viewed]: "fsp",
+  [InvitationStatus.Accepted]: "teal",
+  [InvitationStatus.Declined]: "fspRed",
+};
+
+// Те же цвета, что у SkillStatusBadge в профиле кандидата.
+export const verificationColor: Record<SkillVerification, string> = {
+  [SkillVerification.Unverified]: "gray",
+  [SkillVerification.Verified]: "fsp",
+  [SkillVerification.VerifiedExternal]: "fspRed",
+};
+
+// Фон бренда #EDEDED совпадает с фоном Paper. Карточкам кабинета нужен свой слой, иначе они сливаются.
+export const surfaceColor = "#FFFFFF";
+
+export const scoreColor = {
+  strong: "fsp",
+  medium: "yellow",
+  weak: "gray",
 } as const;
 
 export const theme = createTheme({
