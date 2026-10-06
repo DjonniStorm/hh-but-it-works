@@ -1,4 +1,4 @@
-import { Badge } from "@mantine/core";
+import { Badge, Tooltip } from "@mantine/core";
 
 import { SkillVerification } from "@hh/types";
 
@@ -23,8 +23,15 @@ export const SkillStatusBadge = ({
     );
   }
   return (
-    <Badge variant="outline" color="dark">
-      Не подтверждён
-    </Badge>
+    <Tooltip
+      label="Самооценка. Тест и интеграция этот уровень ещё не подтвердили."
+      multiline
+      w={260}
+      withArrow
+    >
+      <Badge variant="outline" color="dark">
+        Не подтверждён
+      </Badge>
+    </Tooltip>
   );
 };

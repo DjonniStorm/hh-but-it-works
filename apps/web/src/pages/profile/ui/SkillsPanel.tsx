@@ -8,7 +8,7 @@ import {
 import type { SkillRow, SkillsFormValues } from "@/pages/profile/model/types";
 import { AssessedSkill } from "@/pages/profile/ui/AssessedSkill";
 import { SkillSearch } from "@/pages/profile/ui/SkillSearch";
-import { Button, Paper, Stack, Text, Title } from "@mantine/core";
+import { Accordion, Button, Paper, Stack, Text, Title } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
 
 import { type CandidateProfile, saveSkillsSchema } from "@hh/contracts";
@@ -65,30 +65,35 @@ export const SkillsPanel = ({ profile }: { profile: CandidateProfile }) => {
     >
       <Stack>
         <Title order={3}>Навыки</Title>
-        <SkillSearch
-          catalog={profile.skills.map((skill) => {
-            return { skillId: skill.skillId, title: skill.title };
-          })}
-          takenTitles={form.values.skills.map((skill) => {
-            return skill.title;
-          })}
-          onAdd={(draft) => {
-            form.insertListItem(
-              "skills",
-              {
-                skillId: draft.skillId,
-                title: draft.title,
-                level: draft.level,
-                verification: null,
-              } satisfies SkillRow,
-              0,
-            );
-          }}
-        />
+        <Accordion variant="contained">
+          <Accordion.Item value="add">
+            <Accordion.Control>Добавить навык</Accordion.Control>
+            <Accordion.Panel>
+              <SkillSearch
+                catalog={profile.skills.map((skill) => {
+                  return { skillId: skill.skillId, title: skill.title };
+                })}
+                takenTitles={form.values.skills.map((skill) => {
+                  return skill.title;
+                })}
+                onAdd={(draft) => {
+                  form.insertListItem(
+                    "skills",
+                    {
+                      skillId: draft.skillId,
+                      title: draft.title,
+                      level: draft.level,
+                      verification: null,
+                    } satisfies SkillRow,
+                    0,
+                  );
+                }}
+              />
+            </Accordion.Panel>
+          </Accordion.Item>
+        </Accordion>
         {form.values.skills.length === 0 ? (
-          <Text c="dimmed">
-            Пока пусто. Найдите навык сверху и выберите уровень.
-          </Text>
+          <Text c="dimmed">Пока пусто. Откройте «Добавить навык».</Text>
         ) : (
           form.values.skills.map((skill, index) => {
             return (

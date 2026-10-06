@@ -4,6 +4,7 @@ import { skillLevelOptions } from "@/pages/profile/model/options";
 import {
   type CatalogSkill,
   availableSkills,
+  findSkill,
   matchingSkills,
   sameTitle,
 } from "@/pages/profile/model/skill-query";
@@ -41,11 +42,10 @@ export const SkillSearch = ({
   });
 
   const open = availableSkills(catalog, takenTitles);
-  const matches = matchingSkills(open, query).slice(0, 8);
   const needle = query.trim();
-  const known = open.find((skill) => {
-    return sameTitle(skill.title, needle);
-  });
+  // Сверяем со всем каталогом, не только со свободными: «postgresql» это PostgreSQL.
+  const known = findSkill(catalog, needle);
+  const matches = matchingSkills(open, query).slice(0, 8);
   const already = takenTitles.some((title) => {
     return sameTitle(title, needle);
   });
@@ -110,7 +110,8 @@ export const SkillSearch = ({
                 Такого нет, добавим «{needle}»
               </Combobox.Option>
             ) : null}
-            {matches.length === 0 && !showCreate ? (
+            {already ? <Combobox.Empty>Уже в списке</Combobox.Empty> : null}
+            {matches.length === 0 && !showCreate && !already ? (
               <Combobox.Empty>Ничего не нашли</Combobox.Empty>
             ) : null}
           </Combobox.Options>
