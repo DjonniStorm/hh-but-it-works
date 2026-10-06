@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 import {
+  AttemptStatus,
   Grade,
+  IntegrityFlag,
   InvitationStatus,
   Role,
   SearchStatus,
@@ -83,6 +85,11 @@ export const candidateProfileSchema = z.object({
   workFormats: z.array(workFormatSchema),
   searchStatus: searchStatusSchema,
   listed: z.boolean(),
+  // Итог теста. Меняет его только попытка, форма профиля их не шлёт.
+  verifiedGrade: gradeSchema.nullable(),
+  verifiedAt: z.iso.datetime().nullable(),
+  assessmentScore: z.number().int().min(0).max(100).nullable(),
+  nextGradeChangeAt: z.iso.datetime().nullable(),
   skills: z.array(profileSkillSchema),
 });
 
@@ -339,43 +346,118 @@ export const invitationListSchema = z.object({
   items: z.array(invitationSchema),
 });
 
+export const attemptStatusSchema = z.enum(AttemptStatus);
+export const integrityFlagSchema = z.enum(IntegrityFlag);
+
+// Браузер сообщает только то, что видит сам. IP, агент и скорость ответа проверяет сервер.
+export const clientIntegrityFlagSchema = z.enum([
+  IntegrityFlag.TabHidden,
+  IntegrityFlag.WindowBlur,
+  IntegrityFlag.FullscreenExit,
+  IntegrityFlag.FullscreenDenied,
+  IntegrityFlag.Copy,
+]);
+
+export const assessmentItemKindSchema = z.enum([
+  "single",
+  "multiple",
+  "numeric",
+  "code",
+  "order",
+]);
+
 export const startAssessmentSchema = z.object({
   grade: gradeSchema,
 });
 
+export const assessmentSectionSchema = z.object({
+  skillId: z.uuid(),
+  title: z.string(),
+  count: z.number().int().positive(),
+});
+
+// Текст вопроса без ответа: верные индексы остаются на сервере.
 export const assessmentItemSchema = z.object({
   itemId: z.string(),
   skillId: z.uuid(),
+  kind: assessmentItemKindSchema,
   prompt: z.string(),
+  code: z.string().max(4000).nullable(),
   choices: z.array(z.string()),
+  seconds: z.number().int().positive(),
 });
 
-export const assessmentAttemptSchema = z.object({
+// item пустой до первого вопроса (план попытки) и после последнего, когда index === total.
+export const activeAttemptSchema = z.object({
   attemptId: z.uuid(),
   grade: gradeSchema,
-  items: z.array(assessmentItemSchema),
+  sections: z.array(assessmentSectionSchema),
+  index: z.number().int().min(0),
+  total: z.number().int().positive(),
+  item: assessmentItemSchema.nullable(),
+  secondsLeft: z.number().int().min(0).max(3600).nullable(),
 });
 
-export const submitAssessmentSchema = z.object({
+export const currentAttemptSchema = z.object({
+  attempt: activeAttemptSchema.nullable(),
+});
+
+// choices: single и code — один индекс, multiple — набор, order — порядок шагов. value — для numeric.
+export const answerAssessmentSchema = z.object({
   attemptId: z.uuid(),
-  answers: z.array(
-    z.object({
-      itemId: z.string().min(1),
-      choice: z.number().int().nonnegative(),
-    }),
-  ),
+  itemId: z.string().min(1),
+  choices: z.array(z.number().int().nonnegative()).max(10),
+  value: z.number().optional(),
+});
+
+export const assessmentEventsSchema = z.object({
+  attemptId: z.uuid(),
+  events: z
+    .array(
+      z.object({
+        type: clientIntegrityFlagSchema,
+        durationMs: z.number().int().min(0).optional(),
+      }),
+    )
+    .min(1)
+    .max(20),
+});
+
+export const assessmentEventsAcceptedSchema = z.object({
+  accepted: z.number().int().min(0),
+});
+
+export const finishAssessmentSchema = z.object({
+  attemptId: z.uuid(),
+});
+
+export const assessmentSectionResultSchema = z.object({
+  skillId: z.uuid(),
+  title: z.string(),
+  score: z.number().int().min(0).max(100),
+  passed: z.boolean(),
+});
+
+export const flagCountSchema = z.object({
+  type: integrityFlagSchema,
+  count: z.number().int().positive(),
 });
 
 export const assessmentResultSchema = z.object({
-  passed: z.boolean(),
+  attemptId: z.uuid(),
+  status: attemptStatusSchema,
   score: z.number().int().min(0).max(100),
   grade: gradeSchema,
-  skills: z.array(
-    z.object({
-      skillId: z.uuid(),
-      score: z.number().int().min(0).max(100),
-    }),
-  ),
+  integrity: z.number().int().min(0).max(100),
+  flags: z.array(flagCountSchema),
+  sections: z.array(assessmentSectionResultSchema),
+  gradeChanged: z.boolean(),
+  startedAt: z.iso.datetime(),
+  finishedAt: z.iso.datetime(),
+});
+
+export const assessmentHistorySchema = z.object({
+  items: z.array(assessmentResultSchema),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
@@ -404,6 +486,11 @@ export type InvitationInput = z.infer<typeof invitationInputSchema>;
 export type Invitation = z.infer<typeof invitationSchema>;
 export type InvitationList = z.infer<typeof invitationListSchema>;
 export type StartAssessmentInput = z.infer<typeof startAssessmentSchema>;
-export type AssessmentAttempt = z.infer<typeof assessmentAttemptSchema>;
-export type SubmitAssessmentInput = z.infer<typeof submitAssessmentSchema>;
+export type AssessmentItem = z.infer<typeof assessmentItemSchema>;
+export type ActiveAttempt = z.infer<typeof activeAttemptSchema>;
+export type CurrentAttempt = z.infer<typeof currentAttemptSchema>;
+export type AnswerAssessmentInput = z.infer<typeof answerAssessmentSchema>;
+export type AssessmentEventsInput = z.infer<typeof assessmentEventsSchema>;
+export type FinishAssessmentInput = z.infer<typeof finishAssessmentSchema>;
 export type AssessmentResult = z.infer<typeof assessmentResultSchema>;
+export type AssessmentHistory = z.infer<typeof assessmentHistorySchema>;

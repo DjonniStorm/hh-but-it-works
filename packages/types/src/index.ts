@@ -53,6 +53,24 @@ export enum SearchStatus {
   Hidden = "hidden",
 }
 
+export enum AttemptStatus {
+  Passed = "passed",
+  Failed = "failed",
+  Annulled = "annulled",
+}
+
+// Сигналы, что попытку могли пройти не сами. Первые пять шлёт браузер, остальные видит сервер.
+export enum IntegrityFlag {
+  TabHidden = "tab-hidden",
+  WindowBlur = "window-blur",
+  FullscreenExit = "fullscreen-exit",
+  FullscreenDenied = "fullscreen-denied",
+  Copy = "copy",
+  IpChange = "ip-change",
+  AgentChange = "agent-change",
+  FastAnswer = "fast-answer",
+}
+
 // По индексу считается расстояние между грейдами в подборке.
 export const gradeOrder: readonly Grade[] = [
   Grade.Junior,

@@ -24,6 +24,7 @@ export const SkillsPanel = ({ profile }: { profile: CandidateProfile }) => {
   const contactsReady = Boolean(
     profile.displayName && profile.specialization && profile.claimedGrade,
   );
+  const savedSkills = assessedFromProfile(profile.skills);
 
   const onSubmit = form.onSubmit((values) => {
     if (
@@ -100,10 +101,15 @@ export const SkillsPanel = ({ profile }: { profile: CandidateProfile }) => {
           <Text c="dimmed">Пока пусто. Откройте «Добавить навык».</Text>
         ) : (
           form.values.skills.map((skill, index) => {
+            const saved = savedSkills.find((item) => {
+              return item.skillId != null && item.skillId === skill.skillId;
+            });
             return (
               <AssessedSkill
                 key={skill.skillId ?? skill.title}
-                skill={skill}
+                skill={
+                  saved ? { ...skill, verification: saved.verification } : skill
+                }
                 levelProps={form.getInputProps(`skills.${index}.level`)}
                 onRemove={() => {
                   form.removeListItem("skills", index);

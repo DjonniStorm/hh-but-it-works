@@ -7,9 +7,16 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { In, Repository } from "typeorm";
 
+import { coreSkills } from "@hh/assessment-engine";
 import type { CandidateProfile as CandidateProfileView } from "@hh/contracts";
 import type { SaveProfileInput } from "@hh/contracts";
-import { Grade, SearchStatus, SkillLevel, SkillVerification } from "@hh/types";
+import {
+  AttemptStatus,
+  Grade,
+  SearchStatus,
+  SkillLevel,
+  SkillVerification,
+} from "@hh/types";
 
 import { CandidateProfile } from "./candidate-profile.entity";
 import { CandidateSkill } from "./candidate-skill.entity";
@@ -23,12 +30,31 @@ type SkillSignal = {
 
 type AssessmentOutcome = {
   grade: Grade;
-  passed: boolean;
+  status: AttemptStatus;
   score: number;
-  skills: { skillId: string; score: number }[];
+  sections: { skillId: string; score: number; passed: boolean }[];
+};
+
+export type AssessmentSkill = {
+  skillId: string;
+  slug: string;
+  title: string;
 };
 
 const gradeChangeCooldownMs = 90 * 24 * 60 * 60 * 1000;
+
+// Навык ядра, которого не было в анкете: уровень берём из подтверждённого грейда.
+const levelByGrade: Record<Grade, SkillLevel> = {
+  [Grade.Junior]: SkillLevel.Basic,
+  [Grade.Middle]: SkillLevel.Confident,
+  [Grade.Senior]: SkillLevel.Strong,
+};
+
+const gradeLabel: Record<Grade, string> = {
+  [Grade.Junior]: "Junior",
+  [Grade.Middle]: "Middle",
+  [Grade.Senior]: "Senior",
+};
 
 @Injectable()
 export class ProfilesService implements OnModuleInit {
@@ -56,20 +82,13 @@ export class ProfilesService implements OnModuleInit {
     return this.toView(profile, catalog, signals);
   }
 
-  async assessmentSkills(
-    userId: string,
-  ): Promise<{ skillId: string; slug: string }[]> {
-    const profile = await this.profiles.findOne({ where: { userId } });
-    if (!profile) {
-      throw new BadRequestException("Сначала сохраните анкету");
-    }
+  // Навыки анкеты из каталога и ядро специализации, даже если его в анкете нет.
+  async assessmentSkills(userId: string): Promise<AssessmentSkill[]> {
+    const profile = await this.requireProfile(userId);
     const rows = await this.candidateSkills.find({
       where: { profileId: profile.id },
     });
-    if (rows.length === 0) {
-      return [];
-    }
-    const known = await this.skills.find({
+    const own = await this.skills.find({
       where: {
         id: In(
           rows.map((row) => {
@@ -78,65 +97,88 @@ export class ProfilesService implements OnModuleInit {
         ),
       },
     });
-    const slugs = new Map(
-      known.map((skill) => {
-        return [skill.id, skill.slug] as const;
-      }),
-    );
-    return rows.flatMap((row) => {
-      const slug = slugs.get(row.skillId);
-      if (!slug) {
-        return [];
-      }
-      return [{ skillId: row.skillId, slug }];
+    const core = await this.skills.find({
+      where: { slug: In(coreSkills[profile.specialization]) },
     });
+    const merged = new Map<string, AssessmentSkill>();
+    for (const skill of [...core, ...own]) {
+      merged.set(skill.id, {
+        skillId: skill.id,
+        slug: skill.slug,
+        title: skill.title,
+      });
+    }
+    return [...merged.values()];
+  }
+
+  // Пауза проверяется до старта: кандидат не тратит попытку на грейд, который всё равно не сменить.
+  async assertGradeChangeAllowed(userId: string, grade: Grade): Promise<void> {
+    const profile = await this.requireProfile(userId);
+    const until = cooldownUntil(profile);
+    if (profile.verifiedGrade && profile.verifiedGrade !== grade && until) {
+      throw new ConflictException(
+        `Сменить грейд можно после ${until.toLocaleDateString("ru-RU")}. Сейчас доступен тест на ${gradeLabel[profile.verifiedGrade]}.`,
+      );
+    }
   }
 
   async applyAssessment(
     userId: string,
     result: AssessmentOutcome,
-  ): Promise<void> {
-    const profile = await this.profiles.findOne({ where: { userId } });
-    if (!profile) {
-      throw new BadRequestException("Сначала сохраните анкету");
-    }
-    const gradeChanges =
-      result.passed && profile.verifiedGrade !== result.grade;
-    if (
-      gradeChanges &&
-      profile.verifiedAt &&
-      Date.now() - profile.verifiedAt.getTime() < gradeChangeCooldownMs
-    ) {
-      throw new ConflictException("Сменить грейд можно раз в 90 дней");
+  ): Promise<{ gradeChanged: boolean }> {
+    const profile = await this.requireProfile(userId);
+    // Аннулированная попытка не меняет ни навыки, ни грейд.
+    if (result.status === AttemptStatus.Annulled) {
+      return { gradeChanged: false };
     }
 
-    for (const skill of result.skills) {
+    for (const section of result.sections) {
       const row = await this.candidateSkills.findOne({
-        where: { profileId: profile.id, skillId: skill.skillId },
+        where: { profileId: profile.id, skillId: section.skillId },
       });
+      if (!row && section.passed) {
+        await this.candidateSkills.save(
+          this.candidateSkills.create({
+            profileId: profile.id,
+            skillId: section.skillId,
+            level: levelByGrade[result.grade],
+            verification: SkillVerification.Verified,
+            score: section.score,
+          }),
+        );
+        continue;
+      }
       if (!row) {
         continue;
       }
-      if (skill.score === 100) {
-        row.verification = SkillVerification.Verified;
-        row.score = 100;
-      } else {
-        row.verification = SkillVerification.Unverified;
-        row.score = null;
-      }
+      row.verification = section.passed
+        ? SkillVerification.Verified
+        : SkillVerification.Unverified;
+      row.score = section.passed ? section.score : null;
       await this.candidateSkills.save(row);
     }
 
-    if (!result.passed) {
-      return;
+    if (result.status !== AttemptStatus.Passed) {
+      return { gradeChanged: false };
     }
+    const gradeChanged =
+      profile.verifiedGrade !== result.grade && !cooldownUntil(profile);
     profile.assessmentScore = result.score;
     profile.listed = true;
-    if (gradeChanges) {
+    if (gradeChanged) {
       profile.verifiedGrade = result.grade;
       profile.verifiedAt = new Date();
     }
     await this.profiles.save(profile);
+    return { gradeChanged };
+  }
+
+  private async requireProfile(userId: string): Promise<CandidateProfile> {
+    const profile = await this.profiles.findOne({ where: { userId } });
+    if (!profile) {
+      throw new BadRequestException("Сначала сохраните анкету");
+    }
+    return profile;
   }
 
   async save(
@@ -318,6 +360,12 @@ export class ProfilesService implements OnModuleInit {
       workFormats: profile?.workFormats ?? [],
       searchStatus: profile?.searchStatus ?? SearchStatus.OpenToOffers,
       listed: profile?.listed ?? false,
+      verifiedGrade: profile?.verifiedGrade ?? null,
+      verifiedAt: profile?.verifiedAt?.toISOString() ?? null,
+      assessmentScore: profile?.assessmentScore ?? null,
+      nextGradeChangeAt: profile
+        ? (cooldownUntil(profile)?.toISOString() ?? null)
+        : null,
       skills: catalog.map((skill) => {
         const signal = signals.get(skill.id);
         return {
@@ -359,6 +407,15 @@ function expectations(
     workFormats: input.workFormats,
     searchStatus: input.searchStatus,
   };
+}
+
+// Пока пауза не прошла, возвращает дату её конца.
+function cooldownUntil(profile: CandidateProfile): Date | null {
+  if (!profile.verifiedAt) {
+    return null;
+  }
+  const until = new Date(profile.verifiedAt.getTime() + gradeChangeCooldownMs);
+  return until.getTime() > Date.now() ? until : null;
 }
 
 function blank(value: string): string | null {
