@@ -16,12 +16,14 @@ import { AuthLayout } from "./AuthLayout";
 import { CandidateRoute } from "./CandidateRoute";
 import { EmployerRoute } from "./EmployerRoute";
 import { ProtectedRoute } from "./ProtectedRoute";
+import { QueryState } from "./QueryState";
 import { RouteError } from "./RouteError";
 import { ROUTES } from "./routes";
 
 export const router = createBrowserRouter([
   {
     errorElement: <RouteError />,
+    element: <QueryState />,
     children: [
       {
         element: <ProtectedRoute />,
