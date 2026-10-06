@@ -19,8 +19,6 @@ export class EmployerStore {
   company: CompanyProfile | null = null;
   needs: HiringNeed[] = [];
   readonly shortlists = observable.map<string, Shortlist>();
-  loaded = false;
-  loadFailed = false;
   // Чьи данные лежат в сторе. При входе другим аккаунтом стор очищается.
   private ownerId: string | null = null;
 
@@ -44,17 +42,9 @@ export class EmployerStore {
     );
   }
 
-  // Профиль и потребности нужны всем экранам кабинета: грузим один раз на аккаунт.
-  ensureLoaded(): void {
-    this.syncOwner();
-    if (!this.loaded) {
-      void this.load();
-    }
-  }
-
+  // Профиль и потребности нужны всем экранам кабинета. Загружено или упало — решает EmployerLayout.
   load(options?: CallOptions<void>) {
     this.syncOwner();
-    this.loadFailed = false;
     return request(
       this.root,
       async () => {
@@ -65,20 +55,10 @@ export class EmployerStore {
         runInAction(() => {
           this.company = readData(company);
           this.needs = readData(needs);
-          this.loaded = true;
         });
       },
       // Кабинет ждёт профиль и потребности: id попадает в лоадер оболочки.
-      {
-        loader: true,
-        ...options,
-        onError: (error) => {
-          runInAction(() => {
-            this.loadFailed = true;
-          });
-          options?.onError?.(error);
-        },
-      },
+      { loader: true, ...options },
     );
   }
 
@@ -157,8 +137,6 @@ export class EmployerStore {
     this.company = null;
     this.needs = [];
     this.shortlists.clear();
-    this.loaded = false;
-    this.loadFailed = false;
     if (userId) {
       employerApi.bindMockUser(userId);
     }

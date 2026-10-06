@@ -14,8 +14,7 @@ type CallOptions<T> = Pick<RequestOptions<T>, "onError" | "onSuccess">;
 export class InvitationStore {
   readonly key = StoreKey.Invitations;
   items: Invitation[] = [];
-  loaded = false;
-  loadFailed = false;
+  // Чьи приглашения лежат в сторе. При входе другим аккаунтом список очищается.
   private ownerId: string | null = null;
 
   constructor(private readonly root: RootStore) {
@@ -46,36 +45,18 @@ export class InvitationStore {
     });
   }
 
-  ensureLoaded(): void {
-    this.syncOwner();
-    if (!this.loaded) {
-      void this.load();
-    }
-  }
-
   load(options?: CallOptions<Invitation[]>) {
     this.syncOwner();
-    this.loadFailed = false;
     return request(
       this.root,
       async () => {
         const items = readData(await employerApi.listInvitations());
         runInAction(() => {
           this.items = items;
-          this.loaded = true;
         });
         return items;
       },
-      {
-        loader: false,
-        ...options,
-        onError: (error) => {
-          runInAction(() => {
-            this.loadFailed = true;
-          });
-          options?.onError?.(error);
-        },
-      },
+      { loader: false, ...options },
     );
   }
 
@@ -100,8 +81,6 @@ export class InvitationStore {
     }
     this.ownerId = userId;
     this.items = [];
-    this.loaded = false;
-    this.loadFailed = false;
     if (userId) {
       employerApi.bindMockUser(userId);
     }
