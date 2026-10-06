@@ -52,6 +52,12 @@ export const verificationColor: Record<SkillVerification, string> = {
 // Фон бренда #EDEDED совпадает с фоном Paper. Карточкам кабинета нужен свой слой, иначе они сливаются.
 export const surfaceColor = "#FFFFFF";
 
+// Цвет значка перед строкой в «Почему подходит» и «На что обратить внимание».
+export const reasonColor = {
+  positive: "teal.7",
+  risk: "fspRed.7",
+} as const;
+
 export const scoreColor = {
   strong: "fsp",
   medium: "yellow",

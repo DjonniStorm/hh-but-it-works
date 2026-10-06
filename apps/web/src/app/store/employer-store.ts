@@ -15,7 +15,7 @@ import type {
   Shortlist,
 } from "@hh/contracts";
 
-import { type RequestOptions, readData, request } from "./request";
+import { type RequestOptions, loadRetry, readData, request } from "./request";
 import type { RootStore } from "./root-store";
 import { StoreKey } from "./store-key";
 
@@ -69,7 +69,7 @@ export class EmployerStore {
         });
       },
       // Кабинет ждёт профиль и потребности: id попадает в лоадер оболочки.
-      { loader: true, ...options },
+      { loader: true, retry: loadRetry, ...options },
     );
   }
 
@@ -118,7 +118,7 @@ export class EmployerStore {
         return shortlist;
       },
       // Экран подборки пуст, пока она не пришла.
-      { loader: true, ...options },
+      { loader: true, retry: loadRetry, ...options },
     );
   }
 

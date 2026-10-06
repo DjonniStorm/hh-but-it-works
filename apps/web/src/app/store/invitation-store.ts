@@ -4,7 +4,7 @@ import { makeAutoObservable, runInAction } from "mobx";
 import type { Invitation, InvitationInput } from "@hh/contracts";
 import { InvitationStatus } from "@hh/types";
 
-import { type RequestOptions, readData, request } from "./request";
+import { type RequestOptions, loadRetry, readData, request } from "./request";
 import type { RootStore } from "./root-store";
 import { StoreKey } from "./store-key";
 
@@ -56,7 +56,7 @@ export class InvitationStore {
         });
         return items;
       },
-      { loader: false, ...options },
+      { loader: false, retry: loadRetry, ...options },
     );
   }
 

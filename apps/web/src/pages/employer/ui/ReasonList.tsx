@@ -1,9 +1,10 @@
+import { reasonColor } from "@/shared/theme";
 import { List, Stack, Text } from "@mantine/core";
 
 // Знак перед строкой дублирует цвет: статус не передаётся одним цветом.
-const tone = {
-  positive: { mark: "+", color: "teal.7" },
-  risk: { mark: "!", color: "fspRed.7" },
+const reasonMark = {
+  positive: "+",
+  risk: "!",
 } as const;
 
 export const ReasonList = ({
@@ -13,7 +14,7 @@ export const ReasonList = ({
 }: {
   title: string;
   items: string[];
-  kind: keyof typeof tone;
+  kind: keyof typeof reasonColor;
 }) => {
   if (items.length === 0) {
     return null;
@@ -27,7 +28,7 @@ export const ReasonList = ({
       <List
         size="sm"
         spacing={2}
-        icon={<Text c={tone[kind].color}>{tone[kind].mark}</Text>}
+        icon={<Text c={reasonColor[kind]}>{reasonMark[kind]}</Text>}
       >
         {items.map((item) => {
           return <List.Item key={item}>{item}</List.Item>;

@@ -1,7 +1,7 @@
 import { type CSSProperties, useCallback, useEffect, useState } from "react";
 
 import { useRootStore } from "@/app/store/store-context";
-import { LoadError } from "@/pages/employer/ui/LoadError";
+import { ErrorScreen } from "@/shared/error/ui/ErrorScreen";
 import { surfaceColor } from "@/shared/theme";
 import { Box } from "@mantine/core";
 import { observer } from "mobx-react-lite";
@@ -43,9 +43,9 @@ export const EmployerLayout = observer(() => {
       }
     >
       {status === "failed" ? (
-        <LoadError
+        <ErrorScreen
           title="Кабинет не загрузился"
-          onRetry={() => {
+          onReload={() => {
             setStatus("loading");
             load();
           }}

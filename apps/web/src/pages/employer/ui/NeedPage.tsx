@@ -8,10 +8,10 @@ import {
 import { BackToNeeds } from "@/pages/employer/ui/BackToNeeds";
 import { DismissedList } from "@/pages/employer/ui/DismissedList";
 import { InviteModal } from "@/pages/employer/ui/InviteModal";
-import { LoadError } from "@/pages/employer/ui/LoadError";
 import { MatchCard } from "@/pages/employer/ui/MatchCard";
 import { NeedSummary } from "@/pages/employer/ui/NeedSummary";
 import { RefinementBar } from "@/pages/employer/ui/RefinementBar";
+import { ErrorScreen } from "@/shared/error/ui/ErrorScreen";
 import { ROUTES } from "@/shared/router/routes";
 import { EmptyState, Paper, Stack, Text, Title } from "@mantine/core";
 import { observer } from "mobx-react-lite";
@@ -70,9 +70,9 @@ export const NeedPage = observer(() => {
       <NeedSummary need={need} />
 
       {failedId === needId && !shortlist ? (
-        <LoadError
+        <ErrorScreen
           title="Подборка не загрузилась"
-          onRetry={() => {
+          onReload={() => {
             setFailedId(null);
             loadShortlist();
           }}
