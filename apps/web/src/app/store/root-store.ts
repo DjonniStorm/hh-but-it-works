@@ -1,18 +1,21 @@
 import { AuthStore } from "./auth-store";
 import { ErrorStore } from "./error-store";
 import { LoadingStore } from "./loading-store";
+import { ProfileStore } from "./profile-store";
 import { StoreKey } from "./store-key";
 
 export interface StoreMap {
   [StoreKey.Loading]: LoadingStore;
   [StoreKey.Errors]: ErrorStore;
   [StoreKey.Auth]: AuthStore;
+  [StoreKey.Profile]: ProfileStore;
 }
 
 export class RootStore {
   readonly loading = new LoadingStore();
   readonly errors = new ErrorStore();
   readonly auth: AuthStore;
+  readonly profile: ProfileStore;
   private readonly stores = new Map<StoreKey, StoreMap[StoreKey]>();
 
   constructor() {
@@ -20,6 +23,8 @@ export class RootStore {
     this.register(this.errors);
     this.auth = new AuthStore(this);
     this.register(this.auth);
+    this.profile = new ProfileStore(this);
+    this.register(this.profile);
   }
 
   register<K extends StoreKey>(store: StoreMap[K] & { readonly key: K }): void {

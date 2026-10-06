@@ -1,6 +1,5 @@
 import { StrictMode } from "react";
 
-import { RequestOverlay } from "@/app/store/request-overlay";
 import { StoreProvider } from "@/app/store/store-context";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/700.css";
@@ -31,9 +30,7 @@ root.render(
   <StrictMode>
     <StoreProvider>
       <Theme>
-        <RequestOverlay>
-          <Router />
-        </RequestOverlay>
+        <Router />
       </Theme>
     </StoreProvider>
   </StrictMode>,

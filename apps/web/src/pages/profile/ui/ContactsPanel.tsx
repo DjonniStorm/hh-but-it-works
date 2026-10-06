@@ -1,0 +1,133 @@
+import { notifier } from "@/app/store/notifier";
+import { useStore } from "@/app/store/store-context";
+import { StoreKey } from "@/app/store/store-key";
+import {
+  gradeOptions,
+  specializationOptions,
+} from "@/pages/profile/model/options";
+import {
+  assessedFromProfile,
+  saveSkills,
+} from "@/pages/profile/model/save-skills";
+import type { ContactValues } from "@/pages/profile/model/types";
+import { ContactIcon } from "@/pages/profile/ui/ContactIcon";
+import {
+  Button,
+  Paper,
+  Select,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from "@mantine/core";
+import { schemaResolver, useForm } from "@mantine/form";
+
+import { type CandidateProfile, saveContactsSchema } from "@hh/contracts";
+import { Grade, Specialization } from "@hh/types";
+
+export const ContactsPanel = ({
+  profile,
+  email,
+}: {
+  profile: CandidateProfile;
+  email: string;
+}) => {
+  const profiles = useStore(StoreKey.Profile);
+  const form = useForm<ContactValues>({
+    initialValues: {
+      displayName: profile.displayName,
+      specialization: profile.specialization ?? "",
+      claimedGrade: profile.claimedGrade ?? "",
+      fspId: profile.fspId ?? "",
+      telegram: profile.telegram ?? "",
+      github: profile.github ?? "",
+      linkedin: profile.linkedin ?? "",
+      website: profile.website ?? "",
+    },
+    validate: schemaResolver(saveContactsSchema, { sync: true }),
+  });
+
+  const onSubmit = form.onSubmit((values) => {
+    // Резолвер уже проверил специализацию и грейд. В типе формы они шире.
+    void profiles.save(
+      {
+        displayName: values.displayName,
+        specialization: values.specialization as Specialization,
+        claimedGrade: values.claimedGrade as Grade,
+        fspId: values.fspId,
+        telegram: values.telegram,
+        github: values.github,
+        linkedin: values.linkedin,
+        website: values.website,
+        skills: saveSkills(assessedFromProfile(profile.skills)),
+      },
+      {
+        onSuccess: () => {
+          notifier.showSuccess("Контакты сохранены");
+        },
+      },
+    );
+  });
+
+  return (
+    <Paper
+      component="form"
+      onSubmit={onSubmit}
+      shadow="md"
+      withBorder
+      p="xl"
+      radius="md"
+    >
+      <Stack>
+        <Title order={3}>Контакты</Title>
+        <TextInput label="Почта" value={email} readOnly />
+        <TextInput label="Имя" {...form.getInputProps("displayName")} />
+        <Select
+          label="Специализация"
+          data={specializationOptions}
+          {...form.getInputProps("specialization")}
+        />
+        <Select
+          label="Заявленный грейд"
+          data={gradeOptions}
+          {...form.getInputProps("claimedGrade")}
+        />
+        <TextInput
+          label="ID участника ФСП"
+          description="Сохраним здесь. Историю запросим при подтверждении перед биржей."
+          {...form.getInputProps("fspId")}
+        />
+        <TextInput
+          label="Telegram"
+          placeholder="@username или t.me/..."
+          leftSection={<ContactIcon kind="telegram" />}
+          {...form.getInputProps("telegram")}
+        />
+        <TextInput
+          label="GitHub"
+          placeholder="github.com/username"
+          leftSection={<ContactIcon kind="github" />}
+          {...form.getInputProps("github")}
+        />
+        <TextInput
+          label="LinkedIn"
+          placeholder="linkedin.com/in/..."
+          leftSection={<ContactIcon kind="linkedin" />}
+          {...form.getInputProps("linkedin")}
+        />
+        <TextInput
+          label="Сайт"
+          placeholder="https://"
+          leftSection={<ContactIcon kind="website" />}
+          {...form.getInputProps("website")}
+        />
+        <Text>
+          {profile.listed
+            ? "Профиль на бирже."
+            : "Пока не на бирже. Туда попадёте после подтверждения."}
+        </Text>
+        <Button type="submit">Сохранить контакты</Button>
+      </Stack>
+    </Paper>
+  );
+};
