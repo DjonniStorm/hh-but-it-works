@@ -124,14 +124,18 @@ export class InvitationsService {
     };
   }
 
-  // Экран показал список: новые приглашения становятся просмотренными, работодатель это видит.
-  async markViewed(userId: string): Promise<void> {
+  // Экран показал эти приглашения: новые из них становятся просмотренными, работодатель это видит.
+  async markViewed(userId: string, ids: string[]): Promise<void> {
     const profile = await this.profiles.findOne({ where: { userId } });
     if (!profile) {
       return;
     }
     await this.invitations.update(
-      { candidateProfileId: profile.id, status: InvitationStatus.Sent },
+      {
+        id: In(ids),
+        candidateProfileId: profile.id,
+        status: InvitationStatus.Sent,
+      },
       { status: InvitationStatus.Viewed },
     );
   }

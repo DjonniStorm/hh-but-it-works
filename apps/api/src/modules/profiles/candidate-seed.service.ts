@@ -19,7 +19,7 @@ import { slugFromTitle } from "./skill-catalog";
 import { Skill } from "./skill.entity";
 
 // Сид-кандидаты для подборки работодателя. Под каждого — пользователь со случайным паролем.
-// Если задан SEED_CANDIDATE_PASSWORD (только для разработки), под ними можно войти
+// Если задан SEED_CANDIDATE_PASSWORD и это не production, под ними можно войти
 // и ответить на приглашение: seed.<код>@candidates.hh.test, например seed.b101@….
 @Injectable()
 export class CandidateSeedService implements OnApplicationBootstrap {
@@ -51,15 +51,22 @@ export class CandidateSeedService implements OnApplicationBootstrap {
     if (created > 0) {
       this.logger.log(`Сид-кандидатов создано: ${created}`);
     }
-    await this.applyKnownPassword();
+    await this.applySeedPassword();
   }
 
   // Каждый старт: пароль из .env действует и для засеянных раньше, и после его смены.
-  private async applyKnownPassword(): Promise<void> {
-    const password = this.config.get<string>("SEED_CANDIDATE_PASSWORD");
-    if (!password) {
-      return;
+  // Без переменной — новый случайный пароль: убрать её из .env значит закрыть вход.
+  private async applySeedPassword(): Promise<void> {
+    const known = this.config.get<string>("SEED_CANDIDATE_PASSWORD");
+    const production = this.config.get<string>("NODE_ENV") === "production";
+    if (known && production) {
+      this.logger.warn(
+        "SEED_CANDIDATE_PASSWORD игнорируется в production: вход под сидами закрыт",
+      );
     }
+    const open = Boolean(known) && !production;
+    const password =
+      open && known ? known : randomBytes(24).toString("base64url");
     const ids: string[] = [];
     for (const seed of candidateSeeds) {
       const user = await this.users.findByEmail(seedEmail(seed));
@@ -68,7 +75,9 @@ export class CandidateSeedService implements OnApplicationBootstrap {
       }
     }
     await this.users.setPassword(ids, password);
-    this.logger.log(`Вход под сид-кандидатами открыт: ${ids.length}`);
+    if (open) {
+      this.logger.log(`Вход под сид-кандидатами открыт: ${ids.length}`);
+    }
   }
 
   private async ensure(seed: CandidateSeed): Promise<boolean> {

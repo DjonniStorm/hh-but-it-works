@@ -11,6 +11,7 @@ import {
   invitationInputSchema,
   invitationListSchema,
   invitationSchema,
+  markInvitationsViewedSchema,
   shortlistSchema,
 } from "@hh/contracts";
 
@@ -28,4 +29,7 @@ export class CandidateInvitationDto extends createZodDto(
 ) {}
 export class CandidateInvitationListDto extends createZodDto(
   candidateInvitationListSchema,
+) {}
+export class MarkInvitationsViewedDto extends createZodDto(
+  markInvitationsViewedSchema,
 ) {}

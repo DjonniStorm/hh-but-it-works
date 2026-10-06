@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { feedbackColor } from "@/shared/theme";
 import { Button, Group, Popover, Stack, Text } from "@mantine/core";
 
 // Отказ окончательный: переспрашиваем, чтобы случайный клик не закрыл предложение.
@@ -43,7 +44,7 @@ export const DeclineButton = ({ onConfirm }: { onConfirm: () => void }) => {
               Отмена
             </Button>
             <Button
-              color="fspRed"
+              color={feedbackColor.error}
               size="xs"
               onClick={() => {
                 setOpened(false);

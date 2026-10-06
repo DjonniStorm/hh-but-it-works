@@ -271,6 +271,10 @@ export type CandidateInvitationListDtoOutput = {
     }>;
 };
 
+export type MarkInvitationsViewedDto = {
+    ids: Array<string>;
+};
+
 export type CandidateInvitationDtoOutput = {
     id: string;
     companyName: string;
@@ -556,7 +560,7 @@ export type CandidateInvitationsControllerListResponses = {
 export type CandidateInvitationsControllerListResponse = CandidateInvitationsControllerListResponses[keyof CandidateInvitationsControllerListResponses];
 
 export type CandidateInvitationsControllerMarkViewedData = {
-    body?: never;
+    body: MarkInvitationsViewedDto;
     path?: never;
     query?: never;
     url: '/candidate/invitations/viewed';

@@ -42,25 +42,30 @@ export class CandidateInvitationStore {
           this.items = items;
         });
         // На экране они остаются «Новыми» до следующего захода, а работодатель видит просмотр.
-        const unseen = items.some((item) => {
-          return item.status === InvitationStatus.Sent;
-        });
-        if (unseen) {
-          void this.markViewed();
+        const unseen = items
+          .filter((item) => {
+            return item.status === InvitationStatus.Sent;
+          })
+          .map((item) => {
+            return item.id;
+          });
+        if (unseen.length > 0) {
+          void this.markViewed(unseen);
         }
         return items;
       },
-      { loader: false, retry: loadRetry, ...options },
+      // Экран ждёт список: без лоадера при медленной сети он пустой.
+      { loader: true, retry: loadRetry, ...options },
     );
   }
 
   // Фоновая отметка без лоадера: человек её не ждёт.
-  private markViewed() {
+  private markViewed(ids: string[]) {
     return request(
       this.root,
       // Ответ 204 без тела: readData тут не подходит, ошибку клиента request распознаёт сам.
       () => {
-        return candidateInvitationsControllerMarkViewed();
+        return candidateInvitationsControllerMarkViewed({ body: { ids } });
       },
       { loader: false },
     ).catch(() => {

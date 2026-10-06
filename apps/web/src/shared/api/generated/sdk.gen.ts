@@ -165,10 +165,14 @@ export const candidateInvitationsControllerList = <ThrowOnError extends boolean 
     ...options
 });
 
-export const candidateInvitationsControllerMarkViewed = <ThrowOnError extends boolean = false>(options?: Options<CandidateInvitationsControllerMarkViewedData, ThrowOnError>): RequestResult<CandidateInvitationsControllerMarkViewedResponses, unknown, ThrowOnError> => (options?.client ?? client).post<CandidateInvitationsControllerMarkViewedResponses, unknown, ThrowOnError>({
+export const candidateInvitationsControllerMarkViewed = <ThrowOnError extends boolean = false>(options: Options<CandidateInvitationsControllerMarkViewedData, ThrowOnError>): RequestResult<CandidateInvitationsControllerMarkViewedResponses, unknown, ThrowOnError> => (options.client ?? client).post<CandidateInvitationsControllerMarkViewedResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/candidate/invitations/viewed',
-    ...options
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });
 
 export const candidateInvitationsControllerAccept = <ThrowOnError extends boolean = false>(options: Options<CandidateInvitationsControllerAcceptData, ThrowOnError>): RequestResult<CandidateInvitationsControllerAcceptResponses, unknown, ThrowOnError> => (options.client ?? client).post<CandidateInvitationsControllerAcceptResponses, unknown, ThrowOnError>({

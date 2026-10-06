@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
@@ -34,6 +34,14 @@ const statuses = [
 export const InvitationsPage = observer(() => {
   const invitations = useStore(StoreKey.Invitations);
   const [filter, setFilter] = useState<Filter>("all");
+
+  // Кабинет грузит приглашения один раз при входе. Здесь освежаем тихо, чтобы увидеть
+  // ответы кандидатов без F5. Ошибка уже ушла тостом, а на экране остаётся прошлый список.
+  useEffect(() => {
+    invitations.load().catch(() => {
+      return undefined;
+    });
+  }, [invitations]);
 
   const count = (status: InvitationStatus) => {
     return invitations.items.filter((item) => {

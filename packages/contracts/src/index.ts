@@ -358,6 +358,11 @@ export const candidateInvitationListSchema = z.object({
   items: z.array(candidateInvitationSchema),
 });
 
+// Отмечаем просмотренными только показанные: пришедшее после загрузки списка остаётся новым.
+export const markInvitationsViewedSchema = z.object({
+  ids: z.array(z.uuid()).min(1),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ConfirmEmailInput = z.infer<typeof confirmEmailSchema>;
@@ -386,4 +391,7 @@ export type InvitationList = z.infer<typeof invitationListSchema>;
 export type CandidateInvitation = z.infer<typeof candidateInvitationSchema>;
 export type CandidateInvitationList = z.infer<
   typeof candidateInvitationListSchema
+>;
+export type MarkInvitationsViewedInput = z.infer<
+  typeof markInvitationsViewedSchema
 >;

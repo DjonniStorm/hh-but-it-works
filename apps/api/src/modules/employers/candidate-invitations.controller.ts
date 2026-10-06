@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
@@ -17,7 +18,11 @@ import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
 import { Roles } from "../../common/auth/roles.decorator";
 import { RolesGuard } from "../../common/auth/roles.guard";
 import { User } from "../users/user.entity";
-import { CandidateInvitationDto, CandidateInvitationListDto } from "./dto";
+import {
+  CandidateInvitationDto,
+  CandidateInvitationListDto,
+  MarkInvitationsViewedDto,
+} from "./dto";
 import { InvitationsService } from "./invitations.service";
 
 @Controller("candidate/invitations")
@@ -37,8 +42,11 @@ export class CandidateInvitationsController {
   @Post("viewed")
   @HttpCode(204)
   @ApiNoContentResponse()
-  markViewed(@CurrentUser() user: User) {
-    return this.invitations.markViewed(user.id);
+  markViewed(
+    @CurrentUser() user: User,
+    @Body() body: MarkInvitationsViewedDto,
+  ) {
+    return this.invitations.markViewed(user.id, body.ids);
   }
 
   // После принятия работодатель видит контакт кандидата.
