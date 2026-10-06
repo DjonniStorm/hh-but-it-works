@@ -181,6 +181,62 @@
         ],
         "tags": ["Auth"]
       }
+    },
+    "/profile": {
+      "get": {
+        "operationId": "ProfilesController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateProfileDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Profiles"]
+      },
+      "put": {
+        "operationId": "ProfilesController_save",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateProfileDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Profiles"]
+      }
     }
   },
   "info": {
@@ -335,6 +391,183 @@
           }
         },
         "required": ["refreshToken"]
+      },
+      "CandidateProfileDto_Output": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "specialization": {
+            "type": "string",
+            "enum": ["backend", "frontend", "data", "security", null],
+            "nullable": true
+          },
+          "claimedGrade": {
+            "type": "string",
+            "enum": ["junior", "middle", "senior", null],
+            "nullable": true
+          },
+          "fspId": {
+            "type": "string",
+            "maxLength": 64,
+            "nullable": true
+          },
+          "telegram": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "github": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "linkedin": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "listed": {
+            "type": "boolean"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "skillId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "slug": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "level": {
+                  "type": "string",
+                  "enum": ["basic", "confident", "strong", null],
+                  "nullable": true
+                },
+                "verification": {
+                  "type": "string",
+                  "enum": ["unverified", "verified", "verified_external", null],
+                  "nullable": true
+                }
+              },
+              "required": ["skillId", "slug", "title", "level", "verification"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "displayName",
+          "specialization",
+          "claimedGrade",
+          "fspId",
+          "telegram",
+          "github",
+          "linkedin",
+          "website",
+          "listed",
+          "skills"
+        ],
+        "additionalProperties": false
+      },
+      "SaveProfileDto": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "specialization": {
+            "type": "string",
+            "enum": ["backend", "frontend", "data", "security"]
+          },
+          "claimedGrade": {
+            "type": "string",
+            "enum": ["junior", "middle", "senior"]
+          },
+          "fspId": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "telegram": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "github": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "linkedin": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "skillId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "level": {
+                      "type": "string",
+                      "enum": ["basic", "confident", "strong", null],
+                      "nullable": true
+                    }
+                  },
+                  "required": ["skillId", "level"]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "level": {
+                      "type": "string",
+                      "enum": ["basic", "confident", "strong", null],
+                      "nullable": true
+                    }
+                  },
+                  "required": ["title", "level"]
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "displayName",
+          "specialization",
+          "claimedGrade",
+          "fspId",
+          "telegram",
+          "github",
+          "linkedin",
+          "website",
+          "skills"
+        ]
       }
     }
   }

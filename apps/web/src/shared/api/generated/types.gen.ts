@@ -46,6 +46,43 @@ export type RefreshDto = {
     refreshToken: string;
 };
 
+export type CandidateProfileDtoOutput = {
+    displayName: string;
+    specialization: 'backend' | 'frontend' | 'data' | 'security' | null;
+    claimedGrade: 'junior' | 'middle' | 'senior' | null;
+    fspId: string | null;
+    telegram: string | null;
+    github: string | null;
+    linkedin: string | null;
+    website: string | null;
+    listed: boolean;
+    skills: Array<{
+        skillId: string;
+        slug: string;
+        title: string;
+        level: 'basic' | 'confident' | 'strong' | null;
+        verification: 'unverified' | 'verified' | 'verified_external' | null;
+    }>;
+};
+
+export type SaveProfileDto = {
+    displayName: string;
+    specialization: 'backend' | 'frontend' | 'data' | 'security';
+    claimedGrade: 'junior' | 'middle' | 'senior';
+    fspId: string;
+    telegram: string;
+    github: string;
+    linkedin: string;
+    website: string;
+    skills: Array<{
+        skillId: string;
+        level: 'basic' | 'confident' | 'strong' | null;
+    } | {
+        title: string;
+        level: 'basic' | 'confident' | 'strong' | null;
+    }>;
+};
+
 export type HealthControllerHealthData = {
     body?: never;
     path?: never;
@@ -136,3 +173,29 @@ export type AuthControllerMeResponses = {
 };
 
 export type AuthControllerMeResponse = AuthControllerMeResponses[keyof AuthControllerMeResponses];
+
+export type ProfilesControllerGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/profile';
+};
+
+export type ProfilesControllerGetResponses = {
+    200: CandidateProfileDtoOutput;
+};
+
+export type ProfilesControllerGetResponse = ProfilesControllerGetResponses[keyof ProfilesControllerGetResponses];
+
+export type ProfilesControllerSaveData = {
+    body: SaveProfileDto;
+    path?: never;
+    query?: never;
+    url: '/profile';
+};
+
+export type ProfilesControllerSaveResponses = {
+    200: CandidateProfileDtoOutput;
+};
+
+export type ProfilesControllerSaveResponse = ProfilesControllerSaveResponses[keyof ProfilesControllerSaveResponses];

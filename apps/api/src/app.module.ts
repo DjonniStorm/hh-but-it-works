@@ -5,6 +5,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 
 import { HealthController } from "./health.controller";
 import { AuthModule } from "./modules/auth/auth.module";
+import { ProfilesModule } from "./modules/profiles/profiles.module";
 import { UsersModule } from "./modules/users/users.module";
 
 @Module({
@@ -22,6 +23,7 @@ import { UsersModule } from "./modules/users/users.module";
     }),
     UsersModule,
     AuthModule,
+    ProfilesModule,
     ...(process.env.OPENAPI_EXPORT === "1"
       ? []
       : [

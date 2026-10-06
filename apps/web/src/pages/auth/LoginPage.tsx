@@ -2,6 +2,7 @@ import { notifier } from "@/app/store/notifier";
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { ROUTES } from "@/shared/router/routes";
+import { useReturnPath } from "@/shared/router/use-return-path";
 import {
   Anchor,
   Button,
@@ -21,20 +22,21 @@ import { loginSchema } from "@hh/contracts";
 export const LoginPage = observer(() => {
   const auth = useStore(StoreKey.Auth);
   const navigate = useNavigate();
+  const returnPath = useReturnPath();
   const form = useForm({
     initialValues: { email: "", password: "" },
     validate: schemaResolver(loginSchema, { sync: true }),
   });
 
   if (auth.accessToken) {
-    return <Navigate to={ROUTES.HOME} replace />;
+    return <Navigate to={returnPath} replace />;
   }
 
   const onSubmit = form.onSubmit((values) => {
     void auth.login(values, {
       onSuccess: () => {
         notifier.showSuccess("Вход выполнен");
-        navigate(ROUTES.HOME);
+        navigate(returnPath);
       },
     });
   });
