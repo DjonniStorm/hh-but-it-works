@@ -214,13 +214,15 @@ python evaluation/train_ltr.py evaluation/data/sanity_gold.jsonl
 - Меняешь формулу/веса → обнови **одновременно**: `MODEL_VERSION` (bump `rules-v1.0.0` → `rules-v1.1.0`), веса в `breakdownGroups` (`ranking.client.ts`), таблицу в `README.md` и `HANDOFF.md`, gold-набор, если порядок пар меняется.
 - Меняешь контракт `/rank` → правишь только адаптер, `@hh/contracts` не трогаешь (см. `contracts/README.md`).
 - Новый код reason/warning → пункт в `apps/web/src/shared/lib/labels.ts`, иначе в UI увидишь `skill_foo`.
+- Доменные числа для eval (навыки, бюджеты, веса компетенций) добавляются только в `evaluation/fixtures.py`. Тесты держат свой минимальный словарь намеренно (одна гипотеза — один набор полей), gold-набор — размеченные данные: их не унифицируем.
+- Списки констант, продублированные между языками (веса `qualification`/`opportunity` ↔ `breakdownGroups`, `FEATURE_ORDER` ↔ `ScoreBreakdown`, `taxonomy.py` ↔ `skill-catalog.ts`), сверяются автотестами, а не вручную — см. issue #34, этап 8.
 - Ни в коем случае не добавляй в `apps/ranking`: БД, Redis, очереди, HTTP-вызовы в `score_pair`, LLM в горячем пути.
 - Venv и ML-артефакты (`model.txt`, `model.meta.json`, `.pytest_cache`) в git не попадают — уже в `.gitignore`.
 
 ### 7.3 Что делать дальше
 
-Заведённые issues по ML-части — список см. в [docs/README.md](../../docs/README.md) и в PR. Кратко, в порядке приоритета:
+Заведённые issues по ML-части, в порядке приоритета:
 
-1. Покрытие тестами: инварианты (нормировка весов, детерминизм, монотонность), property-based, edge cases по схемам, контрактные тесты адаптера.
-2. CI-конвейер: `check.sh` + `pnpm build` + eslint/prettier в PR.
-3. Довести модель до идеала: semantic и персонализация в контракт, нормальный gold-набор, LTR против правил, калибровка score, мониторинг распределения.
+1. [#34 — план полного покрытия тестами](https://github.com/DjonniStorm/hh-but-it-works/issues/34): инварианты (нормировка весов, детерминизм, монотонность), property-based, edge cases схем, автосверка констант.
+2. [#35 — интеграционные тесты Nest ↔ ranking и CI](https://github.com/DjonniStorm/hh-but-it-works/issues/35): маппинг адаптера, `shortlist`, веб-переводы, workflow.
+3. [#36 — довести модель до идеала](https://github.com/DjonniStorm/hh-but-it-works/issues/36): подключить мёртвые сигналы контракта, нормальный gold-набор, LTR против правил, калибровка, мониторинг.
