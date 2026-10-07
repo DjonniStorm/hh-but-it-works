@@ -45,7 +45,8 @@ export const ContactsPanel = ({
       linkedin: profile.linkedin ?? "",
       website: profile.website ?? "",
       desiredSalaryFrom: profile.desiredSalaryFrom ?? "",
-      workFormats: profile.workFormats,
+      // Обычный массив: у observable klona уходит в символ MobX и зацикливается.
+      workFormats: profile.workFormats.slice(),
       searchStatus: profile.searchStatus,
     },
     validate: schemaResolver(saveContactsSchema, { sync: true }),

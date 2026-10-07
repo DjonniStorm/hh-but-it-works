@@ -1,24 +1,43 @@
+import { useState } from "react";
+
+import { useRootStore } from "@/app/store/store-context";
+import type { ActiveAttempt } from "@/pages/profile/model/attempt";
+import {
+  allowedGrades,
+  defaultTestGrade,
+} from "@/pages/profile/model/grade-advice";
 import {
   gradeOptions,
   optionLabel,
   skillLevelOptions,
   specializationOptions,
 } from "@/pages/profile/model/options";
+import { startAttempt } from "@/pages/profile/model/run-attempt";
 import { assessedFromProfile } from "@/pages/profile/model/save-skills";
+import { CategoryCard } from "@/pages/profile/ui/CategoryCard";
 import { SkillStatusBadge } from "@/pages/profile/ui/SkillStatusBadge";
+import { TestingRules } from "@/pages/profile/ui/TestingRules";
 import {
   Button,
   Group,
   Paper,
-  ScrollArea,
+  Select,
   Stack,
   Text,
   Title,
 } from "@mantine/core";
 
 import type { CandidateProfile } from "@hh/contracts";
+import { Grade } from "@hh/types";
 
-export const TestingLobby = ({ profile }: { profile: CandidateProfile }) => {
+export const TestingLobby = ({
+  profile,
+  onStarted,
+}: {
+  profile: CandidateProfile;
+  onStarted: (attempt: ActiveAttempt) => void;
+}) => {
+  const root = useRootStore();
   const contactsReady = Boolean(
     profile.displayName && profile.specialization && profile.claimedGrade,
   );
@@ -26,29 +45,29 @@ export const TestingLobby = ({ profile }: { profile: CandidateProfile }) => {
     specializationOptions,
     profile.specialization,
   );
-  const grade = optionLabel(gradeOptions, profile.claimedGrade);
   const skills = assessedFromProfile(profile.skills);
+  const allowed = allowedGrades(profile);
+  const [grade, setGrade] = useState<Grade>(defaultTestGrade(profile));
+  const [agreed, setAgreed] = useState(false);
 
   return (
-    <ScrollArea
-      h="100%"
-      type="auto"
-      offsetScrollbars
-      scrollbars="y"
-      style={{ minHeight: 0 }}
-    >
+    <Stack>
+      <CategoryCard profile={profile} />
       <Paper shadow="md" withBorder p="xl" radius="md">
         <Stack>
           <Title order={3}>Тестирование</Title>
           {contactsReady ? (
             <Text>
-              Специализация: {specialization}. Заявленный грейд: {grade}.
+              Специализация: {specialization}. В попытку войдут обязательные
+              темы специализации и навыки из анкеты, по каждому — своя секция.
             </Text>
           ) : (
             <Text>Сначала сохраните анкету.</Text>
           )}
           {skills.length === 0 ? (
-            <Text c="dimmed">Сначала добавьте навыки в анкете.</Text>
+            <Text c="dimmed">
+              Навыков в анкете нет: попытка будет только по ядру специализации.
+            </Text>
           ) : (
             skills.map((skill) => {
               const level = optionLabel(skillLevelOptions, skill.level);
@@ -78,13 +97,45 @@ export const TestingLobby = ({ profile }: { profile: CandidateProfile }) => {
               );
             })
           )}
-          <Button disabled>Начать тест</Button>
-          <Text c="dimmed">
-            Тест на заявленный грейд ещё не запускается. Самооценка на биржу не
-            выводит.
-          </Text>
+          <Select
+            label="Грейд теста"
+            description={
+              allowed.length === 1
+                ? "Пока идёт пауза между сменами грейда, доступна пересдача на текущий."
+                : undefined
+            }
+            data={gradeOptions.map((option) => {
+              return { ...option, disabled: !allowed.includes(option.value) };
+            })}
+            value={grade}
+            allowDeselect={false}
+            onChange={(value) => {
+              if (
+                value === Grade.Junior ||
+                value === Grade.Middle ||
+                value === Grade.Senior
+              ) {
+                setGrade(value);
+              }
+            }}
+            disabled={!contactsReady}
+          />
+          <TestingRules agreed={agreed} onAgree={setAgreed} />
+          <Button
+            type="button"
+            disabled={!contactsReady || !agreed || !allowed.includes(grade)}
+            onClick={() => {
+              void startAttempt(root, grade, { onSuccess: onStarted }).catch(
+                () => {
+                  return undefined;
+                },
+              );
+            }}
+          >
+            Начать попытку на {optionLabel(gradeOptions, grade)}
+          </Button>
         </Stack>
       </Paper>
-    </ScrollArea>
+    </Stack>
   );
 };

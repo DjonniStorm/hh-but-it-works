@@ -2,7 +2,16 @@
   "name": "@hh/assessment-engine",
   "version": "0.0.0",
   "private": true,
-  "main": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "validate": "pnpm build && node scripts/validate.cjs",
+    "vacancy-demo": "pnpm build && node scripts/vacancy-demo.cjs"
+  },
+  "dependencies": {
+    "@hh/types": "workspace:*"
+  },
   "devDependencies": {
     "typescript": "^6.0.3"
   }

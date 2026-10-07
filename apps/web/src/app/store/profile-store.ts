@@ -11,7 +11,10 @@ import { type RequestOptions, readData, request } from "./request";
 import type { RootStore } from "./root-store";
 import { StoreKey } from "./store-key";
 
-type CallOptions<T> = Pick<RequestOptions<T>, "onError" | "onSuccess">;
+type CallOptions<T> = Pick<
+  RequestOptions<T>,
+  "onError" | "onSuccess" | "loader"
+>;
 
 export class ProfileStore {
   readonly key = StoreKey.Profile;

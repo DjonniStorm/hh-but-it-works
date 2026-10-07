@@ -87,7 +87,10 @@ export class CandidatePoolService {
         specialization: profile.specialization,
         claimedGrade: profile.claimedGrade,
         verifiedGrade: profile.verifiedGrade,
-        gradeConfidence: null,
+        gradeConfidence:
+          profile.assessmentScore === null
+            ? null
+            : profile.assessmentScore / 100,
         experienceYears: profile.experienceYears,
         skills: rows
           .filter((row) => {
@@ -98,7 +101,7 @@ export class CandidatePoolService {
               title: titles.get(row.skillId) ?? "",
               level: row.level,
               verification: row.verification,
-              score: null,
+              score: row.score,
             };
           }),
         assessmentScore: profile.assessmentScore,
