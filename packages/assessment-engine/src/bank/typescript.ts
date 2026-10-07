@@ -18,6 +18,7 @@ export const typescript: Template[] = [
       const extra = between(rng, 10, 99);
       return {
         kind: "numeric",
+        lang: "typescript",
         prompt: "Чему равно n?",
         code: `const xs = [${items.join(", ")}];\nconst n = xs.push(${extra});`,
         answer: items.length + 1,
@@ -36,6 +37,7 @@ export const typescript: Template[] = [
       const threshold = between(rng, 5, 15);
       return {
         kind: "numeric",
+        lang: "typescript",
         prompt: "Чему равно count?",
         code: `const count = [${items.join(", ")}].filter((x) => x > ${threshold}).length;`,
         answer: items.filter((item) => {
@@ -57,6 +59,7 @@ export const typescript: Template[] = [
         input === "0" && operator === "??" ? "0" : String(fallback);
       return {
         kind: "code",
+        lang: "typescript",
         prompt: "Что вернёт вызов?",
         code: `function f(x: number | null) {\n  return x ${operator} ${fallback};\n}\nf(${input});`,
         correct,
@@ -73,6 +76,7 @@ export const typescript: Template[] = [
       const field = pick(rng, ["name", "city", "phone"]);
       return {
         kind: "code",
+        lang: "typescript",
         prompt: "Чему равно value?",
         code: `const user: { profile: { ${field}: string } | null } = { profile: null };\nconst value = user.profile?.${field};`,
         correct: "undefined",
@@ -89,6 +93,7 @@ export const typescript: Template[] = [
       const value = pick(rng, ["null", "[]", "{}"]);
       return {
         kind: "code",
+        lang: "typescript",
         prompt: "Что выведет код?",
         code: `console.log(typeof ${value});`,
         correct: '"object"',
@@ -109,6 +114,7 @@ export const typescript: Template[] = [
       const next = between(rng, 2, 9);
       return {
         kind: "code",
+        lang: "typescript",
         prompt: "Что произойдёт?",
         code: `const box = { n: 1 };\nbox.n = ${next};`,
         correct: `box.n станет ${next}`,
@@ -146,6 +152,7 @@ export const typescript: Template[] = [
       const number = between(rng, 2, 40);
       return {
         kind: "numeric",
+        lang: "typescript",
         prompt: "Что вернёт вызов?",
         code: `function f(x: string | number) {\n  if (typeof x === "string") {\n    return x.length;\n  }\n  return x * 2;\n}\nf(${useString ? `"${text}"` : number});`,
         answer: useString ? text.length : number * 2,
@@ -161,6 +168,7 @@ export const typescript: Template[] = [
       const [a, b, c, d] = shuffle(rng, ["A", "B", "C", "D", "E", "F"]);
       return {
         kind: "code",
+        lang: "typescript",
         prompt: "В каком порядке появятся буквы в консоли?",
         code: `console.log("${a}");\nsetTimeout(() => console.log("${b}"));\nPromise.resolve().then(() => console.log("${c}"));\nconsole.log("${d}");`,
         correct: `${a} ${d} ${c} ${b}`,
@@ -187,6 +195,7 @@ export const typescript: Template[] = [
       });
       return {
         kind: "numeric",
+        lang: "typescript",
         prompt:
           "Сколько миллисекунд примерно займёт ожидание? delay(ms) резолвится через ms.",
         code: `await Promise.all([${delays
@@ -208,6 +217,7 @@ export const typescript: Template[] = [
       const keyword = pick(rng, ["var", "let"]);
       return {
         kind: "numeric",
+        lang: "typescript",
         prompt: "Что вернёт последняя строка?",
         code: `const fns: (() => number)[] = [];\nfor (${keyword} i = 0; i < ${size}; i++) {\n  fns.push(() => i);\n}\nfns[0]();`,
         answer: keyword === "var" ? size : 0,
@@ -227,6 +237,7 @@ export const typescript: Template[] = [
       );
       return {
         kind: "code",
+        lang: "typescript",
         prompt: "Чему равен тип K?",
         code: `type User = { ${first}: number; ${second}: string };\ntype K = keyof User;`,
         correct: `"${first}" | "${second}"`,

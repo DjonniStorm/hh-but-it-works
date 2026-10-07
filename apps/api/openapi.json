@@ -1341,6 +1341,11 @@
                 "maxLength": 4000,
                 "nullable": true
               },
+              "lang": {
+                "type": "string",
+                "enum": ["typescript", "dockerfile", "sql", null],
+                "nullable": true
+              },
               "choices": {
                 "type": "array",
                 "items": {
@@ -1360,6 +1365,7 @@
               "kind",
               "prompt",
               "code",
+              "lang",
               "choices",
               "seconds"
             ],
@@ -1457,6 +1463,11 @@
                     "maxLength": 4000,
                     "nullable": true
                   },
+                  "lang": {
+                    "type": "string",
+                    "enum": ["typescript", "dockerfile", "sql", null],
+                    "nullable": true
+                  },
                   "choices": {
                     "type": "array",
                     "items": {
@@ -1476,6 +1487,7 @@
                   "kind",
                   "prompt",
                   "code",
+                  "lang",
                   "choices",
                   "seconds"
                 ],

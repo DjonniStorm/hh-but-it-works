@@ -146,6 +146,7 @@ export const docker: Template[] = [
       );
       return {
         kind: "code",
+        lang: "dockerfile",
         prompt: `Что выведет docker run img ${argument}?`,
         code: `FROM alpine\nENTRYPOINT ["echo", "${base}"]\nCMD ["${fallback}"]`,
         correct: `${base} ${argument}`,

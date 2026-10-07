@@ -7,16 +7,8 @@ import {
 } from "@/pages/profile/model/attempt";
 import { answerItem } from "@/pages/profile/model/run-attempt";
 import { TestingQuestion } from "@/pages/profile/ui/TestingQuestion";
-import {
-  Alert,
-  Badge,
-  Button,
-  Group,
-  Paper,
-  Progress,
-  Stack,
-  Text,
-} from "@mantine/core";
+import { TestingSectionRail } from "@/pages/profile/ui/TestingSectionRail";
+import { Alert, Button, Group, Stack, Text } from "@mantine/core";
 
 export const TestingRun = ({
   attempt,
@@ -29,39 +21,28 @@ export const TestingRun = ({
   fullscreenLost: boolean;
   onFullscreen: () => void;
   onAnswered: (next: ActiveAttempt) => void;
-  // Сервер уже закрыл вопрос: перечитываем текущее состояние попытки.
   onStale: () => void;
 }) => {
   const root = useRootStore();
   const [sending, setSending] = useState(false);
   const item = attempt.item;
   const sectionIndex = sectionIndexOf(attempt);
-  const section = attempt.sections[sectionIndex];
 
   return (
-    <Paper shadow="md" withBorder p="xl" radius="md">
-      <Stack>
-        <Group justify="space-between">
-          <Text fw={600}>
-            Вопрос {Math.min(attempt.index + 1, attempt.total)} из{" "}
-            {attempt.total}
-          </Text>
-          {section ? (
-            <Badge variant="light">
-              Секция {sectionIndex + 1} из {attempt.sections.length}:{" "}
-              {section.title}
-            </Badge>
-          ) : null}
-        </Group>
-        <Progress value={(attempt.index / attempt.total) * 100} />
+    <Group align="flex-start" wrap="wrap" gap="xl">
+      <TestingSectionRail sections={attempt.sections} current={sectionIndex} />
+      <Stack style={{ flex: "1 1 28rem" }} maw={720}>
+        <Text>
+          Вопрос {Math.min(attempt.index + 1, attempt.total)} из {attempt.total}
+        </Text>
         {fullscreenLost ? (
-          <Alert color="red" variant="light" title="Вопрос на паузе">
+          <Alert color="fspRed" variant="light" title="Вопрос на паузе">
             <Stack gap="sm">
               <Text size="sm">
-                Вы вышли из полноэкранного режима, это записано. Таймер вопроса
-                идёт. Вернитесь, чтобы продолжить.
+                Вы вышли из полноэкранного режима, это записано. Таймер идёт.
+                Вернитесь, чтобы видеть вопрос.
               </Text>
-              <Button type="button" color="red" onClick={onFullscreen}>
+              <Button type="button" color="fspRed" onClick={onFullscreen}>
                 Вернуться в полноэкранный режим
               </Button>
             </Stack>
@@ -75,7 +56,6 @@ export const TestingRun = ({
             hidden={fullscreenLost}
             sending={sending}
             onSubmit={(draft) => {
-              // Таймер и кнопка могут сработать одновременно: второй ответ сервер отклонит.
               if (sending) {
                 return;
               }
@@ -105,6 +85,6 @@ export const TestingRun = ({
           />
         ) : null}
       </Stack>
-    </Paper>
+    </Group>
   );
 };

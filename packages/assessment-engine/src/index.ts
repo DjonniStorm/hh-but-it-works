@@ -35,6 +35,7 @@ export { planForNeed, slugForSkill } from "./need";
 export type { NeedInput, NeedPlan } from "./need";
 export type {
   AttemptAnswer,
+  CodeLang,
   ItemKind,
   PublicItem,
   SecretItem,

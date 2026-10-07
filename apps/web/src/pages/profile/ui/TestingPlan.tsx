@@ -3,7 +3,7 @@ import {
   totalMinutes,
 } from "@/pages/profile/model/attempt";
 import { gradeOptions, optionLabel } from "@/pages/profile/model/options";
-import { Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
+import { Button, Group, Stack, Text, Title } from "@mantine/core";
 
 export const TestingPlan = ({
   attempt,
@@ -13,35 +13,30 @@ export const TestingPlan = ({
   onBegin: () => void;
 }) => {
   return (
-    <Paper shadow="md" withBorder p="xl" radius="md">
-      <Stack>
-        <Title order={3}>
-          План попытки на {optionLabel(gradeOptions, attempt.grade)}
-        </Title>
-        <Text>
-          {attempt.total} вопросов, примерно {totalMinutes(attempt.sections)}{" "}
-          мин. Таймер первого вопроса запустится после кнопки ниже.
-        </Text>
-        {attempt.sections.map((section, index) => {
+    <Stack maw={640} gap="md">
+      <Title order={3}>
+        Попытка на {optionLabel(gradeOptions, attempt.grade)}
+      </Title>
+      <Text>
+        {attempt.total} вопросов, около {totalMinutes(attempt.sections)} мин.
+        Таймер первого вопроса включится после кнопки.
+      </Text>
+      <Stack gap="xs" component="ol" style={{ paddingLeft: "1.25rem" }}>
+        {attempt.sections.map((section) => {
           return (
-            <Paper key={section.skillId} withBorder p="sm" radius="md">
-              <Group justify="space-between">
-                <Text fw={600}>
-                  {index + 1}. {section.title}
-                </Text>
-                <Text c="dimmed">{section.count} вопр.</Text>
-              </Group>
-            </Paper>
+            <Group key={section.skillId} justify="space-between" component="li">
+              <Text>{section.title}</Text>
+              <Text c="dimmed">{section.count}</Text>
+            </Group>
           );
         })}
-        <Text size="sm" c="dimmed">
-          Браузер перейдёт в полноэкранный режим. Выход из него ставит вопрос на
-          паузу, а таймер продолжает идти.
-        </Text>
-        <Button type="button" onClick={onBegin}>
-          Начать: первый вопрос
-        </Button>
       </Stack>
-    </Paper>
+      <Text size="sm" c="dimmed">
+        Браузер займёт весь экран. Выход прячет вопрос, таймер при этом идёт.
+      </Text>
+      <Button type="button" onClick={onBegin}>
+        Начать первый вопрос
+      </Button>
+    </Stack>
   );
 };

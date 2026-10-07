@@ -15,6 +15,8 @@
     "@mantine/core": "^9.6.3",
     "@mantine/form": "^9.6.3",
     "@mantine/notifications": "^9.6.3",
+    "@shikijs/langs": "4.5.0",
+    "@shikijs/themes": "4.5.0",
     "@unhead/react": "^3.4.2",
     "mobx": "^7.0.6",
     "mobx-react-lite": "^5.1.0",
@@ -22,6 +24,7 @@
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-router": "^8.4.0",
+    "shiki": "^4.5.0",
     "unhead": "^3.4.2",
     "zod": "^4.6.5"
   },
