@@ -9,10 +9,13 @@ import {
 
 import { InvitationStatus } from "@hh/types";
 
+export const oneActiveIndex = "invitations_one_active";
+
 // Приглашение работодателя кандидату. Статус меняет кандидат (принять, отклонить).
 // Одно активное приглашение от компании кандидату держит база: параллельные запросы
 // не создадут второе. После отказа строка выпадает из индекса, можно пригласить снова.
-@Index("invitations_one_active", ["userId", "candidateProfileId"], {
+// synchronize не сравнивает where у индекса: новое условие — только под новым именем.
+@Index(oneActiveIndex, ["userId", "candidateProfileId"], {
   unique: true,
   where: `"status" <> 'declined'`,
 })

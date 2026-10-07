@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { In, IsNull, Not, Repository } from "typeorm";
+import { In, Not, Repository } from "typeorm";
 
 import type { CandidateSnapshot, HiringNeedInput } from "@hh/contracts";
 import { Grade, SearchStatus, gradeIndex, gradeOrder } from "@hh/types";
@@ -38,32 +38,14 @@ export class CandidatePoolService {
 
   // Своя специализация и грейд в диапазоне потребности ±1 ступень.
   // Грейд берём подтверждённый, если тест уже был, иначе заявленный.
+  // pool — результат listed(): подборка и счётчик в списке потребностей отбирают одинаково.
   eligible(need: NeedFilter, pool: CandidateProfile[]): CandidateProfile[] {
     const grades = gradesAround(need);
     return pool.filter((profile) => {
-      if (profile.searchStatus === SearchStatus.Hidden) {
-        return false;
-      }
       if (profile.specialization !== need.specialization) {
         return false;
       }
       return grades.includes(profile.verifiedGrade ?? profile.claimedGrade);
-    });
-  }
-
-  // Те же правила, что у eligible(), но отбор в SQL: ради одной потребности весь пул не грузим.
-  eligibleFor(need: NeedFilter): Promise<CandidateProfile[]> {
-    const grades = gradesAround(need);
-    const base = {
-      listed: true,
-      searchStatus: Not(SearchStatus.Hidden),
-      specialization: need.specialization,
-    };
-    return this.profiles.find({
-      where: [
-        { ...base, verifiedGrade: In(grades) },
-        { ...base, verifiedGrade: IsNull(), claimedGrade: In(grades) },
-      ],
     });
   }
 

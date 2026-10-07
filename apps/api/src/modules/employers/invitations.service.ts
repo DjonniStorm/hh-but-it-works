@@ -22,7 +22,7 @@ import { aliasOf } from "./candidate-pool.service";
 import { CompanyProfile } from "./company-profile.entity";
 import { EmployersService } from "./employers.service";
 import { HiringNeed } from "./hiring-need.entity";
-import { Invitation } from "./invitation.entity";
+import { Invitation, oneActiveIndex } from "./invitation.entity";
 
 const alreadyInvited = "Этому кандидату уже отправлено приглашение";
 
@@ -108,8 +108,8 @@ export class InvitationsService {
         }),
       );
     } catch (error) {
-      // Параллельный запрос успел раньше: сработал индекс invitations_one_active.
-      if (isUniqueViolation(error)) {
+      // Параллельный запрос успел раньше: сработал индекс одного активного приглашения.
+      if (violates(error, oneActiveIndex)) {
         throw new ConflictException(alreadyInvited);
       }
       throw error;
@@ -262,12 +262,16 @@ export class InvitationsService {
   }
 }
 
-// 23505 — unique_violation в Postgres.
-function isUniqueViolation(error: unknown): boolean {
-  return (
-    error instanceof QueryFailedError &&
-    (error.driverError as { code?: string }).code === "23505"
-  );
+// 23505 — unique_violation в Postgres. Имя проверяем, чтобы чужой unique не стал «уже приглашён».
+function violates(error: unknown, constraint: string): boolean {
+  if (!(error instanceof QueryFailedError)) {
+    return false;
+  }
+  const driverError = error.driverError as {
+    code?: string;
+    constraint?: string;
+  };
+  return driverError.code === "23505" && driverError.constraint === constraint;
 }
 
 function toCandidateView(

@@ -9,8 +9,9 @@ export type RankResult = {
   reasons: string[];
 };
 
-// Дольше не ждём: по таймауту отдаём 503, фронт повторит запрос.
-const timeoutMs = 10000;
+// По таймауту отдаём 503, а фронт повторяет загрузку подборки до трёх раз (loadRetry).
+// Поэтому ждём недолго: зависший ranking держит оверлей примерно втрое дольше этого числа.
+const timeoutMs = 5000;
 
 type RankResponse = {
   results?: { candidateId?: unknown; score?: unknown; reasons?: unknown }[];

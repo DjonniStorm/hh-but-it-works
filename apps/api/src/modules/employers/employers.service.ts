@@ -59,26 +59,32 @@ export class EmployersService {
       order: { createdAt: "DESC" },
     });
     // Один запрос пула и один запрос «не подходит» на все потребности, счёт в памяти.
-    const listed = await this.pool.listed();
-    const dismissed = await this.dismissedByNeed(
-      rows.map((need) => {
-        return need.id;
-      }),
-    );
+    const [listed, dismissed] = await Promise.all([
+      this.pool.listed(),
+      this.dismissedByNeed(
+        rows.map((need) => {
+          return need.id;
+        }),
+      ),
+    ]);
     return {
       items: rows.map((need) => {
-        return this.toNeedView(need, listed, dismissed.get(need.id));
+        return this.toNeedView(
+          need,
+          listed,
+          dismissed.get(need.id) ?? new Set(),
+        );
       }),
     };
   }
 
   async getNeed(userId: string, id: string): Promise<HiringNeedView> {
     const need = await this.requireNeed(userId, id);
-    return this.toNeedView(
-      need,
-      await this.pool.listed(),
-      await this.dismissedIds(need.id),
-    );
+    const [listed, dismissed] = await Promise.all([
+      this.pool.listed(),
+      this.dismissedIds(need.id),
+    ]);
+    return this.toNeedView(need, listed, dismissed);
   }
 
   async createNeed(
@@ -91,11 +97,14 @@ export class EmployersService {
 
   async shortlist(userId: string, needId: string): Promise<Shortlist> {
     const need = await this.requireNeed(userId, needId);
+    const [listed, dismissed] = await Promise.all([
+      this.pool.listed(),
+      this.dismissedIds(need.id),
+    ]);
     const candidates = await this.pool.snapshots(
-      await this.pool.eligibleFor(need),
+      this.pool.eligible(need, listed),
     );
     const scores = await this.ranking.rank(need, candidates);
-    const dismissed = await this.dismissedIds(need.id);
 
     const items: Match[] = candidates.map((candidate) => {
       const result = scores.get(candidate.id);
@@ -181,7 +190,7 @@ export class EmployersService {
   private toNeedView(
     need: HiringNeed,
     listed: CandidateProfile[],
-    dismissed: Set<string> = new Set(),
+    dismissed: Set<string>,
   ): HiringNeedView {
     const candidateCount = this.pool
       .eligible(need, listed)
