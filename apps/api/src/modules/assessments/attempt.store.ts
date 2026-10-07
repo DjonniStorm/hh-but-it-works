@@ -8,29 +8,64 @@ import type {
   SecretItem,
 } from "@hh/assessment-engine";
 import { isIntegrityFlag } from "@hh/assessment-engine";
-import { Grade, IntegrityFlag } from "@hh/types";
+import { Grade, IntegrityFlag, Specialization } from "@hh/types";
 
 const attemptTtlSeconds = 60 * 60 * 2;
 // Потолок событий на попытку: клиент не раздует ключ в Redis.
 const maxEvents = 50;
 
-// Забирает попытку, только если это она: чужую (новую) попытку того же человека не трогает.
-const takeScript = `
+// Все записи сверяют id: завершённую попытку не воскрешают, новую (того же человека) не трогают.
+const sameAttempt = `
+local function same(raw, id)
+  if not raw then
+    return false
+  end
+  local ok, attempt = pcall(cjson.decode, raw)
+  return ok and type(attempt) == "table" and attempt.id == id
+end
+`;
+
+const updateScript = `${sameAttempt}
+if not same(redis.call("GET", KEYS[1]), ARGV[1]) then
+  return 0
+end
+redis.call("SET", KEYS[1], ARGV[2], "KEEPTTL")
+return 1
+`;
+
+// Попытку и её события забираем одним шагом: событие не потеряется между чтением и удалением.
+const takeScript = `${sameAttempt}
 local raw = redis.call("GET", KEYS[1])
-if not raw then
+if not same(raw, ARGV[1]) then
   return false
 end
-local ok, attempt = pcall(cjson.decode, raw)
-if not ok or type(attempt) ~= "table" or attempt.id ~= ARGV[1] then
-  return false
+local events = redis.call("LRANGE", KEYS[2], 0, -1)
+redis.call("DEL", KEYS[1], KEYS[2])
+return { raw, events }
+`;
+
+// После finish событие не примем: иначе оно легло бы в список, который никто не прочитает.
+const pushEventsScript = `${sameAttempt}
+if not same(redis.call("GET", KEYS[1]), ARGV[1]) then
+  return 0
 end
-redis.call("DEL", KEYS[1])
-return raw
+local room = tonumber(ARGV[2]) - redis.call("LLEN", KEYS[2])
+local count = math.min(room, #ARGV - 3)
+if count <= 0 then
+  return 0
+end
+for i = 4, count + 3 do
+  redis.call("RPUSH", KEYS[2], ARGV[i])
+end
+redis.call("EXPIRE", KEYS[2], ARGV[3])
+return count
 `;
 
 export type StoredAttempt = {
   id: string;
   grade: Grade;
+  // Под какую специализацию собрана попытка: после смены анкеты грейд ей не засчитываем.
+  specialization: Specialization;
   sections: { skillId: string; title: string; count: number }[];
   items: PublicItem[];
   secret: SecretItem[];
@@ -65,15 +100,16 @@ export class AttemptStore implements OnModuleDestroy {
   }
 
   // Обновление не продлевает попытку: срок считается от старта.
-  // XX: если finish уже забрал попытку, не воскрешаем её ключом без срока. Тогда false.
+  // false — попытки уже нет или на её месте новая.
   async update(userId: string, attempt: StoredAttempt): Promise<boolean> {
-    const result = await this.redis.set(
+    const written = await this.redis.eval(
+      updateScript,
+      1,
       this.key(userId),
+      attempt.id,
       JSON.stringify(attempt),
-      "KEEPTTL",
-      "XX",
     );
-    return result === "OK";
+    return written === 1;
   }
 
   async get(userId: string): Promise<StoredAttempt | null> {
@@ -85,37 +121,47 @@ export class AttemptStore implements OnModuleDestroy {
   }
 
   // Атомарно: из двух параллельных finish попытку получит только один.
-  async take(userId: string, attemptId: string): Promise<StoredAttempt | null> {
-    const raw = (await this.redis.eval(
+  async take(
+    userId: string,
+    attemptId: string,
+  ): Promise<{ attempt: StoredAttempt; events: IntegrityFlag[] } | null> {
+    const taken = (await this.redis.eval(
       takeScript,
-      1,
+      2,
       this.key(userId),
+      this.eventsKey(userId),
       attemptId,
-    )) as string | null;
-    if (!raw) {
+    )) as [string, string[]] | null;
+    if (!taken) {
       return null;
     }
-    return parseAttempt(raw);
+    const attempt = parseAttempt(taken[0]);
+    if (!attempt) {
+      return null;
+    }
+    return { attempt, events: taken[1].filter(isIntegrityFlag) };
   }
 
   // События идут отдельным списком: ответ и событие могут прийти одновременно.
-  async pushEvents(userId: string, flags: IntegrityFlag[]): Promise<number> {
-    const key = this.eventsKey(userId);
-    const stored = await this.redis.llen(key);
-    const accepted = flags.slice(0, Math.max(0, maxEvents - stored));
-    if (accepted.length === 0) {
+  async pushEvents(
+    userId: string,
+    attemptId: string,
+    flags: IntegrityFlag[],
+  ): Promise<number> {
+    if (flags.length === 0) {
       return 0;
     }
-    await this.redis.rpush(key, ...accepted);
-    await this.redis.expire(key, attemptTtlSeconds);
-    return accepted.length;
-  }
-
-  async takeEvents(userId: string): Promise<IntegrityFlag[]> {
-    const key = this.eventsKey(userId);
-    const raw = await this.redis.lrange(key, 0, -1);
-    await this.redis.del(key);
-    return raw.filter(isIntegrityFlag);
+    const accepted = await this.redis.eval(
+      pushEventsScript,
+      2,
+      this.key(userId),
+      this.eventsKey(userId),
+      attemptId,
+      maxEvents,
+      attemptTtlSeconds,
+      ...flags,
+    );
+    return Number(accepted);
   }
 
   async onModuleDestroy(): Promise<void> {

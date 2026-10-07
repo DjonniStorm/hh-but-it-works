@@ -61,7 +61,8 @@ export class AssessmentsService {
       throw new ConflictException("Сначала завершите текущую попытку");
     }
     await this.profiles.assertGradeChangeAllowed(userId, grade);
-    const skills = await this.profiles.assessmentSkills(userId);
+    const { specialization, skills } =
+      await this.profiles.assessmentSkills(userId);
 
     let built: ReturnType<typeof buildAttempt>;
     try {
@@ -81,6 +82,7 @@ export class AssessmentsService {
     const attempt: StoredAttempt = {
       id: randomUUID(),
       grade,
+      specialization,
       sections: built.sections.map((section) => {
         return {
           skillId: section.skillId,
@@ -176,17 +178,21 @@ export class AssessmentsService {
       }
       return [event.type];
     });
-    const accepted = await this.attempts.pushEvents(userId, flags);
+    const accepted = await this.attempts.pushEvents(
+      userId,
+      input.attemptId,
+      flags,
+    );
     return { accepted };
   }
 
   async finish(userId: string, attemptId: string): Promise<AssessmentResult> {
     // Берём и удаляем одним шагом: второй параллельный finish получит 400, а не вторую оценку.
-    const attempt = await this.attempts.take(userId, attemptId);
-    if (!attempt) {
+    const taken = await this.attempts.take(userId, attemptId);
+    if (!taken) {
       throw new BadRequestException(attemptGone);
     }
-    const clientFlags = await this.attempts.takeEvents(userId);
+    const { attempt, events: clientFlags } = taken;
 
     // Неотвеченные вопросы засчитываются как неверные.
     const graded = gradeAttempt(
@@ -202,6 +208,7 @@ export class AssessmentsService {
         : AttemptStatus.Failed;
     const { gradeChanged } = await this.profiles.applyAssessment(userId, {
       grade: attempt.grade,
+      specialization: attempt.specialization,
       status,
       score: graded.score,
       sections: graded.sections,

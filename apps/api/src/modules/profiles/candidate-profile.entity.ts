@@ -79,6 +79,21 @@ export class CandidateProfile {
   @Column({ type: "timestamptz", nullable: true })
   verifiedAt!: Date | null;
 
+  /**
+   * Последний грейд, на который сменилось подтверждение, и когда. От них считается пауза.
+   * Смена специализации их не сбрасывает, в отличие от verifiedGrade и verifiedAt.
+   */
+  @Column({
+    type: "enum",
+    enum: Grade,
+    enumName: "verified_grade",
+    nullable: true,
+  })
+  cooldownGrade!: Grade | null;
+
+  @Column({ type: "timestamptz", nullable: true })
+  cooldownFrom!: Date | null;
+
   @Column({ type: "real", nullable: true })
   experienceYears!: number | null;
 

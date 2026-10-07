@@ -136,9 +136,8 @@ export const saveSkillSchema = z.union([
   }),
 ]);
 
-// Потолок на анкету: каждый новый навык — строка в общем каталоге skills.
 export const saveSkillsSchema = z.object({
-  skills: z.array(saveSkillSchema).max(50, "Не больше 50 навыков"),
+  skills: z.array(saveSkillSchema),
 });
 
 export const saveProfileSchema = saveContactsSchema.extend({

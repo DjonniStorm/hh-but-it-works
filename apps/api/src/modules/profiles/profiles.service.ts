@@ -16,6 +16,7 @@ import {
   SearchStatus,
   SkillLevel,
   SkillVerification,
+  Specialization,
 } from "@hh/types";
 
 import { CandidateProfile } from "./candidate-profile.entity";
@@ -30,6 +31,7 @@ type SkillSignal = {
 
 type AssessmentOutcome = {
   grade: Grade;
+  specialization: Specialization;
   status: AttemptStatus;
   score: number;
   sections: { skillId: string; score: number; passed: boolean }[];
@@ -47,6 +49,13 @@ export type AssessmentSkill = {
 };
 
 const gradeChangeCooldownMs = 90 * 24 * 60 * 60 * 1000;
+// Навыки каталога сюда не входят: их добавляет и тест, иначе после него анкету было бы не сохранить.
+const maxOwnSkills = 50;
+const catalogSlugs = new Set<string>(
+  skillCatalog.map((item) => {
+    return item.slug;
+  }),
+);
 
 // Навык ядра, которого не было в анкете: уровень берём из подтверждённого грейда.
 const levelByGrade: Record<Grade, SkillLevel> = {
@@ -88,7 +97,10 @@ export class ProfilesService implements OnModuleInit {
   }
 
   // Навыки анкеты из каталога и ядро специализации, даже если его в анкете нет.
-  async assessmentSkills(userId: string): Promise<AssessmentSkill[]> {
+  async assessmentSkills(userId: string): Promise<{
+    specialization: Specialization;
+    skills: AssessmentSkill[];
+  }> {
     const profile = await this.requireProfile(userId);
     const rows = await this.candidateSkills.find({
       where: { profileId: profile.id },
@@ -113,16 +125,20 @@ export class ProfilesService implements OnModuleInit {
         title: skill.title,
       });
     }
-    return [...merged.values()];
+    return {
+      specialization: profile.specialization,
+      skills: [...merged.values()],
+    };
   }
 
   // Пауза проверяется до старта: кандидат не тратит попытку на грейд, который всё равно не сменить.
   async assertGradeChangeAllowed(userId: string, grade: Grade): Promise<void> {
     const profile = await this.requireProfile(userId);
     const until = cooldownUntil(profile);
-    if (profile.verifiedGrade && profile.verifiedGrade !== grade && until) {
+    const locked = lockedGrade(profile);
+    if (locked && locked !== grade && until) {
       throw new ConflictException(
-        `Сменить грейд можно после ${until.toLocaleDateString("ru-RU")}. Сейчас доступен тест на ${gradeLabel[profile.verifiedGrade]}.`,
+        `Сменить грейд можно после ${until.toLocaleDateString("ru-RU")}. Сейчас доступен тест на ${gradeLabel[locked]}.`,
       );
     }
   }
@@ -132,6 +148,12 @@ export class ProfilesService implements OnModuleInit {
     result: AssessmentOutcome,
   ): Promise<{ gradeChanged: boolean }> {
     const profile = await this.requireProfile(userId);
+    // Попытку собирали под другую специализацию: её секции и грейд к этой анкете не относятся.
+    if (result.specialization !== profile.specialization) {
+      throw new ConflictException(
+        "Специализация сменилась во время теста. Начните новую попытку",
+      );
+    }
     // Аннулированная попытка не меняет ни навыки, ни грейд.
     if (result.status === AttemptStatus.Annulled) {
       return { gradeChanged: false };
@@ -166,13 +188,22 @@ export class ProfilesService implements OnModuleInit {
     if (result.status !== AttemptStatus.Passed) {
       return { gradeChanged: false };
     }
-    const gradeChanged =
-      profile.verifiedGrade !== result.grade && !cooldownUntil(profile);
+    const locked = lockedGrade(profile);
+    // Во время паузы засчитываем только грейд, на котором она держится.
+    if (cooldownUntil(profile) && locked && locked !== result.grade) {
+      return { gradeChanged: false };
+    }
+    const gradeChanged = profile.verifiedGrade !== result.grade;
     profile.assessmentScore = result.score;
     profile.listed = true;
     if (gradeChanged) {
       profile.verifiedGrade = result.grade;
       profile.verifiedAt = new Date();
+    }
+    // Новый грейд начинает паузу. Тот же грейд после смены специализации её не продлевает.
+    if (result.grade !== locked) {
+      profile.cooldownGrade = result.grade;
+      profile.cooldownFrom = new Date();
     }
     await this.profiles.save(profile);
     return { gradeChanged };
@@ -280,6 +311,9 @@ export class ProfilesService implements OnModuleInit {
 
     // Грейд подтверждали тестом по старой специализации: в новой его ещё нет.
     if (existing.specialization !== input.specialization) {
+      // Пауза на смену грейда остаётся, иначе её обходят двумя сохранениями анкеты.
+      existing.cooldownGrade = lockedGrade(existing);
+      existing.cooldownFrom = existing.cooldownFrom ?? existing.verifiedAt;
       existing.verifiedGrade = null;
       existing.verifiedAt = null;
       existing.assessmentScore = null;
@@ -322,11 +356,29 @@ export class ProfilesService implements OnModuleInit {
         return "skillId" in item ? [item.skillId] : [];
       }),
     );
-    if (ids.size > 0) {
-      const found = await this.skills.count({ where: { id: In([...ids]) } });
-      if (found !== ids.size) {
-        throw new BadRequestException("Неизвестный навык");
-      }
+    const known =
+      ids.size > 0
+        ? await this.skills.find({ where: { id: In([...ids]) } })
+        : [];
+    if (known.length !== ids.size) {
+      throw new BadRequestException("Неизвестный навык");
+    }
+
+    const slugs = [
+      ...known.map((skill) => {
+        return skill.slug;
+      }),
+      ...pending.flatMap((item) => {
+        return "slug" in item ? [item.slug] : [];
+      }),
+    ];
+    const own = new Set(
+      slugs.filter((slug) => {
+        return !catalogSlugs.has(slug);
+      }),
+    );
+    if (own.size > maxOwnSkills) {
+      throw new BadRequestException(`Не больше ${maxOwnSkills} навыков`);
     }
     return pending;
   }
@@ -478,12 +530,18 @@ function expectations(
   };
 }
 
+// Грейд, на котором держится пауза. У старых записей поля паузы пустые: берём подтверждённый.
+function lockedGrade(profile: CandidateProfile): Grade | null {
+  return profile.cooldownGrade ?? profile.verifiedGrade;
+}
+
 // Пока пауза не прошла, возвращает дату её конца.
 function cooldownUntil(profile: CandidateProfile): Date | null {
-  if (!profile.verifiedAt) {
+  const from = profile.cooldownFrom ?? profile.verifiedAt;
+  if (!from) {
     return null;
   }
-  const until = new Date(profile.verifiedAt.getTime() + gradeChangeCooldownMs);
+  const until = new Date(from.getTime() + gradeChangeCooldownMs);
   return until.getTime() > Date.now() ? until : null;
 }
 
