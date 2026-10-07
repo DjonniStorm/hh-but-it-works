@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { In, Not, Repository } from "typeorm";
+import { In, Not, QueryFailedError, Repository } from "typeorm";
 
 import type {
   CandidateInvitationList,
@@ -14,7 +14,7 @@ import type {
   InvitationList,
   Invitation as InvitationView,
 } from "@hh/contracts";
-import { InvitationStatus } from "@hh/types";
+import { InvitationStatus, SearchStatus } from "@hh/types";
 
 import { CandidateProfile } from "../profiles/candidate-profile.entity";
 import { User } from "../users/user.entity";
@@ -23,6 +23,8 @@ import { CompanyProfile } from "./company-profile.entity";
 import { EmployersService } from "./employers.service";
 import { HiringNeed } from "./hiring-need.entity";
 import { Invitation } from "./invitation.entity";
+
+const alreadyInvited = "Этому кандидату уже отправлено приглашение";
 
 @Injectable()
 export class InvitationsService {
@@ -65,8 +67,13 @@ export class InvitationsService {
       throw new BadRequestException("Сначала заполните профиль компании");
     }
     const candidate = await this.profiles.findOne({
-      where: { id: input.candidateId, listed: true },
+      where: {
+        id: input.candidateId,
+        listed: true,
+        searchStatus: Not(SearchStatus.Hidden),
+      },
     });
+    // Скрывшийся кандидат для работодателя не существует, как и в подборке.
     if (!candidate) {
       throw new NotFoundException("Кандидат не найден");
     }
@@ -83,21 +90,30 @@ export class InvitationsService {
       },
     });
     if (active) {
-      throw new ConflictException("Этому кандидату уже отправлено приглашение");
+      throw new ConflictException(alreadyInvited);
     }
 
-    const saved = await this.invitations.save(
-      this.invitations.create({
-        userId,
-        candidateProfileId: candidate.id,
-        needId: input.needId,
-        message: input.message,
-        contact: input.contact,
-        salaryFrom: input.salaryFrom,
-        salaryTo: input.salaryTo,
-        status: InvitationStatus.Sent,
-      }),
-    );
+    let saved: Invitation;
+    try {
+      saved = await this.invitations.save(
+        this.invitations.create({
+          userId,
+          candidateProfileId: candidate.id,
+          needId: input.needId,
+          message: input.message,
+          contact: input.contact,
+          salaryFrom: input.salaryFrom,
+          salaryTo: input.salaryTo,
+          status: InvitationStatus.Sent,
+        }),
+      );
+    } catch (error) {
+      // Параллельный запрос успел раньше: сработал индекс invitations_one_active.
+      if (isUniqueViolation(error)) {
+        throw new ConflictException(alreadyInvited);
+      }
+      throw error;
+    }
     return toView(
       saved,
       companyName,
@@ -244,6 +260,14 @@ export class InvitationsService {
       }),
     );
   }
+}
+
+// 23505 — unique_violation в Postgres.
+function isUniqueViolation(error: unknown): boolean {
+  return (
+    error instanceof QueryFailedError &&
+    (error.driverError as { code?: string }).code === "23505"
+  );
 }
 
 function toCandidateView(

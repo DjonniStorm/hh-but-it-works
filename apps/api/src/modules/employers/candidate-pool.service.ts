@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { In, Repository } from "typeorm";
+import { In, IsNull, Not, Repository } from "typeorm";
 
 import type { CandidateSnapshot, HiringNeedInput } from "@hh/contracts";
-import { SearchStatus, gradeIndex } from "@hh/types";
+import { Grade, SearchStatus, gradeIndex, gradeOrder } from "@hh/types";
 
 import { CandidateProfile } from "../profiles/candidate-profile.entity";
 import { CandidateSkill } from "../profiles/candidate-skill.entity";
@@ -31,14 +31,15 @@ export class CandidatePoolService {
 
   // На бирже только подтверждённые (listed) и не скрывшиеся кандидаты.
   listed(): Promise<CandidateProfile[]> {
-    return this.profiles.find({ where: { listed: true } });
+    return this.profiles.find({
+      where: { listed: true, searchStatus: Not(SearchStatus.Hidden) },
+    });
   }
 
   // Своя специализация и грейд в диапазоне потребности ±1 ступень.
   // Грейд берём подтверждённый, если тест уже был, иначе заявленный.
   eligible(need: NeedFilter, pool: CandidateProfile[]): CandidateProfile[] {
-    const from = gradeIndex(need.gradeFrom);
-    const to = gradeIndex(need.gradeTo);
+    const grades = gradesAround(need);
     return pool.filter((profile) => {
       if (profile.searchStatus === SearchStatus.Hidden) {
         return false;
@@ -46,8 +47,23 @@ export class CandidatePoolService {
       if (profile.specialization !== need.specialization) {
         return false;
       }
-      const grade = gradeIndex(profile.verifiedGrade ?? profile.claimedGrade);
-      return grade >= from - 1 && grade <= to + 1;
+      return grades.includes(profile.verifiedGrade ?? profile.claimedGrade);
+    });
+  }
+
+  // Те же правила, что у eligible(), но отбор в SQL: ради одной потребности весь пул не грузим.
+  eligibleFor(need: NeedFilter): Promise<CandidateProfile[]> {
+    const grades = gradesAround(need);
+    const base = {
+      listed: true,
+      searchStatus: Not(SearchStatus.Hidden),
+      specialization: need.specialization,
+    };
+    return this.profiles.find({
+      where: [
+        { ...base, verifiedGrade: In(grades) },
+        { ...base, verifiedGrade: IsNull(), claimedGrade: In(grades) },
+      ],
     });
   }
 
@@ -74,6 +90,12 @@ export class CandidatePoolService {
         return [skill.id, skill.title] as const;
       }),
     );
+    const skillsByProfile = new Map<string, CandidateSkill[]>();
+    for (const row of rows) {
+      const list = skillsByProfile.get(row.profileId) ?? [];
+      list.push(row);
+      skillsByProfile.set(row.profileId, list);
+    }
     const achievements = await Promise.all(
       profiles.map((profile) => {
         return this.fsp.achievements(profile.fspId);
@@ -92,18 +114,14 @@ export class CandidatePoolService {
             ? null
             : profile.assessmentScore / 100,
         experienceYears: profile.experienceYears,
-        skills: rows
-          .filter((row) => {
-            return row.profileId === profile.id;
-          })
-          .map((row) => {
-            return {
-              title: titles.get(row.skillId) ?? "",
-              level: row.level,
-              verification: row.verification,
-              score: row.score,
-            };
-          }),
+        skills: (skillsByProfile.get(profile.id) ?? []).map((row) => {
+          return {
+            title: titles.get(row.skillId) ?? "",
+            level: row.level,
+            verification: row.verification,
+            score: row.score,
+          };
+        }),
         assessmentScore: profile.assessmentScore,
         fspAchievements: achievements[index] ?? [],
         preferences: {
@@ -114,6 +132,13 @@ export class CandidatePoolService {
       };
     });
   }
+}
+
+// Грейды потребности и по ступени вокруг: для junior–middle это junior, middle, senior.
+function gradesAround(need: NeedFilter): Grade[] {
+  const from = gradeIndex(need.gradeFrom);
+  const to = gradeIndex(need.gradeTo);
+  return gradeOrder.slice(Math.max(0, from - 1), to + 2);
 }
 
 // Имя и контакты работодатель видит только после принятия приглашения (ТЗ 2.2.2).

@@ -3,6 +3,9 @@ import { ConfigService } from "@nestjs/config";
 
 import type { FspAchievement } from "@hh/contracts";
 
+// Реестр зовём на каждого кандидата подборки: зависший ответ не должен её держать.
+const timeoutMs = 2000;
+
 type ParticipantResponse = {
   achievements?: { title?: unknown; year?: unknown; place?: unknown }[];
 };
@@ -26,6 +29,7 @@ export class FspClient {
     try {
       const response = await fetch(
         `${this.baseUrl}/participants/${encodeURIComponent(fspId)}`,
+        { signal: AbortSignal.timeout(timeoutMs) },
       );
       if (!response.ok) {
         return [];

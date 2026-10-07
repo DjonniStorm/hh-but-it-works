@@ -9,6 +9,9 @@ export type RankResult = {
   reasons: string[];
 };
 
+// Дольше не ждём: по таймауту отдаём 503, фронт повторит запрос.
+const timeoutMs = 10000;
+
 type RankResponse = {
   results?: { candidateId?: unknown; score?: unknown; reasons?: unknown }[];
 };
@@ -33,6 +36,7 @@ export class RankingClient {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ vacancy: need, candidates }),
+        signal: AbortSignal.timeout(timeoutMs),
       });
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);

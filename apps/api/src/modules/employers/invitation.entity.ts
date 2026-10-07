@@ -10,6 +10,12 @@ import {
 import { InvitationStatus } from "@hh/types";
 
 // Приглашение работодателя кандидату. Статус меняет кандидат (принять, отклонить).
+// Одно активное приглашение от компании кандидату держит база: параллельные запросы
+// не создадут второе. После отказа строка выпадает из индекса, можно пригласить снова.
+@Index("invitations_one_active", ["userId", "candidateProfileId"], {
+  unique: true,
+  where: `"status" <> 'declined'`,
+})
 @Entity("invitations")
 export class Invitation {
   @PrimaryGeneratedColumn("uuid")
