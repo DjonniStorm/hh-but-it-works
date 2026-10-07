@@ -2,6 +2,8 @@
 
 Финальный baseline рекомендательной системы проекта. Сервис остаётся **stateless Python/FastAPI без собственной БД** и не принимает решений по auth/privacy/раскрытию контактов.
 
+Что уже сделано, чем это покрыто тестами и что осталось: **[HANDOFF.md](HANDOFF.md)**. Форматы интеграции с Nest: **[INTEGRATION.md](INTEGRATION.md)**.
+
 ## Контекст продукта
 
 Кандидат регистрируется и выбирает заявленный грейд. Backend/assessment слой может:
@@ -172,9 +174,24 @@ python evaluation/benchmark.py data/gold.jsonl
 
 ## Dev
 
+Python 3.12 (системный 3.9 не подходит). Венв — **вне** каталога `apps/ranking`, иначе `scripts/check.sh` начнёт компилировать его содержимое.
+
 ```bash
-python -m pip install -r requirements-dev.txt
-pytest -q
-python -m compileall .
+python3.12 -m venv ../rank-venv && source ../rank-venv/bin/activate
+pip install -r requirements-dev.txt      # + requirements-ml.txt для LTR (нужен libomp)
 uvicorn main:app --reload --port 8000
+
+sh scripts/check.sh                     # compileall + pytest + gold + benchmark + perf
 ```
+
+Все проверки одной командой, именно её гонять перед коммитом:
+
+```text
+python -m compileall .
+pytest -q
+python evaluation/validate_gold.py evaluation/data/sanity_gold.jsonl
+python evaluation/benchmark.py evaluation/data/sanity_gold.jsonl
+python evaluation/performance.py --candidates 1000 --runs 2
+```
+
+Docker: `docker build -t hh-ranking . && docker run -p 8000:8000 hh-ranking`.
