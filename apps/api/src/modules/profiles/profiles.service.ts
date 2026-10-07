@@ -5,7 +5,7 @@ import {
   OnModuleInit,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { In, Repository } from "typeorm";
+import { EntityManager, In, Repository } from "typeorm";
 
 import { coreSkills } from "@hh/assessment-engine";
 import type { CandidateProfile as CandidateProfileView } from "@hh/contracts";
@@ -185,8 +185,14 @@ export class ProfilesService implements OnModuleInit {
     userId: string,
     input: SaveProfileInput,
   ): Promise<CandidateProfileView> {
-    const profile = await this.upsertProfile(userId, input);
-    await this.replaceSkills(profile.id, input.skills);
+    // Навыки разбираем до записи: неизвестный skillId вернёт 400, ничего не тронув.
+    const assessed = await this.resolveAssessed(input.skills);
+    // Анкета и навыки пишутся вместе: сбой посередине не оставит профиль без навыков.
+    const profile = await this.profiles.manager.transaction(async (manager) => {
+      const saved = await this.upsertProfile(manager, userId, input);
+      await this.replaceSkills(manager, saved.id, assessed);
+      return saved;
+    });
     const signals = await this.signalsOf(profile.id);
     const catalog = await this.visibleSkills(profile.id, signals);
     return this.toView(profile, catalog, signals);
@@ -245,14 +251,16 @@ export class ProfilesService implements OnModuleInit {
   }
 
   private async upsertProfile(
+    manager: EntityManager,
     userId: string,
     input: SaveProfileInput,
   ): Promise<CandidateProfile> {
+    const profiles = manager.getRepository(CandidateProfile);
     const links = blankLinks(input);
-    const existing = await this.profiles.findOne({ where: { userId } });
+    const existing = await profiles.findOne({ where: { userId } });
     if (!existing) {
-      return this.profiles.save(
-        this.profiles.create({
+      return profiles.save(
+        profiles.create({
           userId,
           displayName: input.displayName,
           specialization: input.specialization,
@@ -274,20 +282,12 @@ export class ProfilesService implements OnModuleInit {
     existing.website = links.website;
     Object.assign(existing, expectations(input));
     // listed не трогаем: на биржу выводит только подтверждение.
-    return this.profiles.save(existing);
+    return profiles.save(existing);
   }
 
-  private async replaceSkills(
-    profileId: string,
+  private async resolveAssessed(
     skills: SaveProfileInput["skills"],
-  ): Promise<void> {
-    const previous = await this.candidateSkills.find({ where: { profileId } });
-    const kept = new Map(
-      previous.map((row) => {
-        return [row.skillId, row] as const;
-      }),
-    );
-    await this.candidateSkills.delete({ profileId });
+  ): Promise<Map<string, SkillLevel>> {
     const assessed = new Map<string, SkillLevel>();
     for (const skill of skills) {
       if (skill.level === null) {
@@ -296,14 +296,30 @@ export class ProfilesService implements OnModuleInit {
       const skillId = await this.resolveSkillId(skill);
       assessed.set(skillId, skill.level);
     }
+    return assessed;
+  }
+
+  private async replaceSkills(
+    manager: EntityManager,
+    profileId: string,
+    assessed: Map<string, SkillLevel>,
+  ): Promise<void> {
+    const candidateSkills = manager.getRepository(CandidateSkill);
+    const previous = await candidateSkills.find({ where: { profileId } });
+    const kept = new Map(
+      previous.map((row) => {
+        return [row.skillId, row] as const;
+      }),
+    );
+    await candidateSkills.delete({ profileId });
     if (assessed.size === 0) {
       return;
     }
-    await this.candidateSkills.save(
+    await candidateSkills.save(
       [...assessed.entries()].map(([skillId, level]) => {
         const prior = kept.get(skillId);
         const sameLevel = prior?.level === level;
-        return this.candidateSkills.create({
+        return candidateSkills.create({
           profileId,
           skillId,
           level,

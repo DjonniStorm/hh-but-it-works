@@ -5,4 +5,5 @@ export enum StoreKey {
   Profile = "profile",
   Employer = "employer",
   Invitations = "invitations",
+  CandidateInvitations = "candidate-invitations",
 }

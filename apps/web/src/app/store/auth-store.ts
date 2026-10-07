@@ -30,11 +30,13 @@ export class AuthStore {
   user: PublicUser | null = null;
   accessToken: string | null = null;
   refreshToken: string | null = null;
+  // Сервер выдаёт refresh-токен на один раз. Параллельные 401 ждут одно обновление.
+  private renewing: Promise<boolean> | null = null;
 
   constructor(private readonly root: RootStore) {
-    makeAutoObservable<this, "root" | "key">(
+    makeAutoObservable<this, "root" | "key" | "renewing">(
       this,
-      { key: false, root: false },
+      { key: false, root: false, renewing: false },
       { autoBind: true },
     );
     const saved = readSession();
@@ -96,6 +98,30 @@ export class AuthStore {
       },
       { loader: false, ...options },
     );
+  }
+
+  // Тихое обновление для request: без тоста и лоадера. false — сессию не вернуть.
+  renewSession(): Promise<boolean> {
+    if (!this.renewing) {
+      this.renewing = this.exchangeRefresh().finally(() => {
+        this.renewing = null;
+      });
+    }
+    return this.renewing;
+  }
+
+  private async exchangeRefresh(): Promise<boolean> {
+    const refreshToken = this.refreshToken;
+    if (!refreshToken) {
+      return false;
+    }
+    try {
+      const result = await authControllerRefresh({ body: { refreshToken } });
+      this.applySession(mapSession(readData(result)));
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   logout(options?: CallOptions<void>) {

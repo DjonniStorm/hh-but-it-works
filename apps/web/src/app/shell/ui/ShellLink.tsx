@@ -17,6 +17,7 @@ export const ShellLink = ({
       underline="never"
       c={active ? "fsp.6" : "black"}
       fw={active ? 700 : 400}
+      style={{ whiteSpace: "nowrap" }}
     >
       {label}
     </Anchor>

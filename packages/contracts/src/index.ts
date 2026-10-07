@@ -346,6 +346,30 @@ export const invitationListSchema = z.object({
   items: z.array(invitationSchema),
 });
 
+// Приглашение глазами кандидата: компания и условия, без алиаса и контакта кандидата.
+export const candidateInvitationSchema = z.object({
+  id: z.string(),
+  companyName: z.string(),
+  companyIndustry: z.string(),
+  needTitle: z.string().min(1).nullable(),
+  message: z.string(),
+  // Способ связи с работодателем. Его кандидат видит сразу, свой контакт — открывает принятием.
+  contact: z.string(),
+  ...salaryShape,
+  status: invitationStatusSchema,
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+});
+
+export const candidateInvitationListSchema = z.object({
+  items: z.array(candidateInvitationSchema),
+});
+
+// Отмечаем просмотренными только показанные: пришедшее после загрузки списка остаётся новым.
+export const markInvitationsViewedSchema = z.object({
+  ids: z.array(z.uuid()).min(1),
+});
+
 export const attemptStatusSchema = z.enum(AttemptStatus);
 export const integrityFlagSchema = z.enum(IntegrityFlag);
 
@@ -485,6 +509,13 @@ export type Shortlist = z.infer<typeof shortlistSchema>;
 export type InvitationInput = z.infer<typeof invitationInputSchema>;
 export type Invitation = z.infer<typeof invitationSchema>;
 export type InvitationList = z.infer<typeof invitationListSchema>;
+export type CandidateInvitation = z.infer<typeof candidateInvitationSchema>;
+export type CandidateInvitationList = z.infer<
+  typeof candidateInvitationListSchema
+>;
+export type MarkInvitationsViewedInput = z.infer<
+  typeof markInvitationsViewedSchema
+>;
 export type StartAssessmentInput = z.infer<typeof startAssessmentSchema>;
 export type AssessmentItem = z.infer<typeof assessmentItemSchema>;
 export type ActiveAttempt = z.infer<typeof activeAttemptSchema>;

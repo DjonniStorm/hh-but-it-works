@@ -376,6 +376,40 @@ export type InvitationDtoOutput = {
     candidateContact: string | null;
 };
 
+export type CandidateInvitationListDtoOutput = {
+    items: Array<{
+        id: string;
+        companyName: string;
+        companyIndustry: string;
+        needTitle: string | null;
+        message: string;
+        contact: string;
+        salaryFrom: number;
+        salaryTo: number;
+        status: 'sent' | 'viewed' | 'accepted' | 'declined';
+        createdAt: string;
+        updatedAt: string;
+    }>;
+};
+
+export type MarkInvitationsViewedDto = {
+    ids: Array<string>;
+};
+
+export type CandidateInvitationDtoOutput = {
+    id: string;
+    companyName: string;
+    companyIndustry: string;
+    needTitle: string | null;
+    message: string;
+    contact: string;
+    salaryFrom: number;
+    salaryTo: number;
+    status: 'sent' | 'viewed' | 'accepted' | 'declined';
+    createdAt: string;
+    updatedAt: string;
+};
+
 export type HealthControllerHealthData = {
     body?: never;
     path?: never;
@@ -710,3 +744,59 @@ export type EmployersControllerCreateInvitationResponses = {
 };
 
 export type EmployersControllerCreateInvitationResponse = EmployersControllerCreateInvitationResponses[keyof EmployersControllerCreateInvitationResponses];
+
+export type CandidateInvitationsControllerListData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/candidate/invitations';
+};
+
+export type CandidateInvitationsControllerListResponses = {
+    200: CandidateInvitationListDtoOutput;
+};
+
+export type CandidateInvitationsControllerListResponse = CandidateInvitationsControllerListResponses[keyof CandidateInvitationsControllerListResponses];
+
+export type CandidateInvitationsControllerMarkViewedData = {
+    body: MarkInvitationsViewedDto;
+    path?: never;
+    query?: never;
+    url: '/candidate/invitations/viewed';
+};
+
+export type CandidateInvitationsControllerMarkViewedResponses = {
+    204: void;
+};
+
+export type CandidateInvitationsControllerMarkViewedResponse = CandidateInvitationsControllerMarkViewedResponses[keyof CandidateInvitationsControllerMarkViewedResponses];
+
+export type CandidateInvitationsControllerAcceptData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/candidate/invitations/{id}/accept';
+};
+
+export type CandidateInvitationsControllerAcceptResponses = {
+    200: CandidateInvitationDtoOutput;
+};
+
+export type CandidateInvitationsControllerAcceptResponse = CandidateInvitationsControllerAcceptResponses[keyof CandidateInvitationsControllerAcceptResponses];
+
+export type CandidateInvitationsControllerDeclineData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/candidate/invitations/{id}/decline';
+};
+
+export type CandidateInvitationsControllerDeclineResponses = {
+    200: CandidateInvitationDtoOutput;
+};
+
+export type CandidateInvitationsControllerDeclineResponse = CandidateInvitationsControllerDeclineResponses[keyof CandidateInvitationsControllerDeclineResponses];
