@@ -14,7 +14,7 @@ import { StoreKey } from "./store-key";
 
 type CallOptions<T> = Pick<RequestOptions<T>, "onError" | "onSuccess">;
 
-// Отдельно от EmployerStore: те же приглашения позже покажет кабинет кандидата.
+// Приглашения работодателя. Сторона кандидата — CandidateInvitationStore.
 export class InvitationStore {
   readonly key = StoreKey.Invitations;
   items: Invitation[] = [];

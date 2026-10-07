@@ -42,6 +42,14 @@ export const invitationStatusColor: Record<InvitationStatus, string> = {
   [InvitationStatus.Declined]: "fspRed",
 };
 
+// Кандидату важнее новое, чем просмотренное: акцент на «Новое», «Ждёт ответа» спокойнее.
+export const candidateInvitationColor: Record<InvitationStatus, string> = {
+  [InvitationStatus.Sent]: "fsp",
+  [InvitationStatus.Viewed]: "gray",
+  [InvitationStatus.Accepted]: "teal",
+  [InvitationStatus.Declined]: "fspRed",
+};
+
 // Те же цвета, что у SkillStatusBadge в профиле кандидата.
 export const verificationColor: Record<SkillVerification, string> = {
   [SkillVerification.Unverified]: "gray",
