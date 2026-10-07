@@ -86,7 +86,8 @@ export class CandidateProfile {
   @Column({
     type: "enum",
     enum: Grade,
-    enumName: "verified_grade",
+    // Свой тип: общий с verifiedGrade synchronize не сможет удалить на ветке без этой колонки.
+    enumName: "cooldown_grade",
     nullable: true,
   })
   cooldownGrade!: Grade | null;
