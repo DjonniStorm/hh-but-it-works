@@ -261,7 +261,7 @@ function view(attempt: StoredAttempt, now: number): ActiveAttempt {
     sections: attempt.sections,
     index: attempt.cursor,
     total: attempt.items.length,
-    item,
+    item: item ? { ...item, lang: item.lang ?? null } : null,
     secondsLeft,
   };
 }

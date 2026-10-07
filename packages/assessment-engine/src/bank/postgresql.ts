@@ -16,6 +16,7 @@ export const postgresql: Template[] = [
       const rows = limit * between(rng, 5, 12);
       return {
         kind: "numeric",
+        lang: "sql",
         prompt: `В таблице users ${rows} строк. Сколько строк вернёт запрос?`,
         code: `SELECT * FROM users LIMIT ${limit};`,
         answer: limit,
@@ -32,6 +33,7 @@ export const postgresql: Template[] = [
       const limit = between(rng, 2, 20);
       return {
         kind: "numeric",
+        lang: "sql",
         prompt:
           "id в таблице идут подряд: 1, 2, 3… Какой первый id вернёт запрос?",
         code: `SELECT id FROM items ORDER BY id OFFSET ${offset} LIMIT ${limit};`,
@@ -49,6 +51,7 @@ export const postgresql: Template[] = [
       const empty = between(rng, 1, total - 1);
       return {
         kind: "numeric",
+        lang: "sql",
         prompt: `В таблице users ${total} строк, у ${empty} из них email равен NULL. Что вернёт запрос?`,
         code: "SELECT count(email) FROM users;",
         answer: total - empty,
@@ -65,6 +68,7 @@ export const postgresql: Template[] = [
       const buyers = between(rng, 1, users - 1);
       return {
         kind: "numeric",
+        lang: "sql",
         prompt: `В users ${users} строк. Заказ есть у ${buyers} пользователей, ровно по одному. Сколько строк вернёт запрос?`,
         code: "SELECT * FROM users u LEFT JOIN orders o ON o.user_id = u.id;",
         answer: users,
@@ -82,6 +86,7 @@ export const postgresql: Template[] = [
       const perBuyer = between(rng, 2, 5);
       return {
         kind: "numeric",
+        lang: "sql",
         prompt: `В users ${users} строк. У ${buyers} пользователей по ${perBuyer} заказа, у остальных заказов нет. Сколько строк вернёт запрос?`,
         code: "SELECT * FROM users u JOIN orders o ON o.user_id = u.id;",
         answer: buyers * perBuyer,
@@ -103,6 +108,7 @@ export const postgresql: Template[] = [
       const [a, b, c] = sizes;
       return {
         kind: "numeric",
+        lang: "sql",
         prompt: `В staff три отдела: в A ${a} чел., в B ${b}, в C ${c}. Сколько строк вернёт запрос?`,
         code: `SELECT dept, count(*) FROM staff GROUP BY dept HAVING count(*) > ${threshold};`,
         answer: sizes.filter((size) => {
@@ -158,6 +164,7 @@ export const postgresql: Template[] = [
       const inserts = between(rng, 2, 9);
       return {
         kind: "numeric",
+        lang: "sql",
         prompt: `Внутри BEGIN выполнили ${inserts} INSERT, затем ROLLBACK. Сколько строк добавится в таблицу?`,
         answer: 0,
       };
@@ -192,6 +199,7 @@ export const postgresql: Template[] = [
       const debit = 10 * between(rng, 1, 9);
       return {
         kind: "numeric",
+        lang: "sql",
         prompt: `Две транзакции прочитали баланс ${balance}. Первая списала ${debit} и закоммитила. Вторая в READ COMMITTED читает баланс снова. Какое значение она увидит?`,
         answer: balance - debit,
       };
@@ -206,6 +214,7 @@ export const postgresql: Template[] = [
       const value = between(rng, 10, 90);
       return {
         kind: "numeric",
+        lang: "sql",
         prompt: `Две транзакции в READ COMMITTED одновременно читают counter = ${value} и пишут counter = прочитанное + 1 без блокировок. Какое итоговое значение получится при потерянном обновлении?`,
         answer: value + 1,
       };

@@ -390,6 +390,8 @@ export const assessmentItemKindSchema = z.enum([
   "order",
 ]);
 
+export const codeLangSchema = z.enum(["typescript", "dockerfile", "sql"]);
+
 export const startAssessmentSchema = z.object({
   grade: gradeSchema,
 });
@@ -407,6 +409,7 @@ export const assessmentItemSchema = z.object({
   kind: assessmentItemKindSchema,
   prompt: z.string(),
   code: z.string().max(4000).nullable(),
+  lang: codeLangSchema.nullable(),
   choices: z.array(z.string()),
   seconds: z.number().int().positive(),
 });

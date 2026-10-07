@@ -100,13 +100,16 @@ export const TestingTab = ({ profile }: { profile: CandidateProfile }) => {
     >
       <Stack>
         {phase === "lobby" ? (
-          <TestingLobby
-            profile={profile}
-            onStarted={(next) => {
-              setAttempt(next);
-              setPhase("plan");
-            }}
-          />
+          <Stack maw={640} gap="lg">
+            <TestingLobby
+              profile={profile}
+              onStarted={(next) => {
+                setAttempt(next);
+                setPhase("plan");
+              }}
+            />
+            <TestingHistory items={history} />
+          </Stack>
         ) : null}
         {phase === "plan" && attempt ? (
           <TestingPlan
@@ -156,7 +159,6 @@ export const TestingTab = ({ profile }: { profile: CandidateProfile }) => {
             }}
           />
         ) : null}
-        {phase === "lobby" ? <TestingHistory items={history} /> : null}
       </Stack>
     </ScrollArea>
   );

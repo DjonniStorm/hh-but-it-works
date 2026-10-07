@@ -4,6 +4,8 @@ import type { Rng } from "./random";
 
 export type ItemKind = "single" | "multiple" | "numeric" | "code" | "order";
 
+export type CodeLang = "typescript" | "dockerfile" | "sql";
+
 // Задание до перемешивания: верный ответ лежит отдельно от неверных.
 export type Task =
   | { kind: "single"; prompt: string; correct: string; wrong: string[] }
@@ -11,6 +13,7 @@ export type Task =
       kind: "code";
       prompt: string;
       code: string;
+      lang: CodeLang;
       correct: string;
       wrong: string[];
     }
@@ -20,7 +23,13 @@ export type Task =
       correct: string[];
       wrong: string[];
     }
-  | { kind: "numeric"; prompt: string; code?: string; answer: number }
+  | {
+      kind: "numeric";
+      prompt: string;
+      code?: string;
+      lang?: CodeLang;
+      answer: number;
+    }
   | { kind: "order"; prompt: string; steps: string[] };
 
 export type Template = {
@@ -38,6 +47,7 @@ export type PublicItem = {
   kind: ItemKind;
   prompt: string;
   code: string | null;
+  lang: CodeLang | null;
   choices: string[];
   seconds: number;
 };

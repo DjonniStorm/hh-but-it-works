@@ -4,6 +4,7 @@ import { bank, isCatalogSlug } from "./bank";
 import { type Rng, mixSeed, mulberry32, shuffle } from "./random";
 import type {
   AttemptAnswer,
+  CodeLang,
   ItemKind,
   PublicItem,
   SecretItem,
@@ -114,6 +115,7 @@ export function buildAttempt(input: BuildAttemptInput): BuiltAttempt {
         kind: rendered.kind,
         prompt: rendered.prompt,
         code: rendered.code,
+        lang: rendered.lang,
         choices: rendered.choices,
         seconds: secondsByKind[rendered.kind],
       });
@@ -242,6 +244,7 @@ type Rendered = {
   kind: ItemKind;
   prompt: string;
   code: string | null;
+  lang: CodeLang | null;
   choices: string[];
   correct: number[];
   value: number | null;
@@ -253,6 +256,7 @@ function render(task: Task, rng: Rng): Rendered {
       kind: "numeric",
       prompt: task.prompt,
       code: task.code ?? null,
+      lang: task.code ? (task.lang ?? null) : null,
       choices: [],
       correct: [],
       value: task.answer,
@@ -268,6 +272,7 @@ function render(task: Task, rng: Rng): Rendered {
       kind: "order",
       prompt: task.prompt,
       code: null,
+      lang: null,
       choices: shown,
       correct: task.steps.map((step) => {
         return shown.indexOf(step);
@@ -281,6 +286,7 @@ function render(task: Task, rng: Rng): Rendered {
       kind: "multiple",
       prompt: task.prompt,
       code: null,
+      lang: null,
       choices,
       correct: task.correct.map((item) => {
         return choices.indexOf(item);
@@ -293,6 +299,7 @@ function render(task: Task, rng: Rng): Rendered {
     kind: task.kind,
     prompt: task.prompt,
     code: task.kind === "code" ? task.code : null,
+    lang: task.kind === "code" ? task.lang : null,
     choices,
     correct: [choices.indexOf(task.correct)],
     value: null,

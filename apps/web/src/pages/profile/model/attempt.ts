@@ -42,9 +42,9 @@ export const statusLabels: Record<AttemptStatus, string> = {
 };
 
 export const statusColors: Record<AttemptStatus, string> = {
-  [AttemptStatus.Passed]: "green",
-  [AttemptStatus.Failed]: "orange",
-  [AttemptStatus.Annulled]: "red",
+  [AttemptStatus.Passed]: "fsp",
+  [AttemptStatus.Failed]: "gray",
+  [AttemptStatus.Annulled]: "fspRed",
 };
 
 export function isFinished(attempt: ActiveAttempt): boolean {

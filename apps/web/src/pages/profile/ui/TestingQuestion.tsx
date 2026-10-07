@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   type AttemptItem,
@@ -7,24 +7,16 @@ import {
 } from "@/pages/profile/model/attempt";
 import { useCountdown } from "@/pages/profile/model/use-countdown";
 import { OrderAnswer } from "@/pages/profile/ui/OrderAnswer";
-import {
-  Badge,
-  Button,
-  Checkbox,
-  Code,
-  Group,
-  NumberInput,
-  Radio,
-  Stack,
-  Text,
-} from "@mantine/core";
+import { TestingChoice } from "@/pages/profile/ui/TestingChoice";
+import { TestingCode } from "@/pages/profile/ui/TestingCode";
+import { Button, NumberInput, Stack, Text } from "@mantine/core";
 
 const kindHints: Record<AttemptItem["kind"], string> = {
-  single: "Один верный ответ",
-  code: "Прочитайте код, один верный ответ",
-  multiple: "Отметьте все верные варианты",
-  numeric: "Введите число",
-  order: "Расставьте шаги по порядку",
+  single: "Один верный ответ. Клавиши 1–9, затем Enter.",
+  code: "Прочитайте код. Клавиши 1–9, затем Enter.",
+  multiple: "Отметьте все верные варианты.",
+  numeric: "Введите число.",
+  order: "Расставьте шаги по порядку.",
 };
 
 export const TestingQuestion = ({
@@ -50,64 +42,117 @@ export const TestingQuestion = ({
         }
       : emptyDraft,
   );
-  // Время вышло — отправляем то, что успели выбрать. Сервер засчитает поздний ответ неверным.
   const left = useCountdown(secondsLeft, () => {
     onSubmit(draft);
   });
   const ready =
     item.kind === "numeric" ? draft.value !== null : draft.choices.length > 0;
+  const minutes = Math.floor(left / 60);
+  const seconds = String(left % 60).padStart(2, "0");
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+      if (hidden) {
+        return;
+      }
+      if (event.key === "Enter") {
+        if (!ready || sending || left === 0) {
+          return;
+        }
+        event.preventDefault();
+        onSubmit(draft);
+        return;
+      }
+      if (item.kind !== "single" && item.kind !== "code") {
+        return;
+      }
+      const key = Number(event.key);
+      if (key < 1 || key > item.choices.length || key > 9) {
+        return;
+      }
+      event.preventDefault();
+      setDraft({ choices: [key - 1], value: null });
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [
+    draft,
+    hidden,
+    item.choices.length,
+    item.kind,
+    left,
+    onSubmit,
+    ready,
+    sending,
+  ]);
 
   return (
-    <Stack style={{ userSelect: "none" }}>
-      <Group justify="space-between">
-        <Text size="sm" c="dimmed">
-          {kindHints[item.kind]}
-        </Text>
-        <Badge color={left <= 10 ? "red" : "gray"} variant="light" size="lg">
-          {Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}
-        </Badge>
-      </Group>
+    <Stack style={{ userSelect: "none" }} gap="md">
+      <Text
+        fz={48}
+        lh={1}
+        c={left <= 10 ? "fspRed" : undefined}
+        aria-label={`Осталось ${left} секунд`}
+      >
+        {minutes}:{seconds}
+      </Text>
       {hidden ? null : (
         <>
-          <Text fw={600}>{item.prompt}</Text>
-          {item.code ? <Code block>{item.code}</Code> : null}
+          <Text size="sm" c="dimmed">
+            {kindHints[item.kind]}
+          </Text>
+          <Text fz="lg">{item.prompt}</Text>
+          {item.code ? <TestingCode code={item.code} lang={item.lang} /> : null}
           {item.kind === "single" || item.kind === "code" ? (
-            <Radio.Group
-              value={
-                draft.choices[0] === undefined ? null : String(draft.choices[0])
-              }
-              onChange={(value) => {
-                setDraft({ choices: [Number(value)], value: null });
-              }}
-            >
-              <Stack gap="xs">
-                {item.choices.map((choice, index) => {
-                  return (
-                    <Radio key={choice} value={String(index)} label={choice} />
-                  );
-                })}
-              </Stack>
-            </Radio.Group>
+            <Stack gap="xs" role="radiogroup" aria-label={kindHints[item.kind]}>
+              {item.choices.map((choice, index) => {
+                return (
+                  <TestingChoice
+                    key={`${index}-${choice}`}
+                    index={index}
+                    label={choice}
+                    selected={draft.choices[0] === index}
+                    onSelect={() => {
+                      setDraft({ choices: [index], value: null });
+                    }}
+                  />
+                );
+              })}
+            </Stack>
           ) : null}
           {item.kind === "multiple" ? (
-            <Checkbox.Group
-              value={draft.choices.map(String)}
-              onChange={(values) => {
-                setDraft({ choices: values.map(Number), value: null });
-              }}
-            >
-              <Stack gap="xs">
-                {item.choices.map((choice, index) => {
-                  return (
-                    <Checkbox
-                      key={choice}
-                      value={String(index)}
-                      label={choice}
-                    />
-                  );
-                })}
-              </Stack>
-            </Checkbox.Group>
+            <Stack gap="xs">
+              {item.choices.map((choice, index) => {
+                const selected = draft.choices.includes(index);
+                return (
+                  <TestingChoice
+                    key={`${index}-${choice}`}
+                    index={index}
+                    label={choice}
+                    selected={selected}
+                    onSelect={() => {
+                      setDraft({
+                        choices: selected
+                          ? draft.choices.filter((chosen) => {
+                              return chosen !== index;
+                            })
+                          : [...draft.choices, index],
+                        value: null,
+                      });
+                    }}
+                  />
+                );
+              })}
+            </Stack>
           ) : null}
           {item.kind === "numeric" ? (
             <NumberInput
@@ -133,16 +178,18 @@ export const TestingQuestion = ({
           ) : null}
         </>
       )}
-      <Button
-        type="button"
-        disabled={!ready || hidden || left === 0}
-        loading={sending}
-        onClick={() => {
-          onSubmit(draft);
-        }}
-      >
-        Ответить и дальше
-      </Button>
+      {hidden ? null : (
+        <Button
+          type="button"
+          disabled={!ready || left === 0}
+          loading={sending}
+          onClick={() => {
+            onSubmit(draft);
+          }}
+        >
+          Ответить и дальше
+        </Button>
+      )}
     </Stack>
   );
 };

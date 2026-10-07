@@ -1,4 +1,4 @@
-import { ActionIcon, Group, Paper, Stack, Text } from "@mantine/core";
+import { ActionIcon, Group, Stack, Text } from "@mantine/core";
 
 // order — индексы показанных шагов в выбранном порядке.
 export const OrderAnswer = ({
@@ -26,35 +26,42 @@ export const OrderAnswer = ({
     <Stack gap="xs">
       {order.map((stepIndex, position) => {
         return (
-          <Paper key={stepIndex} withBorder p="xs" radius="md">
-            <Group justify="space-between" wrap="nowrap">
-              <Text size="sm">
-                {position + 1}. {steps[stepIndex]}
-              </Text>
-              <Group gap={4} wrap="nowrap">
-                <ActionIcon
-                  variant="light"
-                  aria-label="Выше"
-                  disabled={position === 0}
-                  onClick={() => {
-                    move(position, -1);
-                  }}
-                >
-                  ↑
-                </ActionIcon>
-                <ActionIcon
-                  variant="light"
-                  aria-label="Ниже"
-                  disabled={position === order.length - 1}
-                  onClick={() => {
-                    move(position, 1);
-                  }}
-                >
-                  ↓
-                </ActionIcon>
-              </Group>
+          <Group
+            key={stepIndex}
+            justify="space-between"
+            wrap="nowrap"
+            mih={44}
+            px="sm"
+            style={{ border: "1px solid var(--mantine-color-gray-4)" }}
+          >
+            <Text>
+              {position + 1}. {steps[stepIndex]}
+            </Text>
+            <Group gap={4} wrap="nowrap">
+              <ActionIcon
+                variant="light"
+                size="lg"
+                aria-label="Выше"
+                disabled={position === 0}
+                onClick={() => {
+                  move(position, -1);
+                }}
+              >
+                ↑
+              </ActionIcon>
+              <ActionIcon
+                variant="light"
+                size="lg"
+                aria-label="Ниже"
+                disabled={position === order.length - 1}
+                onClick={() => {
+                  move(position, 1);
+                }}
+              >
+                ↓
+              </ActionIcon>
             </Group>
-          </Paper>
+          </Group>
         );
       })}
     </Stack>

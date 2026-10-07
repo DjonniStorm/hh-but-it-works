@@ -2,15 +2,16 @@ import {
   type AttemptResult,
   annulBelow,
   flagLabels,
+  sectionPassScore,
   statusColors,
   statusLabels,
 } from "@/pages/profile/model/attempt";
 import { gradeOptions, optionLabel } from "@/pages/profile/model/options";
 import {
   Badge,
+  Box,
   Button,
   Group,
-  Paper,
   Progress,
   Stack,
   Text,
@@ -29,74 +30,77 @@ export const TestingResult = ({
   const grade = optionLabel(gradeOptions, result.grade);
 
   return (
-    <Paper shadow="md" withBorder p="xl" radius="md">
-      <Stack>
-        <Group justify="space-between">
-          <Title order={3}>Итог попытки на {grade}</Title>
-          <Badge color={statusColors[result.status]} size="lg">
-            {statusLabels[result.status]}
-          </Badge>
-        </Group>
-        {result.status === AttemptStatus.Passed ? (
-          <Text>
-            {result.gradeChanged
-              ? `Грейд ${grade} подтверждён и виден работодателям.`
-              : `Грейд ${grade} подтверждён повторно, балл в профиле обновлён.`}{" "}
-            Средний балл {result.score}.
-          </Text>
-        ) : null}
-        {result.status === AttemptStatus.Failed ? (
-          <Text>
-            Средний балл {result.score}. Грейд в профиле не меняется. Можно
-            пересдать или выбрать грейд ниже.
-          </Text>
-        ) : null}
-        {result.status === AttemptStatus.Annulled ? (
-          <Text>
-            Чистота попытки {result.integrity} — ниже {annulBelow}. Результат не
-            засчитан, профиль не изменился.
-          </Text>
-        ) : null}
-        <Title order={4}>Секции</Title>
+    <Stack maw={640} gap="md">
+      <Group justify="space-between" align="flex-end">
+        <Title order={2}>{statusLabels[result.status]}</Title>
+        <Text fz={48} lh={1}>
+          {result.score}
+        </Text>
+      </Group>
+      <Text>{verdict(result, grade)}</Text>
+      <Stack gap="sm">
         {result.sections.map((section) => {
           return (
             <Stack key={section.skillId} gap={4}>
               <Group justify="space-between">
-                <Text fw={600}>{section.title}</Text>
-                <Group gap="xs">
-                  <Text>{section.score}</Text>
-                  <Badge
-                    color={section.passed ? "green" : "gray"}
-                    variant="light"
-                  >
-                    {section.passed ? "Подтверждён" : "Не подтверждён"}
-                  </Badge>
-                </Group>
+                <Text>{section.title}</Text>
+                <Text>{section.score}</Text>
               </Group>
-              <Progress
-                value={section.score}
-                color={section.passed ? "green" : "orange"}
-              />
+              <Box pos="relative">
+                <Progress
+                  value={section.score}
+                  color={section.passed ? "fsp" : "fspRed"}
+                  aria-label={`${section.title}: ${section.score} из 100`}
+                />
+                <Box
+                  pos="absolute"
+                  top={0}
+                  bottom={0}
+                  left={`${sectionPassScore}%`}
+                  w={1}
+                  bg="dark.4"
+                />
+              </Box>
             </Stack>
           );
         })}
-        <Title order={4}>Чистота попытки: {result.integrity}</Title>
-        {result.flags.length === 0 ? (
-          <Text c="dimmed">Нарушений не записано.</Text>
-        ) : (
-          result.flags.map((flag) => {
-            return (
-              <Group key={flag.type} justify="space-between">
-                <Text>{flagLabels[flag.type]}</Text>
-                <Text c="dimmed">× {flag.count}</Text>
-              </Group>
-            );
-          })
-        )}
-        <Button type="button" onClick={onBack}>
-          К тестированию
-        </Button>
       </Stack>
-    </Paper>
+      <Text size="sm" c="dimmed">
+        Черта на полосе — порог {sectionPassScore}.
+      </Text>
+      <Text>Чистота {result.integrity}</Text>
+      {result.flags.length === 0 ? (
+        <Text size="sm" c="dimmed">
+          Нарушений не записано.
+        </Text>
+      ) : (
+        result.flags.map((flag) => {
+          return (
+            <Group key={flag.type} justify="space-between">
+              <Text size="sm">{flagLabels[flag.type]}</Text>
+              <Badge color={statusColors[result.status]} variant="light">
+                {flag.count}
+              </Badge>
+            </Group>
+          );
+        })
+      )}
+      <Button type="button" onClick={onBack}>
+        К тестированию
+      </Button>
+    </Stack>
   );
 };
+
+function verdict(result: AttemptResult, grade: string | null): string {
+  if (result.status === AttemptStatus.Passed) {
+    if (result.gradeChanged) {
+      return `Грейд ${grade} подтверждён и виден работодателям.`;
+    }
+    return `Грейд ${grade} подтверждён повторно, балл в профиле обновлён.`;
+  }
+  if (result.status === AttemptStatus.Failed) {
+    return "Грейд в профиле не меняется. Можно пересдать или выбрать грейд ниже.";
+  }
+  return `Чистота ${result.integrity} ниже ${annulBelow}. Результат не засчитан, профиль не изменился.`;
+}
