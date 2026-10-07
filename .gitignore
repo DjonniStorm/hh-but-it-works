@@ -3,7 +3,11 @@ dist
 *.tsbuildinfo
 .pnpm-store
 __pycache__
+.pytest_cache
 .venv
+# Артефакты offline-обучения LTR (см. apps/ranking/README.md)
+apps/ranking/model.txt
+apps/ranking/model.meta.json
 .env
 *.pyc
 .DS_Store

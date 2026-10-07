@@ -19,9 +19,6 @@ import { HiringNeed } from "./hiring-need.entity";
 import { NeedDismissal } from "./need-dismissal.entity";
 import { RankingClient } from "./ranking.client";
 
-// Версия модели в ответе: пока ранжирует заглушка apps/ranking.
-const modelVersion = "ranking-stub";
-
 @Injectable()
 export class EmployersService {
   constructor(
@@ -104,20 +101,19 @@ export class EmployersService {
     const candidates = await this.pool.snapshots(
       this.pool.eligible(need, listed),
     );
-    const scores = await this.ranking.rank(need, candidates);
+    const ranked = await this.ranking.rank(need, candidates);
 
     const items: Match[] = candidates.map((candidate) => {
-      const result = scores.get(candidate.id);
+      const result = ranked.scores.get(candidate.id);
       const score = clampScore(result?.score ?? 0);
-      // Группы, риски и отдельные оценки квалификации и условий отдаст настоящий ranking.
       return {
         candidate,
         matchScore: score,
-        qualification: score,
-        opportunityFit: score,
+        qualification: clampScore(result?.qualification ?? score),
+        opportunityFit: clampScore(result?.opportunityFit ?? score),
         reasons: result?.reasons ?? [],
-        risks: [],
-        breakdown: [],
+        risks: result?.risks ?? [],
+        breakdown: result?.breakdown ?? [],
         dismissed: dismissed.has(candidate.id),
       };
     });
@@ -130,7 +126,7 @@ export class EmployersService {
         (left.candidate.assessmentScore ?? 0)
       );
     });
-    return { needId: need.id, modelVersion, items };
+    return { needId: need.id, modelVersion: ranked.modelVersion, items };
   }
 
   async setDismissed(
@@ -226,7 +222,7 @@ function toCompanyView(company: CompanyProfile): CompanyProfileView {
   };
 }
 
-// Контракт подборки: оценка 0–100. Заглушка ranking отдаёт 0.
+// Контракт подборки: оценка 0–100. Ранжирователь отдаёт 0–1, клиент уже умножает.
 function clampScore(score: number): number {
   return Math.round(Math.min(100, Math.max(0, score)));
 }
