@@ -1207,6 +1207,7 @@
             "enum": ["actively-looking", "open-to-offers", "hidden"]
           },
           "skills": {
+            "maxItems": 50,
             "type": "array",
             "items": {
               "anyOf": [

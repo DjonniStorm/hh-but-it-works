@@ -35,6 +35,11 @@ type AssessmentOutcome = {
   sections: { skillId: string; score: number; passed: boolean }[];
 };
 
+// Навык анкеты до записи: id уже проверен, новый навык пока только slug.
+type PendingSkill =
+  | { skillId: string; level: SkillLevel }
+  | { slug: string; title: string; level: SkillLevel };
+
 export type AssessmentSkill = {
   skillId: string;
   slug: string;
@@ -186,10 +191,11 @@ export class ProfilesService implements OnModuleInit {
     input: SaveProfileInput,
   ): Promise<CandidateProfileView> {
     // Навыки разбираем до записи: неизвестный skillId вернёт 400, ничего не тронув.
-    const assessed = await this.resolveAssessed(input.skills);
-    // Анкета и навыки пишутся вместе: сбой посередине не оставит профиль без навыков.
+    const pending = await this.checkSkills(input.skills);
+    // Анкета, новые строки каталога и навыки пишутся вместе: сбой посередине ничего не оставит.
     const profile = await this.profiles.manager.transaction(async (manager) => {
       const saved = await this.upsertProfile(manager, userId, input);
+      const assessed = await this.resolveSkills(manager, pending);
       await this.replaceSkills(manager, saved.id, assessed);
       return saved;
     });
@@ -272,6 +278,13 @@ export class ProfilesService implements OnModuleInit {
       );
     }
 
+    // Грейд подтверждали тестом по старой специализации: в новой его ещё нет.
+    if (existing.specialization !== input.specialization) {
+      existing.verifiedGrade = null;
+      existing.verifiedAt = null;
+      existing.assessmentScore = null;
+      existing.listed = false;
+    }
     existing.displayName = input.displayName;
     existing.specialization = input.specialization;
     existing.claimedGrade = input.claimedGrade;
@@ -281,20 +294,86 @@ export class ProfilesService implements OnModuleInit {
     existing.linkedin = links.linkedin;
     existing.website = links.website;
     Object.assign(existing, expectations(input));
-    // listed не трогаем: на биржу выводит только подтверждение.
+    // Иначе listed не трогаем: на биржу выводит только подтверждение.
     return profiles.save(existing);
   }
 
-  private async resolveAssessed(
+  private async checkSkills(
     skills: SaveProfileInput["skills"],
-  ): Promise<Map<string, SkillLevel>> {
-    const assessed = new Map<string, SkillLevel>();
+  ): Promise<PendingSkill[]> {
+    const pending: PendingSkill[] = [];
     for (const skill of skills) {
       if (skill.level === null) {
         continue;
       }
-      const skillId = await this.resolveSkillId(skill);
-      assessed.set(skillId, skill.level);
+      if ("skillId" in skill) {
+        pending.push({ skillId: skill.skillId, level: skill.level });
+        continue;
+      }
+      const slug = slugFromTitle(skill.title);
+      if (!slug) {
+        throw new BadRequestException("Укажите навык");
+      }
+      pending.push({ slug, title: skill.title.trim(), level: skill.level });
+    }
+
+    const ids = new Set(
+      pending.flatMap((item) => {
+        return "skillId" in item ? [item.skillId] : [];
+      }),
+    );
+    if (ids.size > 0) {
+      const found = await this.skills.count({ where: { id: In([...ids]) } });
+      if (found !== ids.size) {
+        throw new BadRequestException("Неизвестный навык");
+      }
+    }
+    return pending;
+  }
+
+  // Новые навыки добавляет в каталог одной вставкой, id всех берёт одним запросом.
+  private async resolveSkills(
+    manager: EntityManager,
+    pending: PendingSkill[],
+  ): Promise<Map<string, SkillLevel>> {
+    // Одинаковый slug из разных написаний («C++», «c++») — один навык, имя берём первое.
+    const titles = new Map<string, string>();
+    for (const item of pending) {
+      if ("slug" in item && !titles.has(item.slug)) {
+        titles.set(item.slug, item.title);
+      }
+    }
+
+    const idBySlug = new Map<string, string>();
+    if (titles.size > 0) {
+      // Навык мог уже появиться в каталоге, в том числе из соседнего запроса.
+      await manager
+        .createQueryBuilder()
+        .insert()
+        .into(Skill)
+        .values(
+          [...titles].map(([slug, title]) => {
+            return { slug, title };
+          }),
+        )
+        .orIgnore()
+        .execute();
+      const rows = await manager.getRepository(Skill).find({
+        where: { slug: In([...titles.keys()]) },
+      });
+      for (const row of rows) {
+        idBySlug.set(row.slug, row.id);
+      }
+    }
+
+    const assessed = new Map<string, SkillLevel>();
+    for (const item of pending) {
+      const skillId =
+        "skillId" in item ? item.skillId : idBySlug.get(item.slug);
+      if (!skillId) {
+        throw new BadRequestException("Неизвестный навык");
+      }
+      assessed.set(skillId, item.level);
     }
     return assessed;
   }
@@ -330,32 +409,6 @@ export class ProfilesService implements OnModuleInit {
         });
       }),
     );
-  }
-
-  private async resolveSkillId(
-    skill: SaveProfileInput["skills"][number],
-  ): Promise<string> {
-    if ("skillId" in skill) {
-      const existing = await this.skills.findOne({
-        where: { id: skill.skillId },
-      });
-      if (!existing) {
-        throw new BadRequestException("Неизвестный навык");
-      }
-      return existing.id;
-    }
-    const slug = slugFromTitle(skill.title);
-    if (!slug) {
-      throw new BadRequestException("Укажите навык");
-    }
-    const existing = await this.skills.findOne({ where: { slug } });
-    if (existing) {
-      return existing.id;
-    }
-    const created = await this.skills.save(
-      this.skills.create({ slug, title: skill.title.trim() }),
-    );
-    return created.id;
   }
 
   private toView(

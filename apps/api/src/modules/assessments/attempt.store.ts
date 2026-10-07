@@ -14,6 +14,20 @@ const attemptTtlSeconds = 60 * 60 * 2;
 // Потолок событий на попытку: клиент не раздует ключ в Redis.
 const maxEvents = 50;
 
+// Забирает попытку, только если это она: чужую (новую) попытку того же человека не трогает.
+const takeScript = `
+local raw = redis.call("GET", KEYS[1])
+if not raw then
+  return false
+end
+local ok, attempt = pcall(cjson.decode, raw)
+if not ok or type(attempt) ~= "table" or attempt.id ~= ARGV[1] then
+  return false
+end
+redis.call("DEL", KEYS[1])
+return raw
+`;
+
 export type StoredAttempt = {
   id: string;
   grade: Grade;
@@ -51,8 +65,15 @@ export class AttemptStore implements OnModuleDestroy {
   }
 
   // Обновление не продлевает попытку: срок считается от старта.
-  async update(userId: string, attempt: StoredAttempt): Promise<void> {
-    await this.redis.set(this.key(userId), JSON.stringify(attempt), "KEEPTTL");
+  // XX: если finish уже забрал попытку, не воскрешаем её ключом без срока. Тогда false.
+  async update(userId: string, attempt: StoredAttempt): Promise<boolean> {
+    const result = await this.redis.set(
+      this.key(userId),
+      JSON.stringify(attempt),
+      "KEEPTTL",
+      "XX",
+    );
+    return result === "OK";
   }
 
   async get(userId: string): Promise<StoredAttempt | null> {
@@ -63,8 +84,18 @@ export class AttemptStore implements OnModuleDestroy {
     return parseAttempt(raw);
   }
 
-  async remove(userId: string): Promise<void> {
-    await this.redis.del(this.key(userId));
+  // Атомарно: из двух параллельных finish попытку получит только один.
+  async take(userId: string, attemptId: string): Promise<StoredAttempt | null> {
+    const raw = (await this.redis.eval(
+      takeScript,
+      1,
+      this.key(userId),
+      attemptId,
+    )) as string | null;
+    if (!raw) {
+      return null;
+    }
+    return parseAttempt(raw);
   }
 
   // События идут отдельным списком: ответ и событие могут прийти одновременно.

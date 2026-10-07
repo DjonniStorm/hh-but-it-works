@@ -35,6 +35,7 @@ import { AttemptStore, type StoredAttempt } from "./attempt.store";
 const answerGraceMs = 5000;
 // Короткое переключение фокуса (клик по системной панели) не считаем уходом.
 const minBlurMs = 1000;
+const attemptGone = "Попытка не найдена или уже завершена";
 
 export type ClientMeta = {
   ip: string;
@@ -110,7 +111,9 @@ export class AssessmentsService {
     const now = Date.now();
     if (attempt.cursor < attempt.items.length && attempt.servedAt === null) {
       attempt.servedAt = now;
-      await this.attempts.update(userId, attempt);
+      if (!(await this.attempts.update(userId, attempt))) {
+        return { attempt: null };
+      }
     }
     return { attempt: view(attempt, now) };
   }
@@ -153,7 +156,9 @@ export class AssessmentsService {
 
     attempt.cursor += 1;
     attempt.servedAt = attempt.cursor < attempt.items.length ? now : null;
-    await this.attempts.update(userId, attempt);
+    if (!(await this.attempts.update(userId, attempt))) {
+      throw new BadRequestException(attemptGone);
+    }
     return view(attempt, now);
   }
 
@@ -176,8 +181,11 @@ export class AssessmentsService {
   }
 
   async finish(userId: string, attemptId: string): Promise<AssessmentResult> {
-    const attempt = await this.requireAttempt(userId, attemptId);
-    await this.attempts.remove(userId);
+    // Берём и удаляем одним шагом: второй параллельный finish получит 400, а не вторую оценку.
+    const attempt = await this.attempts.take(userId, attemptId);
+    if (!attempt) {
+      throw new BadRequestException(attemptGone);
+    }
     const clientFlags = await this.attempts.takeEvents(userId);
 
     // Неотвеченные вопросы засчитываются как неверные.
@@ -239,7 +247,7 @@ export class AssessmentsService {
   ): Promise<StoredAttempt> {
     const attempt = await this.attempts.get(userId);
     if (!attempt || attempt.id !== attemptId) {
-      throw new BadRequestException("Попытка не найдена или уже завершена");
+      throw new BadRequestException(attemptGone);
     }
     return attempt;
   }

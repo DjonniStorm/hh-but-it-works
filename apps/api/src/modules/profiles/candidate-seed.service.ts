@@ -129,7 +129,7 @@ export class CandidateSeedService implements OnApplicationBootstrap {
     return true;
   }
 
-  // Тот же slug, что в ProfilesService.resolveSkillId: один навык — одна строка в skills.
+  // Тот же slug, что в ProfilesService.resolveSkills: один навык — одна строка в skills.
   private async skillIdFor(title: string): Promise<string> {
     const slug = slugFromTitle(title);
     const existing = await this.skills.findOne({ where: { slug } });
