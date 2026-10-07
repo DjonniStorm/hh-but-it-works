@@ -5,6 +5,7 @@ import { StoreKey } from "@/app/store/store-key";
 import { formatDate, formatSalary } from "@/shared/lib/format";
 import { invitationStatusLabel } from "@/shared/lib/labels";
 import { ROUTES } from "@/shared/router/routes";
+import { pageTitle, usePageTitle } from "@/shared/router/use-page-title";
 import { invitationStatusColor } from "@/shared/theme";
 import {
   Badge,
@@ -16,6 +17,7 @@ import {
   Table,
   Text,
   Title,
+  useMatches,
 } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 import { Link } from "react-router";
@@ -32,8 +34,10 @@ const statuses = [
 ];
 
 export const InvitationsPage = observer(() => {
+  usePageTitle(pageTitle.employerInvitations);
   const invitations = useStore(StoreKey.Invitations);
   const [filter, setFilter] = useState<Filter>("all");
+  const narrow = useMatches({ base: true, sm: false });
 
   // Кабинет грузит приглашения один раз при входе. Здесь освежаем тихо, чтобы увидеть
   // ответы кандидатов без F5. Ошибка уже ушла тостом, а на экране остаётся прошлый список.
@@ -76,8 +80,10 @@ export const InvitationsPage = observer(() => {
             };
           }),
         ]}
-        style={{ alignSelf: "flex-start" }}
-        fullWidth={false}
+        // Пять статусов в строку не влезают в телефон: страница уезжала вбок.
+        orientation={narrow ? "vertical" : "horizontal"}
+        fullWidth={narrow}
+        style={{ alignSelf: narrow ? "stretch" : "flex-start" }}
       />
 
       {rows.length === 0 ? (

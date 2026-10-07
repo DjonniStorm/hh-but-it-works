@@ -3,12 +3,14 @@ import { StoreKey } from "@/app/store/store-key";
 import { skillSuggestions } from "@/pages/employer/model/options";
 import { BackToNeeds } from "@/pages/employer/ui/BackToNeeds";
 import { SalaryFields } from "@/pages/employer/ui/SalaryFields";
+import { focusFirstError } from "@/shared/lib/focus-first-error";
 import {
   gradeOptions,
   specializationOptions,
   workFormatOptions,
 } from "@/shared/lib/labels";
 import { ROUTES, needPath } from "@/shared/router/routes";
+import { pageTitle, usePageTitle } from "@/shared/router/use-page-title";
 import {
   Button,
   Group,
@@ -30,6 +32,7 @@ import { type HiringNeedInput, hiringNeedInputSchema } from "@hh/contracts";
 import { Grade, type Specialization, WorkFormat } from "@hh/types";
 
 export const NeedNewPage = observer(() => {
+  usePageTitle(pageTitle.needNew);
   const employer = useStore(StoreKey.Employer);
   const navigate = useNavigate();
   const form = useForm({
@@ -48,14 +51,19 @@ export const NeedNewPage = observer(() => {
     validate: schemaResolver(hiringNeedInputSchema, { sync: true }),
   });
 
-  const onSubmit = form.onSubmit((values) => {
-    // Резолвер уже проверил значения. В типе формы пустые поля шире, чем ждёт createNeed.
-    void employer.createNeed(values as HiringNeedInput, {
-      onSuccess: (need) => {
-        navigate(needPath(need.id));
-      },
-    });
-  });
+  const onSubmit = form.onSubmit(
+    (values) => {
+      // Резолвер уже проверил значения. В типе формы пустые поля шире, чем ждёт createNeed.
+      void employer.createNeed(values as HiringNeedInput, {
+        onSuccess: (need) => {
+          navigate(needPath(need.id));
+        },
+      });
+    },
+    (errors) => {
+      focusFirstError(form, errors);
+    },
+  );
 
   return (
     <Stack gap="lg" maw={860}>
@@ -72,6 +80,7 @@ export const NeedNewPage = observer(() => {
         <Stack gap="lg">
           <TextInput
             label="Название"
+            withAsterisk
             placeholder="Например, Backend-разработчик в платёжную команду"
             {...form.getInputProps("title")}
           />
@@ -79,18 +88,21 @@ export const NeedNewPage = observer(() => {
           <SimpleGrid cols={{ base: 1, sm: 3 }}>
             <Select
               label="Специализация"
+              withAsterisk
               placeholder="Выберите"
               data={specializationOptions}
               {...form.getInputProps("specialization")}
             />
             <Select
               label="Грейд от"
+              withAsterisk
               data={gradeOptions}
               allowDeselect={false}
               {...form.getInputProps("gradeFrom")}
             />
             <Select
               label="Грейд до"
+              withAsterisk
               data={gradeOptions}
               allowDeselect={false}
               {...form.getInputProps("gradeTo")}
@@ -99,6 +111,7 @@ export const NeedNewPage = observer(() => {
 
           <TagsInput
             label="Обязательные навыки"
+            withAsterisk
             description="Без них кандидат не справится. Enter — добавить свой."
             data={skillSuggestions}
             clearable
@@ -115,6 +128,7 @@ export const NeedNewPage = observer(() => {
           <SimpleGrid cols={{ base: 1, sm: 3 }}>
             <Select
               label="Формат работы"
+              withAsterisk
               data={workFormatOptions}
               allowDeselect={false}
               {...form.getInputProps("workFormat")}

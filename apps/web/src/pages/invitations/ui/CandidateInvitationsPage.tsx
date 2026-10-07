@@ -6,6 +6,7 @@ import { canAnswer } from "@/pages/invitations/model/answer";
 import { CandidateInvitationCard } from "@/pages/invitations/ui/CandidateInvitationCard";
 import { ErrorScreen } from "@/shared/error/ui/ErrorScreen";
 import { ROUTES } from "@/shared/router/routes";
+import { pageTitle, usePageTitle } from "@/shared/router/use-page-title";
 import { surfaceColor } from "@/shared/theme";
 import {
   Box,
@@ -22,6 +23,7 @@ import { Link } from "react-router";
 type LoadStatus = "loading" | "ready" | "failed";
 
 export const CandidateInvitationsPage = observer(() => {
+  usePageTitle(pageTitle.candidateInvitations);
   const invitations = useStore(StoreKey.CandidateInvitations);
   // Статус загрузки экрана держим здесь, как в EmployerLayout: стор хранит только данные.
   const [status, setStatus] = useState<LoadStatus>("loading");

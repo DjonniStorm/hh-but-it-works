@@ -12,6 +12,7 @@ import {
 import type { ContactValues } from "@/pages/profile/model/types";
 import { ContactIcon } from "@/pages/profile/ui/ContactIcon";
 import { ExpectationsFields } from "@/pages/profile/ui/ExpectationsFields";
+import { focusFirstError } from "@/shared/lib/focus-first-error";
 import {
   Button,
   Paper,
@@ -52,31 +53,36 @@ export const ContactsPanel = ({
     validate: schemaResolver(saveContactsSchema, { sync: true }),
   });
 
-  const onSubmit = form.onSubmit((values) => {
-    // Резолвер уже проверил специализацию и грейд. В типе формы они шире.
-    void profiles.save(
-      {
-        displayName: values.displayName,
-        specialization: values.specialization as Specialization,
-        claimedGrade: values.claimedGrade as Grade,
-        fspId: values.fspId,
-        telegram: values.telegram,
-        github: values.github,
-        linkedin: values.linkedin,
-        website: values.website,
-        desiredSalaryFrom:
-          values.desiredSalaryFrom === "" ? null : values.desiredSalaryFrom,
-        workFormats: values.workFormats as WorkFormat[],
-        searchStatus: values.searchStatus as SearchStatus,
-        skills: saveSkills(assessedFromProfile(profile.skills)),
-      },
-      {
-        onSuccess: () => {
-          notifier.showSuccess("Контакты сохранены");
+  const onSubmit = form.onSubmit(
+    (values) => {
+      // Резолвер уже проверил специализацию и грейд. В типе формы они шире.
+      void profiles.save(
+        {
+          displayName: values.displayName,
+          specialization: values.specialization as Specialization,
+          claimedGrade: values.claimedGrade as Grade,
+          fspId: values.fspId,
+          telegram: values.telegram,
+          github: values.github,
+          linkedin: values.linkedin,
+          website: values.website,
+          desiredSalaryFrom:
+            values.desiredSalaryFrom === "" ? null : values.desiredSalaryFrom,
+          workFormats: values.workFormats as WorkFormat[],
+          searchStatus: values.searchStatus as SearchStatus,
+          skills: saveSkills(assessedFromProfile(profile.skills)),
         },
-      },
-    );
-  });
+        {
+          onSuccess: () => {
+            notifier.showSuccess("Контакты сохранены");
+          },
+        },
+      );
+    },
+    (errors) => {
+      focusFirstError(form, errors);
+    },
+  );
 
   return (
     <Paper
@@ -90,14 +96,21 @@ export const ContactsPanel = ({
       <Stack>
         <Title order={3}>Контакты</Title>
         <TextInput label="Почта" value={email} readOnly />
-        <TextInput label="Имя" {...form.getInputProps("displayName")} />
+        <TextInput
+          label="Имя"
+          autoComplete="name"
+          withAsterisk
+          {...form.getInputProps("displayName")}
+        />
         <Select
           label="Специализация"
+          withAsterisk
           data={specializationOptions}
           {...form.getInputProps("specialization")}
         />
         <Select
           label="Заявленный грейд"
+          withAsterisk
           data={gradeOptions}
           {...form.getInputProps("claimedGrade")}
         />

@@ -2,6 +2,7 @@ import { notifier } from "@/app/store/notifier";
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { SalaryFields } from "@/pages/employer/ui/SalaryFields";
+import { focusFirstError } from "@/shared/lib/focus-first-error";
 import {
   Button,
   Group,
@@ -50,15 +51,20 @@ export const InviteForm = observer(
       validate: schemaResolver(invitationInputSchema, { sync: true }),
     });
 
-    const onSubmit = form.onSubmit((values) => {
-      // Резолвер уже проверил вилку. В типе формы пустое поле шире, чем ждёт send.
-      void invitations.send(values as InvitationInput, {
-        onSuccess: () => {
-          notifier.showSuccess("Приглашение отправлено");
-          onDone();
-        },
-      });
-    });
+    const onSubmit = form.onSubmit(
+      (values) => {
+        // Резолвер уже проверил вилку. В типе формы пустое поле шире, чем ждёт send.
+        void invitations.send(values as InvitationInput, {
+          onSuccess: () => {
+            notifier.showSuccess("Приглашение отправлено");
+            onDone();
+          },
+        });
+      },
+      (errors) => {
+        focusFirstError(form, errors);
+      },
+    );
 
     return (
       <form onSubmit={onSubmit}>
@@ -69,6 +75,7 @@ export const InviteForm = observer(
           </Text>
           <Textarea
             label="Предложение"
+            withAsterisk
             autosize
             minRows={4}
             {...form.getInputProps("message")}
@@ -81,6 +88,7 @@ export const InviteForm = observer(
           </SimpleGrid>
           <TextInput
             label="Как с вами связаться"
+            withAsterisk
             {...form.getInputProps("contact")}
           />
           <Group justify="flex-end">

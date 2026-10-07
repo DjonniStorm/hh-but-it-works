@@ -11,7 +11,7 @@ import {
   invitationStatusLabel,
   specializationLabel,
 } from "@/shared/lib/labels";
-import { invitationStatusColor } from "@/shared/theme";
+import { gradeBadge, invitationStatusColor } from "@/shared/theme";
 import {
   Badge,
   Button,
@@ -48,6 +48,7 @@ export const MatchCard = ({
   const { candidate } = match;
   const verified = candidate.verifiedGrade;
   const grade = verified ?? candidate.claimedGrade;
+  const gradeStyle = verified ? gradeBadge.verified : gradeBadge.unverified;
 
   return (
     <Paper withBorder radius="md" p="lg">
@@ -76,8 +77,8 @@ export const MatchCard = ({
                 {specializationLabel[candidate.specialization]}
               </Badge>
               <Badge
-                variant={verified ? "filled" : "outline"}
-                color={verified ? "fsp" : "gray"}
+                variant={gradeStyle.variant}
+                color={gradeStyle.color}
                 tt="none"
               >
                 {gradeLabel[grade]} ·{" "}
