@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 
 import type {
   CompanyProfile as CompanyProfileView,
@@ -58,21 +58,33 @@ export class EmployersService {
       where: { userId },
       order: { createdAt: "DESC" },
     });
-    // Один запрос пула на все потребности: число кандидатов считаем в памяти.
-    const listed = await this.pool.listed();
-    const items = await Promise.all(
-      rows.map((need) => {
-        return this.toNeedView(need, listed);
+    // Один запрос пула и один запрос «не подходит» на все потребности, счёт в памяти.
+    const [listed, dismissed] = await Promise.all([
+      this.pool.listed(),
+      this.dismissedByNeed(
+        rows.map((need) => {
+          return need.id;
+        }),
+      ),
+    ]);
+    return {
+      items: rows.map((need) => {
+        return this.toNeedView(
+          need,
+          listed,
+          dismissed.get(need.id) ?? new Set(),
+        );
       }),
-    );
-    return { items };
+    };
   }
 
   async getNeed(userId: string, id: string): Promise<HiringNeedView> {
-    return this.toNeedView(
-      await this.requireNeed(userId, id),
-      await this.pool.listed(),
-    );
+    const need = await this.requireNeed(userId, id);
+    const [listed, dismissed] = await Promise.all([
+      this.pool.listed(),
+      this.dismissedIds(need.id),
+    ]);
+    return this.toNeedView(need, listed, dismissed);
   }
 
   async createNeed(
@@ -80,16 +92,19 @@ export class EmployersService {
     input: HiringNeedInput,
   ): Promise<HiringNeedView> {
     const need = await this.needs.save(this.needs.create({ ...input, userId }));
-    return this.toNeedView(need, await this.pool.listed());
+    return this.toNeedView(need, await this.pool.listed(), new Set());
   }
 
   async shortlist(userId: string, needId: string): Promise<Shortlist> {
     const need = await this.requireNeed(userId, needId);
+    const [listed, dismissed] = await Promise.all([
+      this.pool.listed(),
+      this.dismissedIds(need.id),
+    ]);
     const candidates = await this.pool.snapshots(
-      this.pool.eligible(need, await this.pool.listed()),
+      this.pool.eligible(need, listed),
     );
     const scores = await this.ranking.rank(need, candidates);
-    const dismissed = await this.dismissedIds(need.id);
 
     const items: Match[] = candidates.map((candidate) => {
       const result = scores.get(candidate.id);
@@ -151,19 +166,32 @@ export class EmployersService {
   }
 
   private async dismissedIds(needId: string): Promise<Set<string>> {
-    const rows = await this.dismissals.find({ where: { needId } });
-    return new Set(
-      rows.map((row) => {
-        return row.candidateProfileId;
-      }),
-    );
+    return (await this.dismissedByNeed([needId])).get(needId) ?? new Set();
   }
 
-  private async toNeedView(
+  private async dismissedByNeed(
+    needIds: string[],
+  ): Promise<Map<string, Set<string>>> {
+    const byNeed = new Map<string, Set<string>>();
+    if (needIds.length === 0) {
+      return byNeed;
+    }
+    const rows = await this.dismissals.find({
+      where: { needId: In(needIds) },
+    });
+    for (const row of rows) {
+      const ids = byNeed.get(row.needId) ?? new Set<string>();
+      ids.add(row.candidateProfileId);
+      byNeed.set(row.needId, ids);
+    }
+    return byNeed;
+  }
+
+  private toNeedView(
     need: HiringNeed,
     listed: CandidateProfile[],
-  ): Promise<HiringNeedView> {
-    const dismissed = await this.dismissedIds(need.id);
+    dismissed: Set<string>,
+  ): HiringNeedView {
     const candidateCount = this.pool
       .eligible(need, listed)
       .filter((profile) => {
