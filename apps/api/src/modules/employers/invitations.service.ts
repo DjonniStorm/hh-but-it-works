@@ -93,9 +93,8 @@ export class InvitationsService {
       throw new ConflictException(alreadyInvited);
     }
 
-    let saved: Invitation;
     try {
-      saved = await this.invitations.save(
+      const saved = await this.invitations.save(
         this.invitations.create({
           userId,
           candidateProfileId: candidate.id,
@@ -107,6 +106,12 @@ export class InvitationsService {
           status: InvitationStatus.Sent,
         }),
       );
+      return toView(
+        saved,
+        companyName,
+        await this.needTitles([saved]),
+        new Map(),
+      );
     } catch (error) {
       // Параллельный запрос успел раньше: сработал индекс одного активного приглашения.
       if (violates(error, oneActiveIndex)) {
@@ -114,12 +119,6 @@ export class InvitationsService {
       }
       throw error;
     }
-    return toView(
-      saved,
-      companyName,
-      await this.needTitles([saved]),
-      new Map(),
-    );
   }
 
   async listForCandidate(userId: string): Promise<CandidateInvitationList> {
