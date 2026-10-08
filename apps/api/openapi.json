@@ -1343,7 +1343,17 @@
               },
               "lang": {
                 "type": "string",
-                "enum": ["typescript", "dockerfile", "sql", null],
+                "enum": [
+                  "typescript",
+                  "dockerfile",
+                  "sql",
+                  "python",
+                  "csharp",
+                  "go",
+                  "java",
+                  "tsx",
+                  null
+                ],
                 "nullable": true
               },
               "choices": {
@@ -1465,7 +1475,17 @@
                   },
                   "lang": {
                     "type": "string",
-                    "enum": ["typescript", "dockerfile", "sql", null],
+                    "enum": [
+                      "typescript",
+                      "dockerfile",
+                      "sql",
+                      "python",
+                      "csharp",
+                      "go",
+                      "java",
+                      "tsx",
+                      null
+                    ],
                     "nullable": true
                   },
                   "choices": {

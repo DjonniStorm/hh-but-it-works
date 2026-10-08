@@ -390,7 +390,16 @@ export const assessmentItemKindSchema = z.enum([
   "order",
 ]);
 
-export const codeLangSchema = z.enum(["typescript", "dockerfile", "sql"]);
+export const codeLangSchema = z.enum([
+  "typescript",
+  "dockerfile",
+  "sql",
+  "python",
+  "csharp",
+  "go",
+  "java",
+  "tsx",
+]);
 
 export const startAssessmentSchema = z.object({
   grade: gradeSchema,

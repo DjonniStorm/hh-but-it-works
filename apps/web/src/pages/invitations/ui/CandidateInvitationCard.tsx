@@ -16,10 +16,6 @@ import { InvitationStatus } from "@hh/types";
 export const CandidateInvitationCard = observer(
   ({ invitation }: { invitation: CandidateInvitation }) => {
     const invitations = useStore(StoreKey.CandidateInvitations);
-    // Отрасль и позиция одной строкой: позиции может не быть, тогда без лишней точки.
-    const subtitle = [invitation.companyIndustry, invitation.needTitle]
-      .filter(Boolean)
-      .join(" · ");
 
     return (
       <Paper withBorder radius="md" p="lg">
@@ -27,9 +23,16 @@ export const CandidateInvitationCard = observer(
           <Group justify="space-between" align="flex-start" wrap="nowrap">
             <Stack gap={2} style={{ minWidth: 0 }}>
               <Title order={3}>{invitation.companyName}</Title>
-              <Text c="dimmed" size="sm">
-                {subtitle}
-              </Text>
+              {invitation.companyIndustry ? (
+                <Text c="dimmed" size="sm">
+                  {invitation.companyIndustry}
+                </Text>
+              ) : null}
+              {invitation.needTitle ? (
+                <Text c="dimmed" size="sm">
+                  {invitation.needTitle}
+                </Text>
+              ) : null}
             </Stack>
             {/* Статус читается целиком: сжимается название компании, не бейдж. */}
             <Badge

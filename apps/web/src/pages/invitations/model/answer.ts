@@ -1,3 +1,4 @@
+import type { CandidateInvitation } from "@hh/contracts";
 import { InvitationStatus } from "@hh/types";
 
 // Подписи со стороны кандидата: «Отправлено» и «Просмотрено» говорят о работодателе, не о нём.
@@ -11,4 +12,13 @@ export const candidateStatusLabel: Record<InvitationStatus, string> = {
 // То же условие, что в InvitationsService.answer: ответить можно один раз.
 export function canAnswer(status: InvitationStatus): boolean {
   return status === InvitationStatus.Sent || status === InvitationStatus.Viewed;
+}
+
+// Список с сервера уже от новых к старым: фильтр этот порядок сохраняет.
+export function waitingInvitations(
+  items: CandidateInvitation[],
+): CandidateInvitation[] {
+  return items.filter((item) => {
+    return canAnswer(item.status);
+  });
 }

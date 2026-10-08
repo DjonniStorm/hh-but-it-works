@@ -14,7 +14,15 @@ import { type RequestOptions, loadRetry, readData, request } from "./request";
 import type { RootStore } from "./root-store";
 import { StoreKey } from "./store-key";
 
-type CallOptions<T> = Pick<RequestOptions<T>, "onError" | "onSuccess">;
+type CallOptions<T> = Pick<
+  RequestOptions<T>,
+  "onError" | "onSuccess" | "loader"
+>;
+
+type LoadOptions = CallOptions<CandidateInvitation[]> & {
+  // Шапка только считает новые. Просмотр отмечает страница приглашений.
+  markViewed?: boolean;
+};
 
 // Приглашения глазами кандидата: список и ответ. Сторона работодателя — InvitationStore.
 export class CandidateInvitationStore {
@@ -31,8 +39,9 @@ export class CandidateInvitationStore {
     );
   }
 
-  load(options?: CallOptions<CandidateInvitation[]>) {
+  load(options?: LoadOptions) {
     this.syncOwner();
+    const markViewed = options?.markViewed !== false;
     return request(
       this.root,
       async () => {
@@ -41,21 +50,28 @@ export class CandidateInvitationStore {
         runInAction(() => {
           this.items = items;
         });
-        // На экране они остаются «Новыми» до следующего захода, а работодатель видит просмотр.
-        const unseen = items
-          .filter((item) => {
-            return item.status === InvitationStatus.Sent;
-          })
-          .map((item) => {
-            return item.id;
-          });
-        if (unseen.length > 0) {
-          void this.markViewed(unseen);
+        if (markViewed) {
+          // На экране они остаются «Новыми» до следующего захода, а работодатель видит просмотр.
+          const unseen = items
+            .filter((item) => {
+              return item.status === InvitationStatus.Sent;
+            })
+            .map((item) => {
+              return item.id;
+            });
+          if (unseen.length > 0) {
+            void this.markViewed(unseen);
+          }
         }
         return items;
       },
       // Экран ждёт список: без лоадера при медленной сети он пустой.
-      { loader: true, retry: loadRetry, ...options },
+      {
+        loader: options?.loader ?? true,
+        retry: loadRetry,
+        onError: options?.onError,
+        onSuccess: options?.onSuccess,
+      },
     );
   }
 

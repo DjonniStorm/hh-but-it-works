@@ -113,7 +113,7 @@ export type ActiveAttemptDtoOutput = {
         kind: 'single' | 'multiple' | 'numeric' | 'code' | 'order';
         prompt: string;
         code: string | null;
-        lang: 'typescript' | 'dockerfile' | 'sql' | null;
+        lang: 'typescript' | 'dockerfile' | 'sql' | 'python' | 'csharp' | 'go' | 'java' | 'tsx' | null;
         choices: Array<string>;
         seconds: number;
     } | null;
@@ -137,7 +137,7 @@ export type CurrentAttemptDtoOutput = {
             kind: 'single' | 'multiple' | 'numeric' | 'code' | 'order';
             prompt: string;
             code: string | null;
-            lang: 'typescript' | 'dockerfile' | 'sql' | null;
+            lang: 'typescript' | 'dockerfile' | 'sql' | 'python' | 'csharp' | 'go' | 'java' | 'tsx' | null;
             choices: Array<string>;
             seconds: number;
         } | null;
