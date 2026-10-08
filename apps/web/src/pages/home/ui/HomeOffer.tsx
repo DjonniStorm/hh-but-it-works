@@ -1,12 +1,13 @@
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { waitingInvitations } from "@/pages/invitations/model/answer";
-import { formatSalary } from "@/shared/lib/format";
 import { ROUTES } from "@/shared/router/routes";
 import { surfaceColor } from "@/shared/theme";
 import { Anchor, Box, Stack, Text } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 import { Link } from "react-router";
+
+import { formatSalary } from "@hh/contracts";
 
 export const HomeOffer = observer(() => {
   const invitations = useStore(StoreKey.CandidateInvitations);
