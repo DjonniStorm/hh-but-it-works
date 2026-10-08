@@ -9,6 +9,11 @@ const aliases: Record<CatalogSlug, string[]> = {
   typescript: ["typescript", "ts", "javascript", "js", "node.js", "nodejs"],
   docker: ["docker", "контейнеры", "docker compose", "kubernetes"],
   testing: ["тестирование", "testing", "jest", "vitest", "unit-тесты", "qa"],
+  python: ["python", "py", "django", "fastapi"],
+  csharp: ["c#", "csharp", ".net"],
+  react: ["react", "reactjs"],
+  go: ["go", "golang"],
+  java: ["java", "spring"],
 };
 
 export function slugForSkill(title: string): CatalogSlug | null {

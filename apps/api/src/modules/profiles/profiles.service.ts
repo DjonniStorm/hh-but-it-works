@@ -27,6 +27,7 @@ import { Skill } from "./skill.entity";
 type SkillSignal = {
   level: SkillLevel;
   verification: SkillVerification;
+  verifiedAt: Date | null;
 };
 
 type AssessmentOutcome = {
@@ -159,6 +160,7 @@ export class ProfilesService implements OnModuleInit {
       return { gradeChanged: false };
     }
 
+    const confirmedAt = new Date();
     for (const section of result.sections) {
       const row = await this.candidateSkills.findOne({
         where: { profileId: profile.id, skillId: section.skillId },
@@ -171,6 +173,7 @@ export class ProfilesService implements OnModuleInit {
             level: levelByGrade[result.grade],
             verification: SkillVerification.Verified,
             score: section.score,
+            verifiedAt: confirmedAt,
           }),
         );
         continue;
@@ -182,6 +185,7 @@ export class ProfilesService implements OnModuleInit {
         ? SkillVerification.Verified
         : SkillVerification.Unverified;
       row.score = section.passed ? section.score : null;
+      row.verifiedAt = section.passed ? confirmedAt : null;
       await this.candidateSkills.save(row);
     }
 
@@ -282,6 +286,7 @@ export class ProfilesService implements OnModuleInit {
       signals.set(row.skillId, {
         level: row.level,
         verification: row.verification,
+        verifiedAt: row.verifiedAt,
       });
     }
     return signals;
@@ -458,6 +463,7 @@ export class ProfilesService implements OnModuleInit {
             ? prior.verification
             : SkillVerification.Unverified,
           score: sameLevel ? prior.score : null,
+          verifiedAt: sameLevel ? prior.verifiedAt : null,
         });
       }),
     );
@@ -478,8 +484,13 @@ export class ProfilesService implements OnModuleInit {
       linkedin: profile?.linkedin ?? null,
       website: profile?.website ?? null,
       desiredSalaryFrom: profile?.desiredSalaryFrom ?? null,
+      experienceYears: profile?.experienceYears ?? null,
       workFormats: profile?.workFormats ?? [],
       searchStatus: profile?.searchStatus ?? SearchStatus.OpenToOffers,
+      showExperience: profile?.showExperience ?? true,
+      showSalary: profile?.showSalary ?? true,
+      showFsp: profile?.showFsp ?? true,
+      showUnverifiedSkills: profile?.showUnverifiedSkills ?? true,
       listed: profile?.listed ?? false,
       verifiedGrade: profile?.verifiedGrade ?? null,
       verifiedAt: profile?.verifiedAt?.toISOString() ?? null,
@@ -495,6 +506,7 @@ export class ProfilesService implements OnModuleInit {
           title: skill.title,
           level: signal?.level ?? null,
           verification: signal?.verification ?? null,
+          verifiedAt: signal?.verifiedAt?.toISOString() ?? null,
         };
       }),
     };
@@ -521,12 +533,24 @@ function expectations(
   input: SaveProfileInput,
 ): Pick<
   CandidateProfile,
-  "desiredSalaryFrom" | "workFormats" | "searchStatus"
+  | "desiredSalaryFrom"
+  | "experienceYears"
+  | "workFormats"
+  | "searchStatus"
+  | "showExperience"
+  | "showSalary"
+  | "showFsp"
+  | "showUnverifiedSkills"
 > {
   return {
     desiredSalaryFrom: input.desiredSalaryFrom,
+    experienceYears: input.experienceYears,
     workFormats: input.workFormats,
     searchStatus: input.searchStatus,
+    showExperience: input.showExperience,
+    showSalary: input.showSalary,
+    showFsp: input.showFsp,
+    showUnverifiedSkills: input.showUnverifiedSkills,
   };
 }
 

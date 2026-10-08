@@ -2,6 +2,7 @@ import { Grade } from "@hh/types";
 
 import { between, pick, sample, shuffle } from "../random";
 import type { Template } from "../types";
+import { typescriptMore } from "./more";
 
 const { Junior, Middle, Senior } = Grade;
 
@@ -263,4 +264,5 @@ export const typescript: Template[] = [
       };
     },
   },
+  ...typescriptMore,
 ];

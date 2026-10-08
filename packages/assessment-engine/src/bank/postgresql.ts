@@ -2,6 +2,7 @@ import { Grade } from "@hh/types";
 
 import { between, pick, sample } from "../random";
 import type { Template } from "../types";
+import { postgresMore } from "./more";
 
 const { Junior, Middle, Senior } = Grade;
 
@@ -255,4 +256,5 @@ export const postgresql: Template[] = [
       };
     },
   },
+  ...postgresMore,
 ];

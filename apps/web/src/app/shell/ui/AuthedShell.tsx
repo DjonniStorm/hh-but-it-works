@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   headerHeight,
@@ -9,10 +9,12 @@ import { ShellLink } from "@/app/shell/ui/ShellLink";
 import { RequestOverlay } from "@/app/store/request-overlay";
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
+import { waitingInvitations } from "@/pages/invitations/model/answer";
 import { ROUTES } from "@/shared/router/routes";
 import { currentPath, returnTo } from "@/shared/router/use-return-path";
 import {
   AppShell,
+  Badge,
   Burger,
   Button,
   Group,
@@ -23,14 +25,28 @@ import {
 import { observer } from "mobx-react-lite";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 
+import { Role } from "@hh/types";
+
 // Высота пункта мобильного меню: в палец попадаешь с первого раза.
 const touchHeight = 44;
 
 export const AuthedShell = observer(() => {
   const auth = useStore(StoreKey.Auth);
+  const invitations = useStore(StoreKey.CandidateInvitations);
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpened, setMenuOpened] = useState(false);
+  const candidateId = auth.user?.role === Role.Candidate ? auth.user.id : null;
+
+  // Счётчик в шапке. Просмотр здесь не отмечаем: иначе работодатель увидит его раньше списка.
+  useEffect(() => {
+    if (!candidateId) {
+      return;
+    }
+    void invitations.load({ loader: false, markViewed: false }).catch(() => {
+      return undefined;
+    });
+  }, [candidateId, invitations]);
   // Любой переход, в том числе «Назад», закрывает мобильное меню. Сбрасываем прямо в рендере,
   // а не в эффекте: так меню не мелькает открытым на новой странице.
   const [menuLocationKey, setMenuLocationKey] = useState(location.key);
@@ -39,6 +55,9 @@ export const AuthedShell = observer(() => {
     setMenuOpened(false);
   }
   const links = auth.user ? shellLinks[auth.user.role] : [];
+  const waiting = candidateId
+    ? waitingInvitations(invitations.items).length
+    : 0;
 
   const logout = () => {
     void auth.logout({
@@ -84,6 +103,11 @@ export const AuthedShell = observer(() => {
                     to={link.to}
                     label={link.label}
                     active={isLinkActive(link, location.pathname)}
+                    count={
+                      link.to === ROUTES.INVITATIONS && waiting > 0
+                        ? waiting
+                        : undefined
+                    }
                   />
                 );
               })}
@@ -115,6 +139,13 @@ export const AuthedShell = observer(() => {
                 label={link.label}
                 active={isLinkActive(link, location.pathname)}
                 mih={touchHeight}
+                rightSection={
+                  link.to === ROUTES.INVITATIONS && waiting > 0 ? (
+                    <Badge color="fsp" variant="filled" circle>
+                      {waiting}
+                    </Badge>
+                  ) : null
+                }
                 // Ссылка на текущую страницу путь не меняет: закрываем меню явно.
                 onClick={() => {
                   setMenuOpened(false);

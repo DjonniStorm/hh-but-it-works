@@ -29,6 +29,7 @@ type Props = {
   canInvite: boolean;
   onInvite: () => void;
   onDismiss: () => void;
+  onFavorite: () => void;
 };
 
 export const MatchCard = ({
@@ -38,6 +39,7 @@ export const MatchCard = ({
   canInvite,
   onInvite,
   onDismiss,
+  onFavorite,
 }: Props) => {
   const [expanded, setExpanded] = useState(false);
   const { candidate } = match;
@@ -104,6 +106,13 @@ export const MatchCard = ({
             {expanded ? "Скрыть разбор" : "Почему в подборке"}
           </Button>
           <Group gap="xs">
+            <Button
+              variant={match.favorite ? "filled" : "default"}
+              onClick={onFavorite}
+              aria-pressed={match.favorite}
+            >
+              {match.favorite ? "В избранном" : "В избранное"}
+            </Button>
             <Button variant="default" onClick={onDismiss}>
               Не подходит
             </Button>

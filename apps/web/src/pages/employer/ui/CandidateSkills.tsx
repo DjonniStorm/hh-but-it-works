@@ -1,4 +1,4 @@
-import { verificationLabel } from "@/shared/lib/labels";
+import { skillPassport, verificationLabel } from "@/shared/lib/labels";
 import { verificationColor } from "@/shared/theme";
 import { Badge, Group, Stack, Text } from "@mantine/core";
 
@@ -12,6 +12,7 @@ export const CandidateSkills = ({ skills }: { skills: CandidateSkill[] }) => {
       </Text>
       <Group gap={6}>
         {skills.map((skill) => {
+          const passport = skillPassport(skill.verification, skill.verifiedAt);
           return (
             <Badge
               key={skill.title}
@@ -19,7 +20,8 @@ export const CandidateSkills = ({ skills }: { skills: CandidateSkill[] }) => {
               color={verificationColor[skill.verification]}
               tt="none"
             >
-              {skill.title} · {verificationLabel[skill.verification]}
+              {skill.title} ·{" "}
+              {passport ?? verificationLabel[skill.verification]}
               {skill.score === null ? "" : ` ${skill.score}`}
             </Badge>
           );
