@@ -24,6 +24,7 @@ web  ──HTTP/JSON──>  api  ──SQL──> postgres
 | Сервис    | Swagger UI                   | JSON                                    |
 | --------- | ---------------------------- | --------------------------------------- |
 | `api`     | `http://localhost:3000/docs` | `/docs-json`, в репо `api/openapi.json` |
+| `mock`    | `http://localhost:3001/docs` | `/docs/json`, `@elysiajs/openapi`       |
 | `ranking` | `http://localhost:8000/docs` | `/openapi.json`, генерирует FastAPI     |
 
 Подробности и команды — в `README.md` внутри каждого приложения.
