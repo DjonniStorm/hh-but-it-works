@@ -225,6 +225,6 @@ python evaluation/train_ltr.py evaluation/data/sanity_gold.jsonl
 
 Заведённые issues по ML-части, в порядке приоритета:
 
-1. [#34 — план полного покрытия тестами](https://github.com/DjonniStorm/hh-but-it-works/issues/34): инварианты (нормировка весов, детерминизм, монотонность), property-based, edge cases схем, автосверка констант.
+1. [#34 — план полного покрытия тестами](https://github.com/DjonniStorm/hh-but-it-works/issues/34): **completed** (PR #38, 183 теста, покрытие 98 %).
 2. [#35 — интеграционные тесты Nest ↔ ranking и CI](https://github.com/DjonniStorm/hh-but-it-works/issues/35): маппинг адаптера, `shortlist`, веб-переводы, workflow.
 3. [#36 — довести модель до идеала](https://github.com/DjonniStorm/hh-but-it-works/issues/36): подключить мёртвые сигналы контракта, нормальный gold-набор, LTR против правил, калибровка, мониторинг.
