@@ -29,4 +29,8 @@ export class CandidateSkill {
   /** Балл теста. Пустой, пока эта попытка навык не подтвердила. */
   @Column({ type: "int", nullable: true })
   score!: number | null;
+
+  /** Когда навык стал подтверждённым. Провал следующей попытки дату не стирает. */
+  @Column({ type: "timestamptz", nullable: true })
+  verifiedAt!: Date | null;
 }

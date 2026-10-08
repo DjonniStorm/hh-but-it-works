@@ -78,6 +78,7 @@ export const TestingLobby = ({
                 <SkillStatusBadge
                   level={skill.level}
                   verification={skill.verification}
+                  verifiedAt={skill.verifiedAt}
                 />
               </Group>
             );

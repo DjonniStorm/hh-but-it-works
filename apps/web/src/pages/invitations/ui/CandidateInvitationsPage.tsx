@@ -8,15 +8,7 @@ import { ErrorScreen } from "@/shared/error/ui/ErrorScreen";
 import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
 import { surfaceColor } from "@/shared/theme";
-import {
-  Box,
-  Button,
-  EmptyState,
-  Paper,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { Anchor, Box, Stack, Text, Title } from "@mantine/core";
 import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Link } from "react-router";
@@ -82,18 +74,12 @@ export const CandidateInvitationsPage = observer(() => {
           </Stack>
 
           {invitations.items.length === 0 ? (
-            <Paper withBorder radius="md" p="xl">
-              <EmptyState
-                title="Приглашений пока нет"
-                description="Когда компания пригласит вас, предложение с вилкой появится здесь."
-              >
-                <EmptyState.Actions>
-                  <Button component={Link} to={ROUTES.PROFILE}>
-                    К профилю
-                  </Button>
-                </EmptyState.Actions>
-              </EmptyState>
-            </Paper>
+            <Stack gap="sm">
+              <Text>Приглашений пока нет.</Text>
+              <Anchor component={Link} to={ROUTES.PROFILE}>
+                К профилю
+              </Anchor>
+            </Stack>
           ) : (
             invitations.items.map((invitation) => {
               return (
