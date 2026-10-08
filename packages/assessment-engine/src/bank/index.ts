@@ -1,9 +1,14 @@
 import { Grade, Specialization } from "@hh/types";
 
 import type { Template } from "../types";
+import { csharp } from "./csharp";
 import { docker } from "./docker";
+import { go } from "./go";
 import { httpApi } from "./http-api";
+import { java } from "./java";
 import { postgresql } from "./postgresql";
+import { python } from "./python";
+import { react } from "./react";
 import { testing } from "./testing";
 import { typescript } from "./typescript";
 
@@ -13,6 +18,11 @@ const bySkill = {
   typescript,
   docker,
   testing,
+  python,
+  csharp,
+  react,
+  go,
+  java,
 };
 
 export type CatalogSlug = keyof typeof bySkill;

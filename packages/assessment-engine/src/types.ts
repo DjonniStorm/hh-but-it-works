@@ -4,7 +4,15 @@ import type { Rng } from "./random";
 
 export type ItemKind = "single" | "multiple" | "numeric" | "code" | "order";
 
-export type CodeLang = "typescript" | "dockerfile" | "sql";
+export type CodeLang =
+  | "typescript"
+  | "dockerfile"
+  | "sql"
+  | "python"
+  | "csharp"
+  | "go"
+  | "java"
+  | "tsx";
 
 // Задание до перемешивания: верный ответ лежит отдельно от неверных.
 export type Task =

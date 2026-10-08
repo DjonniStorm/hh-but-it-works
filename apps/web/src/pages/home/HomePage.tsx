@@ -1,8 +1,10 @@
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
+import { HomeIdentity } from "@/pages/home/ui/HomeIdentity";
+import { HomeOffer } from "@/pages/home/ui/HomeOffer";
 import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
-import { Stack, Text, Title } from "@mantine/core";
+import { Stack } from "@mantine/core";
 import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Navigate } from "react-router";
@@ -19,9 +21,9 @@ export const HomePage = observer(() => {
   }
 
   return (
-    <Stack gap="md">
-      <Title order={1}>ЛЦТ</Title>
-      <Text>{auth.user?.email}</Text>
+    <Stack maw={640} gap="xl">
+      <HomeOffer />
+      <HomeIdentity />
     </Stack>
   );
 });

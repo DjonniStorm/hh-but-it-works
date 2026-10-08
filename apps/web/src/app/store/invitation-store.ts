@@ -1,6 +1,7 @@
 import {
   employersControllerCreateInvitation,
   employersControllerListInvitations,
+  employersControllerWithdraw,
 } from "@/shared/api/generated/sdk.gen";
 import { mapInvitation } from "@/shared/api/map-employer";
 import { makeAutoObservable, runInAction } from "mobx";
@@ -43,8 +44,10 @@ export class InvitationStore {
   hasActive(candidateId: string): boolean {
     return this.items.some((invitation) => {
       return (
-        invitation.candidateId === candidateId &&
-        invitation.status !== InvitationStatus.Declined
+        (invitation.candidateId === candidateId &&
+          invitation.status === InvitationStatus.Sent) ||
+        invitation.status === InvitationStatus.Viewed ||
+        invitation.status === InvitationStatus.Accepted
       );
     });
   }
@@ -75,6 +78,23 @@ export class InvitationStore {
         const invitation = mapInvitation(readData(result));
         runInAction(() => {
           this.items.unshift(invitation);
+        });
+        return invitation;
+      },
+      { loader: true, ...options },
+    );
+  }
+
+  withdraw(id: string, options?: CallOptions<Invitation>) {
+    return request(
+      this.root,
+      async () => {
+        const result = await employersControllerWithdraw({ path: { id } });
+        const invitation = mapInvitation(readData(result));
+        runInAction(() => {
+          this.items = this.items.map((item) => {
+            return item.id === invitation.id ? invitation : item;
+          });
         });
         return invitation;
       },

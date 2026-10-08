@@ -24,6 +24,13 @@ export const ExpectationsFields = ({
         приходят с подходящей вилкой и форматом.
       </Text>
       <NumberInput
+        label="Стаж, лет"
+        min={0}
+        max={40}
+        decimalScale={1}
+        {...form.getInputProps("experienceYears")}
+      />
+      <NumberInput
         label="Зарплата от, ₽"
         min={0}
         step={10000}
