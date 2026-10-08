@@ -9,7 +9,7 @@ import {
   profilesControllerResumeDraft,
   profilesControllerSave,
 } from "@/shared/api/generated/sdk.gen";
-import { mapCandidateProfile } from "@/shared/api/map-profile";
+import { mapCandidateProfile, mapResumeDraft } from "@/shared/api/map-profile";
 import { makeAutoObservable, runInAction } from "mobx";
 
 import type {
@@ -80,7 +80,7 @@ export class ProfileStore {
       this.root,
       async () => {
         const result = await profilesControllerResumeDraft({ body: { file } });
-        const draft = readData(result);
+        const draft = mapResumeDraft(readData(result));
         runInAction(() => {
           this.resumeDraft = { at: Date.now(), draft };
         });
