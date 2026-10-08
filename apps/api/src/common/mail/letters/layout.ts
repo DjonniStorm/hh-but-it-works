@@ -53,13 +53,6 @@ export function renderLetter(content: LetterContent): Letter {
   };
 }
 
-const rubles = new Intl.NumberFormat("ru-RU");
-
-// Как formatSalary в apps/web/src/shared/lib/format.ts.
-export function formatSalary(from: number, to: number): string {
-  return `${rubles.format(from)} – ${rubles.format(to)} ₽`;
-}
-
 // pre-line сохраняет переносы строк из текста приглашения.
 function paragraphHtml(paragraph: string): string {
   return `<p style="margin:0 0 16px;font-size:15px;line-height:1.5;white-space:pre-line">${escapeHtml(paragraph)}</p>`;

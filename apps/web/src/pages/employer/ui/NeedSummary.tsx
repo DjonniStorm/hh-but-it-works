@@ -1,11 +1,10 @@
 import { formatGradeRange } from "@/pages/employer/model/grade-range";
 import { SkillList } from "@/pages/employer/ui/SkillList";
 import { SummaryItem } from "@/pages/employer/ui/SummaryItem";
-import { formatSalary } from "@/shared/lib/format";
 import { specializationLabel, workFormatLabel } from "@/shared/lib/labels";
 import { Group, Paper } from "@mantine/core";
 
-import type { HiringNeed } from "@hh/contracts";
+import { type HiringNeed, formatSalary } from "@hh/contracts";
 
 export const NeedSummary = ({ need }: { need: HiringNeed }) => {
   return (
