@@ -3,12 +3,15 @@ import { useEffect, useRef } from "react";
 import { notifier } from "@/app/store/notifier";
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
+import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
 import { Center, Paper, Stack, Text, Title } from "@mantine/core";
+import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { useNavigate, useSearchParams } from "react-router";
 
 export const ConfirmPage = observer(() => {
+  useHead({ title: pageTitle.confirm });
   const auth = useStore(StoreKey.Auth);
   const navigate = useNavigate();
   const [params] = useSearchParams();

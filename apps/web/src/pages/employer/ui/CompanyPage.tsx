@@ -6,13 +6,16 @@ import { StoreKey } from "@/app/store/store-key";
 import { emptyCompany } from "@/pages/employer/model/company";
 import { CompanyCard } from "@/pages/employer/ui/CompanyCard";
 import { CompanyForm } from "@/pages/employer/ui/CompanyForm";
+import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
 import { useReturnPath } from "@/shared/router/use-return-path";
 import { Stack, Text, Title } from "@mantine/core";
+import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { useNavigate } from "react-router";
 
 export const CompanyPage = observer(() => {
+  useHead({ title: pageTitle.company });
   const employer = useStore(StoreKey.Employer);
   const navigate = useNavigate();
   const returnPath = useReturnPath();

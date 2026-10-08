@@ -1,3 +1,4 @@
+import { fieldBorderColor, surfaceColor } from "@/shared/theme";
 import { UnstyledButton } from "@mantine/core";
 
 export const TestingChoice = ({
@@ -26,10 +27,10 @@ export const TestingChoice = ({
         textAlign: "left",
         font: "inherit",
         color: "inherit",
-        background: selected ? "var(--mantine-color-fsp-0)" : "#fff",
+        background: selected ? "var(--mantine-color-fsp-0)" : surfaceColor,
         border: selected
           ? "1px solid var(--mantine-color-fsp-6)"
-          : "1px solid var(--mantine-color-gray-4)",
+          : `1px solid ${fieldBorderColor}`,
       }}
       styles={{
         root: {

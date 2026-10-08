@@ -13,6 +13,7 @@ export const SalaryFields = ({
     <>
       <NumberInput
         label="Зарплата от, ₽"
+        withAsterisk
         min={0}
         step={10000}
         thousandSeparator=" "
@@ -20,6 +21,7 @@ export const SalaryFields = ({
       />
       <NumberInput
         label="Зарплата до, ₽"
+        withAsterisk
         min={0}
         step={10000}
         thousandSeparator=" "

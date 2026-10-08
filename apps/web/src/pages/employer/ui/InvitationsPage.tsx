@@ -4,6 +4,7 @@ import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { formatDate, formatSalary } from "@/shared/lib/format";
 import { invitationStatusLabel } from "@/shared/lib/labels";
+import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
 import { invitationStatusColor } from "@/shared/theme";
 import {
@@ -16,7 +17,9 @@ import {
   Table,
   Text,
   Title,
+  useMatches,
 } from "@mantine/core";
+import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Link } from "react-router";
 
@@ -32,8 +35,14 @@ const statuses = [
 ];
 
 export const InvitationsPage = observer(() => {
+  useHead({ title: pageTitle.employerInvitations });
   const invitations = useStore(StoreKey.Invitations);
   const [filter, setFilter] = useState<Filter>("all");
+  // Ширину читаем сразу, а не после первого кадра: иначе на десктопе фильтр мелькает столбиком.
+  const narrow = useMatches(
+    { base: true, sm: false },
+    { getInitialValueInEffect: false },
+  );
 
   // Кабинет грузит приглашения один раз при входе. Здесь освежаем тихо, чтобы увидеть
   // ответы кандидатов без F5. Ошибка уже ушла тостом, а на экране остаётся прошлый список.
@@ -76,8 +85,10 @@ export const InvitationsPage = observer(() => {
             };
           }),
         ]}
-        style={{ alignSelf: "flex-start" }}
-        fullWidth={false}
+        // Пять статусов в строку не влезают в телефон: страница уезжала вбок.
+        orientation={narrow ? "vertical" : "horizontal"}
+        fullWidth={narrow}
+        style={{ alignSelf: narrow ? "stretch" : "flex-start" }}
       />
 
       {rows.length === 0 ? (

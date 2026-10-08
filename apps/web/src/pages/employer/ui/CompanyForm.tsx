@@ -2,6 +2,7 @@ import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { industryOptions } from "@/pages/employer/model/options";
 import { websiteOnBlur, websiteOnFocus } from "@/pages/employer/model/website";
+import { focusFirstError } from "@/shared/lib/focus-first-error";
 import {
   Button,
   Group,
@@ -34,17 +35,35 @@ export const CompanyForm = observer(
     });
     const websiteProps = form.getInputProps("website");
 
-    const onSubmit = form.onSubmit((values) => {
-      void employer.saveCompany(values, { onSuccess: onSaved });
-    });
+    const onSubmit = form.onSubmit(
+      (values) => {
+        void employer.saveCompany(values, { onSuccess: onSaved });
+      },
+      (errors) => {
+        focusFirstError(form, errors);
+      },
+    );
 
     return (
-      <Paper component="form" onSubmit={onSubmit} withBorder radius="md" p="xl">
+      // noValidate: ошибки показывает форма, а не всплывашка браузера на type="email".
+      <Paper
+        component="form"
+        onSubmit={onSubmit}
+        noValidate
+        withBorder
+        radius="md"
+        p="xl"
+      >
         <Stack gap="lg">
           <SimpleGrid cols={{ base: 1, sm: 2 }}>
-            <TextInput label="Название" {...form.getInputProps("name")} />
+            <TextInput
+              label="Название"
+              withAsterisk
+              {...form.getInputProps("name")}
+            />
             <Select
               label="Направление деятельности"
+              withAsterisk
               placeholder="Выберите"
               data={industryOptions}
               searchable
@@ -53,6 +72,7 @@ export const CompanyForm = observer(
           </SimpleGrid>
           <Textarea
             label="О компании"
+            withAsterisk
             description="Продукт, команда, чем интересны задачи."
             autosize
             minRows={4}
@@ -61,6 +81,8 @@ export const CompanyForm = observer(
           <TextInput
             label="Сайт"
             placeholder="https://"
+            type="url"
+            autoComplete="url"
             {...websiteProps}
             onFocus={(event) => {
               form.setFieldValue(
@@ -77,6 +99,9 @@ export const CompanyForm = observer(
           <SimpleGrid cols={{ base: 1, sm: 2 }}>
             <TextInput
               label="Почта для связи"
+              type="email"
+              autoComplete="email"
+              withAsterisk
               {...form.getInputProps("contactEmail")}
             />
             <TextInput

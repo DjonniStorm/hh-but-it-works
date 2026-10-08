@@ -1,3 +1,4 @@
+import { fieldBorderColor } from "@/shared/theme";
 import { ActionIcon, Group, Stack, Text } from "@mantine/core";
 
 // order — индексы показанных шагов в выбранном порядке.
@@ -32,7 +33,7 @@ export const OrderAnswer = ({
             wrap="nowrap"
             mih={44}
             px="sm"
-            style={{ border: "1px solid var(--mantine-color-gray-4)" }}
+            style={{ border: `1px solid ${fieldBorderColor}` }}
           >
             <Text>
               {position + 1}. {steps[stepIndex]}
