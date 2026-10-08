@@ -176,6 +176,8 @@ test("shortlist preserves model version and orders candidates by ranking", async
         { needId: "need-1", candidateProfileId: "candidate-high" },
       ],
     },
+    // Избранное потребности (need_favorites, #40): пусто.
+    { find: async () => [] },
     {
       listed: async () => listed,
       eligible: (actualNeed, actualListed) => {
