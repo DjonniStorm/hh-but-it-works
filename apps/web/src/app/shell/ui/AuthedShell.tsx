@@ -30,9 +30,14 @@ export const AuthedShell = observer(() => {
   const auth = useStore(StoreKey.Auth);
   const navigate = useNavigate();
   const location = useLocation();
-  // Путь, на котором открыли мобильное меню. Перешли на другую страницу — меню закрыто само.
-  const [menuPath, setMenuPath] = useState<string | null>(null);
-  const menuOpened = menuPath === location.pathname;
+  const [menuOpened, setMenuOpened] = useState(false);
+  // Любой переход, в том числе «Назад», закрывает мобильное меню. Сбрасываем прямо в рендере,
+  // а не в эффекте: так меню не мелькает открытым на новой странице.
+  const [menuLocationKey, setMenuLocationKey] = useState(location.key);
+  if (menuLocationKey !== location.key) {
+    setMenuLocationKey(location.key);
+    setMenuOpened(false);
+  }
   const links = auth.user ? shellLinks[auth.user.role] : [];
 
   const logout = () => {
@@ -91,13 +96,15 @@ export const AuthedShell = observer(() => {
             hiddenFrom="sm"
             opened={menuOpened}
             onClick={() => {
-              setMenuPath(menuOpened ? null : location.pathname);
+              setMenuOpened(!menuOpened);
             }}
             aria-label={menuOpened ? "Закрыть меню" : "Открыть меню"}
           />
         </Group>
       </AppShell.Header>
-      <AppShell.Navbar p="md">
+      {/* Свёрнутое меню лишь сдвинуто за край экрана: inert убирает его из Tab,
+          а на широком экране его нет совсем. */}
+      <AppShell.Navbar p="md" hiddenFrom="sm" inert={!menuOpened}>
         <Stack gap={4}>
           {links.map((link) => {
             return (
@@ -110,7 +117,7 @@ export const AuthedShell = observer(() => {
                 mih={touchHeight}
                 // Ссылка на текущую страницу путь не меняет: закрываем меню явно.
                 onClick={() => {
-                  setMenuPath(null);
+                  setMenuOpened(false);
                 }}
               />
             );

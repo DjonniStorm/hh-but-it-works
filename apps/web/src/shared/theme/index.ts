@@ -125,12 +125,11 @@ export const theme = createTheme({
       },
     }),
     // Mantine убирает кнопку из Tab и подписывает её по-английски.
+    // Подпись постоянная: показан ли пароль, Mantine сообщает через aria-pressed.
     PasswordInput: PasswordInput.extend({
       defaultProps: {
-        visibilityToggleButtonProps: {
-          tabIndex: 0,
-          "aria-label": "Показать пароль",
-        },
+        visibilityToggleFocusable: true,
+        visibilityToggleButtonProps: { "aria-label": "Показать пароль" },
       },
     }),
   },

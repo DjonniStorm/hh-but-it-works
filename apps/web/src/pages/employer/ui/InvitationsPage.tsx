@@ -38,7 +38,11 @@ export const InvitationsPage = observer(() => {
   useHead({ title: pageTitle.employerInvitations });
   const invitations = useStore(StoreKey.Invitations);
   const [filter, setFilter] = useState<Filter>("all");
-  const narrow = useMatches({ base: true, sm: false });
+  // Ширину читаем сразу, а не после первого кадра: иначе на десктопе фильтр мелькает столбиком.
+  const narrow = useMatches(
+    { base: true, sm: false },
+    { getInitialValueInEffect: false },
+  );
 
   // Кабинет грузит приглашения один раз при входе. Здесь освежаем тихо, чтобы увидеть
   // ответы кандидатов без F5. Ошибка уже ушла тостом, а на экране остаётся прошлый список.

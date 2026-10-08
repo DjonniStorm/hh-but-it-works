@@ -20,5 +20,11 @@ export function focusFirstError(form: FormWithNodes, errors: FormErrors): void {
       ? -1
       : 1;
   });
-  nodes[0]?.focus();
+  const first = nodes[0];
+  if (!first) {
+    return;
+  }
+  // Сам focus() докручивает поле к верху окна, и подпись уезжает под шапку. Ставим его в центр.
+  first.focus({ preventScroll: true });
+  first.scrollIntoView({ block: "center" });
 }
