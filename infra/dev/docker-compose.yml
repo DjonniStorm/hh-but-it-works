@@ -26,7 +26,9 @@ services:
       retries: 10
 
   ranking:
+    image: ${RANKING_IMAGE:-ghcr.io/djonnistorm/hh-but-it-works-ranking:dev}
     build: ../../apps/ranking
+    pull_policy: missing
     ports:
       - "8000:8000"
 

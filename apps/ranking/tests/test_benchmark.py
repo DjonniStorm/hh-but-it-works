@@ -4,7 +4,20 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-from evaluation.benchmark import dcg, evaluate, ndcg, precision_at_k, reciprocal_rank
+from evaluation.benchmark import (
+    compare_with_naive,
+    dcg,
+    evaluate,
+    naive_rank_candidates,
+    ndcg,
+    precision_at_k,
+    reciprocal_rank,
+)
+from evaluation.evaluate_ltr import (
+    calibration_metrics,
+    dataset_group_hashes,
+    evaluate_calibration,
+)
 from schemas import CandidateSnapshot, HiringNeedSnapshot
 from scoring import rank_candidates
 
@@ -31,6 +44,19 @@ def test_precision_and_reciprocal_rank_known_values():
     assert precision_at_k([], 5) == 0.0
     assert reciprocal_rank([0, 0, 2]) == 1 / 3
     assert reciprocal_rank([0]) == 0.0
+
+
+def test_calibration_metrics_are_zero_for_perfect_scores():
+    result = calibration_metrics([0.0, 0.5, 1.0], [0.0, 0.5, 1.0])
+    assert result == {"mae": 0.0, "rmse": 0.0, "ece": 0.0}
+
+
+def test_relevance_calibration_evaluates_the_real_sanity_groups():
+    result = evaluate_calibration(GOLD, rank_candidates)
+
+    assert set(result) == {"mae", "rmse", "ece"}
+    assert all(0.0 <= value <= 1.0 for value in result.values())
+    assert len(dataset_group_hashes(GOLD)) == 3
 
 
 def test_benchmark_matches_committed_snapshot():
@@ -72,6 +98,15 @@ def test_benchmark_is_sensitive_to_a_wrong_ordering(tmp_path):
 
     assert score(perfect) == 1.0
     assert score(ruined) < 1.0
+
+
+def test_benchmark_reports_uplift_over_naive_baseline():
+    dataset = ROOT / "evaluation/data/gold_test.jsonl"
+    report = compare_with_naive(dataset)
+    assert set(report) == {"model", "naive", "delta"}
+    assert report["model"] == evaluate(dataset)
+    assert report["naive"] == evaluate(dataset, naive_rank_candidates)
+    assert report["delta"]["ndcg@5"] > 0
 
 
 def test_benchmark_cli_fails_when_threshold_not_met():

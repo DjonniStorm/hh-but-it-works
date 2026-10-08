@@ -6,13 +6,14 @@ import math
 from collections import defaultdict
 from pathlib import Path
 import sys
+from typing import Callable
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from schemas import CandidateSnapshot, HiringNeedSnapshot
-from scoring import rank_candidates
+from schemas import CandidateSnapshot, HiringNeedSnapshot, RankItem
+from scoring import rank_candidates, score_pair
 
 
 def dcg(labels: list[int], k: int) -> float:
@@ -42,7 +43,33 @@ def reciprocal_rank(labels: list[int], positive_at: int = 2) -> float:
     return 0.0
 
 
-def evaluate(path: Path) -> dict[str, float]:
+RankFunction = Callable[
+    [list[CandidateSnapshot], HiringNeedSnapshot],
+    list[RankItem],
+]
+
+
+def naive_rank_candidates(
+    candidates: list[CandidateSnapshot],
+    need: HiringNeedSnapshot,
+) -> list[RankItem]:
+    """Transparent baseline: exact category, assessment, stable candidate id."""
+    scored = [score_pair(candidate, need) for candidate in candidates]
+    by_id = {candidate.id: candidate for candidate in candidates}
+    return sorted(
+        scored,
+        key=lambda item: (
+            -(by_id[item.candidateId].specialization == need.specialization),
+            -(by_id[item.candidateId].assessmentScore or -1.0),
+            item.candidateId,
+        ),
+    )
+
+
+def evaluate(
+    path: Path,
+    ranker: RankFunction = rank_candidates,
+) -> dict[str, float]:
     rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
     groups: dict[str, list[dict]] = defaultdict(list)
     for row in rows:
@@ -57,7 +84,7 @@ def evaluate(path: Path) -> dict[str, float]:
         need = HiringNeedSnapshot.model_validate(group_rows[0]["need"])
         candidates = [CandidateSnapshot.model_validate(row["candidate"]) for row in group_rows]
         labels = {row["candidate"]["id"]: int(row["label"]) for row in group_rows}
-        ranked = rank_candidates(candidates, need)
+        ranked = ranker(candidates, need)
         ranked_labels = [labels[item.candidateId] for item in ranked]
         ndcg5.append(ndcg(ranked_labels, 5))
         ndcg10.append(ndcg(ranked_labels, 10))
@@ -74,16 +101,38 @@ def evaluate(path: Path) -> dict[str, float]:
     }
 
 
+def compare_with_naive(
+    path: Path,
+    ranker: RankFunction = rank_candidates,
+) -> dict[str, dict[str, float]]:
+    model = evaluate(path, ranker)
+    baseline = evaluate(path, naive_rank_candidates)
+    return {
+        "model": model,
+        "naive": baseline,
+        "delta": {
+            name: model[name] - baseline[name]
+            for name in ("ndcg@5", "ndcg@10", "precision@5", "mrr")
+        },
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("dataset", type=Path, help="JSONL with need, candidate, label(0..3)")
     parser.add_argument("--min-ndcg", type=float, help="минимальный допустимый ndcg@5")
     parser.add_argument("--min-mrr", type=float, help="минимальный допустимый mrr")
     parser.add_argument("--min-precision", type=float, help="минимальный допустимый precision@5")
+    parser.add_argument(
+        "--compare-naive",
+        action="store_true",
+        help="also report category + assessment + id baseline",
+    )
     args = parser.parse_args()
 
     result = evaluate(args.dataset)
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    output = compare_with_naive(args.dataset) if args.compare_naive else result
+    print(json.dumps(output, ensure_ascii=False, indent=2))
 
     failures = [
         f"{name}={result[name]:.4f} < {limit}"

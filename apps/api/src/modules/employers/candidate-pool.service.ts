@@ -42,7 +42,7 @@ export class CandidatePoolService {
   }
 
   // Своя специализация и подтверждённый грейд в диапазоне потребности ±1 ступень.
-  // Заявленный грейд в выдачу не идёт (ТЗ 2.1: категория — по итогам тестирования).
+  // Заявленный грейд не открывает доступ к verified talent marketplace.
   // pool — результат listed(): подборка и счётчик в списке потребностей отбирают одинаково.
   eligible(need: NeedFilter, pool: CandidateProfile[]): CandidateProfile[] {
     const grades = gradesAround(need);
@@ -112,6 +112,9 @@ export class CandidatePoolService {
           };
         }),
         assessmentScore: profile.assessmentScore,
+        profileFreshness: profileFreshness(
+          profile.verifiedAt ?? profile.updatedAt,
+        ),
         fspAchievements: achievements[index] ?? [],
         preferences: {
           desiredSalaryFrom: profile.desiredSalaryFrom,
@@ -121,6 +124,17 @@ export class CandidatePoolService {
       };
     });
   }
+}
+
+export function profileFreshness(lastSignalAt: Date, now = Date.now()): number {
+  const ageDays = Math.max(0, now - lastSignalAt.getTime()) / 86_400_000;
+  if (ageDays <= 180) {
+    return 1;
+  }
+  if (ageDays <= 365) {
+    return 0.7;
+  }
+  return 0.4;
 }
 
 // Грейды потребности и по ступени вокруг: для junior–middle это junior, middle, senior.

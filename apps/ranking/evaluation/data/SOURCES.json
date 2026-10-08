@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "generatedDataset": "gold*.jsonl",
+  "sources": [
+    {
+      "name": "Работа России — открытые данные",
+      "publisher": "Федеральная служба по труду и занятости",
+      "sourceUrl": "https://trudvsem.ru/opendata/datasets",
+      "apiDocumentationUrl": "https://trudvsem.ru/opendata/api",
+      "mirrorSampleUrl": "https://data.apicrafter.ru/tables/trud/trudvac/sample",
+      "accessedAt": "2026-10-08",
+      "usage": "Небольшая вручную проверенная и обезличенная выборка публичных вакансий используется только как основа HiringNeed; реальные резюме и контакты не включены.",
+      "attributionRequired": true,
+      "notes": "Официальный API во время сборки не отвечал. Использован публичный read-only sample-зеркало; сохранены только профессиональные признаки, регион и вилка, без работодателя и адреса. Перед коммерческим распространением полного исходного датасета требуется отдельная юридическая проверка."
+    }
+  ],
+  "labels": {
+    "source": "controlled_synthetic_v1",
+    "humanJudgments": false,
+    "description": "Кандидаты и relevance labels сгенерированы детерминированными сценариями вокруг реальных вакансий, независимо от score rules-модели.",
+    "productionActivationAllowed": false
+  }
+}

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "nest start --watch",
     "build": "nest build",
+    "test": "nest build && node --test test/*.test.cjs",
     "start": "node dist/main",
     "openapi": "nest build && node dist/openapi.js"
   },

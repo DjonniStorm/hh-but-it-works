@@ -7,7 +7,7 @@
     "prepare": "lefthook install",
     "format": "prettier --write --ignore-unknown .",
     "build": "pnpm -r --filter \"./packages/*\" build && pnpm --filter @hh/api --filter @hh/web build",
-    "test": "pnpm --filter @hh/api test",
+    "test": "pnpm --filter @hh/api --filter @hh/web test",
     "dev:web": "pnpm --filter @hh/web dev",
     "dev:api": "pnpm --filter @hh/api dev",
     "openapi": "pnpm --filter @hh/contracts build && pnpm --filter @hh/api openapi && pnpm exec openapi-ts",

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import random
 from typing import Any
 
 from schemas import CandidateSnapshot, HiringNeedSnapshot
@@ -81,7 +80,7 @@ def backend_need(**overrides: Any) -> HiringNeedSnapshot:
 
 
 def synthetic_candidate(index: int) -> CandidateSnapshot:
-    """Синтетический кандидат для нагрузочного прогона: детерминирован по index, кроме semantic."""
+    """Синтетический кандидат, полностью детерминированный по ``index``."""
     skills: list[dict[str, Any]] = [
         {"id": "python", "verified": True, "level": 0.8, "confidence": 0.9},
         {
@@ -121,6 +120,8 @@ def synthetic_candidate(index: int) -> CandidateSnapshot:
             },
             "availability": "actively_looking" if index % 3 else "open_to_offers",
             "profileFreshness": 0.65 + (index % 35) / 100,
-            "semanticSimilarity": random.uniform(0.35, 0.95),
+            # Не используем глобальный PRNG: eval-наборы и perf должны быть
+            # воспроизводимыми между процессами и версиями Python.
+            "semanticSimilarity": 0.35 + ((index * 37) % 61) / 100,
         },
     )

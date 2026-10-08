@@ -2320,6 +2320,12 @@
                       "maximum": 100,
                       "nullable": true
                     },
+                    "profileFreshness": {
+                      "default": 1,
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
                     "fspAchievements": {
                       "type": "array",
                       "items": {
@@ -2387,6 +2393,7 @@
                     "experienceYears",
                     "skills",
                     "assessmentScore",
+                    "profileFreshness",
                     "fspAchievements",
                     "preferences"
                   ],

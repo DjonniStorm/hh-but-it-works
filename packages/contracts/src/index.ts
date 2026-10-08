@@ -277,6 +277,7 @@ export const candidateSnapshotSchema = z.object({
   experienceYears: z.number().min(0).nullable(),
   skills: z.array(candidateSkillSchema),
   assessmentScore: z.number().min(0).max(100).nullable(),
+  profileFreshness: z.number().min(0).max(1).default(1),
   fspAchievements: z.array(fspAchievementSchema),
   preferences: candidatePreferencesSchema,
 });
