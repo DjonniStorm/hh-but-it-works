@@ -14,3 +14,10 @@ apps/ranking/model.meta.json
 coverage
 
 ignore
+<<<<<<< Updated upstream
+.coverage
+.hypothesis
+=======
+skills-lock.json
+.agents/
+>>>>>>> Stashed changes

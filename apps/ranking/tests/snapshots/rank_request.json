@@ -1,0 +1,289 @@
+{
+  "candidates": [
+    {
+      "assessmentScore": 0.8,
+      "availability": "actively_looking",
+      "claimedGrade": "junior",
+      "competencies": {
+        "databases": 0.75,
+        "testing": 0.7
+      },
+      "experienceYears": 1.0,
+      "fspEvidence": [],
+      "fspEvidenceScore": 0.0,
+      "gradeConfidence": 0.9,
+      "id": "c-strong",
+      "metadata": {},
+      "preferences": {
+        "desiredSkills": [],
+        "employmentTypes": [],
+        "industries": [],
+        "locations": [],
+        "relocation": false,
+        "salaryMax": null,
+        "salaryMin": 120000,
+        "targetSpecializations": ["backend"],
+        "workModes": ["remote"]
+      },
+      "profileFreshness": 0.95,
+      "semanticSimilarity": null,
+      "skills": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "id": "Python",
+          "level": 0.9,
+          "verificationState": "verified",
+          "verified": true,
+          "years": null
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "id": "FastAPI",
+          "level": 0.85,
+          "verificationState": "verified",
+          "verified": true,
+          "years": null
+        },
+        {
+          "confidence": 0.85,
+          "evidence": [],
+          "id": "Postgres",
+          "level": 0.75,
+          "verificationState": "verified",
+          "verified": true,
+          "years": null
+        }
+      ],
+      "specialization": "backend",
+      "verifiedGrade": "junior"
+    },
+    {
+      "assessmentScore": 0.5,
+      "availability": "actively_looking",
+      "claimedGrade": "junior",
+      "competencies": {
+        "databases": 0.75,
+        "testing": 0.7
+      },
+      "experienceYears": 1.0,
+      "fspEvidence": [],
+      "fspEvidenceScore": 0.0,
+      "gradeConfidence": 0.9,
+      "id": "c-unverified",
+      "metadata": {},
+      "preferences": {
+        "desiredSkills": [],
+        "employmentTypes": [],
+        "industries": [],
+        "locations": [],
+        "relocation": false,
+        "salaryMax": null,
+        "salaryMin": 120000,
+        "targetSpecializations": ["backend"],
+        "workModes": ["remote"]
+      },
+      "profileFreshness": 0.95,
+      "semanticSimilarity": null,
+      "skills": [
+        {
+          "confidence": 0.5,
+          "evidence": [],
+          "id": "python",
+          "level": 0.7,
+          "verificationState": "self_declared",
+          "verified": false,
+          "years": null
+        },
+        {
+          "confidence": 0.4,
+          "evidence": [],
+          "id": "fastapi",
+          "level": 0.6,
+          "verificationState": "self_declared",
+          "verified": false,
+          "years": null
+        }
+      ],
+      "specialization": "backend",
+      "verifiedGrade": "junior"
+    },
+    {
+      "assessmentScore": 0.8,
+      "availability": "hidden",
+      "claimedGrade": "junior",
+      "competencies": {
+        "databases": 0.75,
+        "testing": 0.7
+      },
+      "experienceYears": 1.0,
+      "fspEvidence": [],
+      "fspEvidenceScore": 0.0,
+      "gradeConfidence": 0.9,
+      "id": "c-hidden",
+      "metadata": {},
+      "preferences": {
+        "desiredSkills": [],
+        "employmentTypes": [],
+        "industries": [],
+        "locations": [],
+        "relocation": false,
+        "salaryMax": null,
+        "salaryMin": 120000,
+        "targetSpecializations": ["backend"],
+        "workModes": ["remote"]
+      },
+      "profileFreshness": 0.95,
+      "semanticSimilarity": null,
+      "skills": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "id": "Python",
+          "level": 0.9,
+          "verificationState": "verified",
+          "verified": true,
+          "years": null
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "id": "FastAPI",
+          "level": 0.85,
+          "verificationState": "verified",
+          "verified": true,
+          "years": null
+        },
+        {
+          "confidence": 0.85,
+          "evidence": [],
+          "id": "Postgres",
+          "level": 0.75,
+          "verificationState": "verified",
+          "verified": true,
+          "years": null
+        }
+      ],
+      "specialization": "backend",
+      "verifiedGrade": "junior"
+    },
+    {
+      "assessmentScore": 0.8,
+      "availability": "actively_looking",
+      "claimedGrade": "junior",
+      "competencies": {
+        "databases": 0.75,
+        "testing": 0.7
+      },
+      "experienceYears": 1.0,
+      "fspEvidence": [],
+      "fspEvidenceScore": 0.0,
+      "gradeConfidence": 0.9,
+      "id": "c-frontend",
+      "metadata": {},
+      "preferences": {
+        "desiredSkills": [],
+        "employmentTypes": [],
+        "industries": [],
+        "locations": [],
+        "relocation": false,
+        "salaryMax": null,
+        "salaryMin": 120000,
+        "targetSpecializations": ["backend"],
+        "workModes": ["remote"]
+      },
+      "profileFreshness": 0.95,
+      "semanticSimilarity": null,
+      "skills": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "id": "Python",
+          "level": 0.9,
+          "verificationState": "verified",
+          "verified": true,
+          "years": null
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "id": "FastAPI",
+          "level": 0.85,
+          "verificationState": "verified",
+          "verified": true,
+          "years": null
+        },
+        {
+          "confidence": 0.85,
+          "evidence": [],
+          "id": "Postgres",
+          "level": 0.75,
+          "verificationState": "verified",
+          "verified": true,
+          "years": null
+        }
+      ],
+      "specialization": "frontend",
+      "verifiedGrade": "junior"
+    },
+    {
+      "assessmentScore": 0.2,
+      "availability": "actively_looking",
+      "claimedGrade": "junior",
+      "competencies": {
+        "databases": 0.75,
+        "testing": 0.7
+      },
+      "experienceYears": 1.0,
+      "fspEvidence": [],
+      "fspEvidenceScore": 0.0,
+      "gradeConfidence": 0.9,
+      "id": "c-empty",
+      "metadata": {},
+      "preferences": {
+        "desiredSkills": [],
+        "employmentTypes": [],
+        "industries": [],
+        "locations": [],
+        "relocation": false,
+        "salaryMax": null,
+        "salaryMin": 500000,
+        "targetSpecializations": [],
+        "workModes": []
+      },
+      "profileFreshness": 0.4,
+      "semanticSimilarity": null,
+      "skills": [],
+      "specialization": "backend",
+      "verifiedGrade": "junior"
+    }
+  ],
+  "hiringNeed": {
+    "competencyWeights": {
+      "databases": 0.6,
+      "testing": 0.4
+    },
+    "employmentTypes": [],
+    "experienceMax": null,
+    "experienceMin": 0.5,
+    "gradeMax": "middle",
+    "gradeMin": "junior",
+    "id": "snapshot-need",
+    "industries": [],
+    "locations": [],
+    "mustSkills": ["python", "fastapi", "postgresql"],
+    "niceSkills": ["docker"],
+    "salaryMax": 180000,
+    "salaryMin": 130000,
+    "specialization": "backend",
+    "strictGrade": false,
+    "strictLocation": false,
+    "strictMustSkills": false,
+    "strictSalary": true,
+    "strictSpecialization": true,
+    "strictWorkMode": true,
+    "text": null,
+    "workModes": ["remote"]
+  }
+}

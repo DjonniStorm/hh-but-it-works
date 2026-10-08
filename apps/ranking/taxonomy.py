@@ -31,6 +31,11 @@ ALIASES: dict[str, set[str]] = {
     "spring": {"spring", "spring boot", "springboot"},
     "react": {"react", "reactjs", "react.js"},
     "fastapi_testing": {"fastapi testing"},
+    # Слаги и заголовки каталога навыков API (skill-catalog.ts) обязаны сводиться
+    # к одному канону: иначе must-have из формы вакансии не совпадёт с навыком
+    # кандидата, который шлётся заголовком.
+    "http_api": {"http api", "http и api", "http-api"},
+    "testing": {"testing", "тестирование", "тесты"},
 }
 
 # Partial relations are deliberately conservative: related tech is not a substitute
