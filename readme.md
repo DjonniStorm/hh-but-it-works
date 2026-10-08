@@ -3,19 +3,16 @@
 ## Быстрый старт
 
 ```bash
-pnpm install
-docker compose --env-file infra/dev/.env.example -f infra/dev/docker-compose.yml up
+corepack pnpm install
+docker compose --env-file infra/dev/.env.example -f infra/dev/docker-compose.yml up -d
 cp apps/api/.env.example apps/api/.env
+corepack pnpm -r --filter "./packages/*" build
 
-pnpm --filter @hh/api dev    # :3000
-pnpm --filter @hh/web dev    # :5173
+corepack pnpm dev:api    # :3000, Swagger на /docs
+corepack pnpm dev:web    # :5173
 ```
 
-Рекомендательная система (FastAPI, `:8000`):
-
-```bash
-sh apps/ranking/scripts/check.sh    # все проверки ML-части
-```
+Подробно, с проверками и сид-кандидатами — [docs/dev/run.md](docs/dev/run.md). Письма подтверждения — в Mailpit, `http://localhost:8025`.
 
 ## Документация
 
@@ -26,6 +23,10 @@ sh apps/ranking/scripts/check.sh    # все проверки ML-части
 | [docs/dev/model.md](docs/dev/model.md)                           | доменная модель                                               |
 | [docs/dev/AGENT_HANDOFF.md](docs/dev/AGENT_HANDOFF.md)           | брифинг для инженеров и агентов: контекст, правила, команды   |
 | [docs/dev/testing-validation.md](docs/dev/testing-validation.md) | тесты кандидатов: сборка, защита, валидация                   |
+| [docs/dev/matching.md](docs/dev/matching.md)                     | механика подбора и категорий, проверка подбора                |
+| [docs/dev/fsp-integration.md](docs/dev/fsp-integration.md)       | интеграция с реестром ФСП                                     |
+| [docs/dev/stack.md](docs/dev/stack.md)                           | библиотеки и компоненты с версиями                            |
+| [docs/dev/run.md](docs/dev/run.md)                               | сборка и локальный запуск                                     |
 | [AGENTS.md](AGENTS.md)                                           | конвенции кода и правила репозитория                          |
 | [apps/README.md](apps/README.md)                                 | карта приложений                                              |
 | [apps/ranking/HANDOFF.md](apps/ranking/HANDOFF.md)               | что уже сделано по рекомендательной системе: анализ и хэндофф |
