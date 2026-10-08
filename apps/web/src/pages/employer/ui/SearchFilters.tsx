@@ -43,6 +43,8 @@ export const SearchFilters = ({ value, onChange, onReset }: Props) => {
           <TagsInput
             label="Стек"
             description="Нужны все навыки сразу. Enter — добавить свой."
+            // Подсказка под полем: иначе поле ниже соседнего селекта в том же ряду.
+            inputWrapperOrder={["label", "input", "description", "error"]}
             placeholder="Например, React"
             data={skillSuggestions}
             maxTags={searchSkillLimit}
