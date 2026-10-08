@@ -1,17 +1,8 @@
-const rubles = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 });
 const dates = new Intl.DateTimeFormat("ru-RU", {
   day: "numeric",
   month: "short",
   year: "numeric",
 });
-
-export function formatSalary(from: number, to: number): string {
-  return `${rubles.format(from)} – ${rubles.format(to)} ₽`;
-}
-
-export function formatSalaryFrom(from: number): string {
-  return `от ${rubles.format(from)} ₽`;
-}
 
 const years = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 1 });
 

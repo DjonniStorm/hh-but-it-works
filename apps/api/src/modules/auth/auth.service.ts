@@ -46,7 +46,8 @@ export class AuthService {
     });
     const token = randomBytes(32).toString("base64url");
     await this.sessions.saveEmailConfirm(token, user.id);
-    this.mail.sendConfirmation(email, this.confirmationLink(token));
+    // Письмо уходит в фоне, как уведомления о приглашениях: регистрация не ждёт SMTP.
+    void this.mail.sendConfirmation(email, this.confirmationLink(token));
     return toPublicUser(user);
   }
 

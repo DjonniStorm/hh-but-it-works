@@ -14,6 +14,8 @@ import {
   gradeIndex,
 } from "@hh/types";
 
+export * from "./format";
+
 export const roleSchema = z.enum(Role);
 
 export const registerSchema = z.object({
