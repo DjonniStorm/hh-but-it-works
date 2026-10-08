@@ -111,7 +111,8 @@ export class CandidateSeedService implements OnApplicationBootstrap {
         verifiedGrade: seed.verified,
         assessmentScore: seed.assessment,
         experienceYears: seed.years,
-        listed: true,
+        // На бирже, как и живой кандидат, только после подтверждённого грейда.
+        listed: seed.verified !== null,
       }),
     );
 

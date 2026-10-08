@@ -6,6 +6,7 @@ from scoring import (
     _best_skill_score,
     _competency_fit,
     _experience_fit,
+    _fsp_fit,
     _grade_fit,
     _personalization_fit,
     _salary_fit,
@@ -127,6 +128,70 @@ def test_semantic_bounds_and_default():
     assert _semantic_fit(candidate(semanticSimilarity=-1.0)) == 0.0
     assert _semantic_fit(candidate(semanticSimilarity=1.0)) == 1.0
     assert _semantic_fit(candidate(semanticSimilarity=0.0)) == 0.5
+
+
+def test_semantic_falls_back_to_explainable_text_overlap():
+    vacancy = need(text="Python FastAPI разработка HTTP API")
+    relevant = candidate(
+        semanticSimilarity=None,
+        profileText="Разрабатывал API на Python и FastAPI",
+    )
+    irrelevant = candidate(
+        semanticSimilarity=None,
+        profileText="Дизайн интерфейсов и иллюстрация",
+    )
+    assert _semantic_fit(relevant, vacancy) > _semantic_fit(irrelevant, vacancy)
+    assert _semantic_fit(irrelevant, vacancy) == 0.2
+
+
+def test_explicit_embedding_overrides_text_fallback():
+    item = candidate(
+        semanticSimilarity=-1.0,
+        profileText="Python FastAPI PostgreSQL",
+    )
+    assert _semantic_fit(item, need(text="Python FastAPI PostgreSQL")) == 0.0
+
+
+def test_fsp_strength_rewards_relevant_verified_achievement():
+    vacancy = need(text="Python backend разработка API")
+    relevant = candidate(
+        fspEvidenceScore=0,
+        fspEvidence=[
+            {
+                "title": "ФСП: backend Python API",
+                "year": 2025,
+                "score": 0.9,
+            }
+        ],
+    )
+    unrelated = candidate(
+        fspEvidenceScore=0,
+        fspEvidence=[
+            {
+                "title": "ФСП: дизайн интерфейсов",
+                "year": 2025,
+                "score": 0.9,
+            }
+        ],
+    )
+    assert _fsp_fit(relevant, vacancy) > _fsp_fit(unrelated, vacancy) > 0
+
+
+def test_fsp_absence_is_neutral_zero_and_multiple_results_help():
+    vacancy = need(text="Python backend")
+    assert _fsp_fit(candidate(fspEvidence=[], fspEvidenceScore=0), vacancy) == 0
+    one = candidate(
+        fspEvidenceScore=0,
+        fspEvidence=[{"title": "Python", "score": 0.7}],
+    )
+    two = candidate(
+        fspEvidenceScore=0,
+        fspEvidence=[
+            {"title": "Python", "score": 0.7},
+            {"title": "Backend", "score": 0.7},
+        ],
+    )
+    assert _fsp_fit(two, vacancy) > _fsp_fit(one, vacancy)
 
 
 def test_competency_without_weights_falls_back_to_assessment():

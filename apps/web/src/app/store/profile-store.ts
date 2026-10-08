@@ -1,4 +1,8 @@
-import type { ResumeDraftHit } from "@/pages/profile/model/types";
+import type {
+  ContactValues,
+  ResumeDraftHit,
+  SkillRow,
+} from "@/pages/profile/model/types";
 import {
   profilesControllerExportPdf,
   profilesControllerGet,
@@ -27,11 +31,14 @@ export class ProfileStore {
   readonly key = StoreKey.Profile;
   profile: CandidateProfile | null = null;
   resumeDraft: ResumeDraftHit | null = null;
+  // Текущие значения соседней формы. Не observable: запись не должна перерисовывать анкету.
+  readContacts: (() => ContactValues) | null = null;
+  readSkills: (() => SkillRow[]) | null = null;
 
   constructor(private readonly root: RootStore) {
-    makeAutoObservable<this, "root" | "key">(
+    makeAutoObservable<this, "root" | "key" | "readContacts" | "readSkills">(
       this,
-      { key: false, root: false },
+      { key: false, root: false, readContacts: false, readSkills: false },
       { autoBind: true },
     );
   }
@@ -83,6 +90,18 @@ export class ProfileStore {
     );
   }
 
+  clearResumeDraft(): void {
+    this.resumeDraft = null;
+  }
+
+  bindContacts(read: (() => ContactValues) | null): void {
+    this.readContacts = read;
+  }
+
+  bindSkills(read: (() => SkillRow[]) | null): void {
+    this.readSkills = read;
+  }
+
   downloadPdf(options?: CallOptions<void>) {
     return request(
       this.root,
@@ -93,8 +112,13 @@ export class ProfileStore {
         const link = document.createElement("a");
         link.href = url;
         link.download = "profile.pdf";
+        document.body.append(link);
         link.click();
-        URL.revokeObjectURL(url);
+        // Сразу revoke обрывает загрузку в Firefox и Safari.
+        window.setTimeout(() => {
+          link.remove();
+          URL.revokeObjectURL(url);
+        }, 1000);
       },
       { loader: true, ...options },
     );

@@ -14,6 +14,8 @@ import {
   gradeIndex,
 } from "@hh/types";
 
+export * from "./format";
+
 export const roleSchema = z.enum(Role);
 
 export const registerSchema = z.object({
@@ -30,6 +32,10 @@ export const loginSchema = z.object({
 
 export const confirmEmailSchema = z.object({
   token: z.string().min(1),
+});
+
+export const resendConfirmationSchema = z.object({
+  email: z.email("Укажите почту"),
 });
 
 export const refreshSchema = z.object({
@@ -318,6 +324,7 @@ export const candidateSnapshotSchema = z.object({
   experienceYears: z.number().min(0).nullable(),
   skills: z.array(candidateSkillSchema),
   assessmentScore: z.number().min(0).max(100).nullable(),
+  profileFreshness: z.number().min(0).max(1).default(1),
   fspAchievements: z.array(fspAchievementSchema),
   preferences: candidatePreferencesSchema,
 });
@@ -541,6 +548,7 @@ export const assessmentHistorySchema = z.object({
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ConfirmEmailInput = z.infer<typeof confirmEmailSchema>;
+export type ResendConfirmationInput = z.infer<typeof resendConfirmationSchema>;
 export type RefreshInput = z.infer<typeof refreshSchema>;
 export type PublicUser = z.infer<typeof publicUserSchema>;
 export type Session = z.infer<typeof sessionSchema>;

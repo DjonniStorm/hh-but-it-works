@@ -5,12 +5,12 @@ import {
   candidateStatusLabel,
 } from "@/pages/invitations/model/answer";
 import { DeclineButton } from "@/pages/invitations/ui/DeclineButton";
-import { formatDate, formatSalary } from "@/shared/lib/format";
+import { formatDate } from "@/shared/lib/format";
 import { candidateInvitationColor } from "@/shared/theme";
 import { Badge, Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import type { CandidateInvitation } from "@hh/contracts";
+import { type CandidateInvitation, formatSalary } from "@hh/contracts";
 import { InvitationStatus } from "@hh/types";
 
 export const CandidateInvitationCard = observer(

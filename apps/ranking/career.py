@@ -2,23 +2,38 @@ from __future__ import annotations
 
 from collections import Counter
 from copy import deepcopy
+from typing import Callable
 
-from schemas import CandidateSnapshot, CareerAction, HiringNeedSnapshot, SkillEvidence, VerificationState
+from schemas import (
+    CandidateSnapshot,
+    CareerAction,
+    HiringNeedSnapshot,
+    RankItem,
+    SkillEvidence,
+    VerificationState,
+)
 from scoring import rank_candidates
 from taxonomy import canonical_skill
+
+
+RankFunction = Callable[
+    [list[CandidateSnapshot], HiringNeedSnapshot],
+    list[RankItem],
+]
 
 
 def _market_state(
     candidate: CandidateSnapshot,
     opportunities: list[HiringNeedSnapshot],
     threshold: float,
+    ranker: RankFunction,
 ) -> tuple[int, float]:
     if not opportunities:
         return 0, 0.0
     strong = 0
     scores: list[float] = []
     for need in opportunities:
-        item = rank_candidates([candidate], need)[0]
+        item = ranker([candidate], need)[0]
         score = item.matchScore if item.eligible else 0.0
         scores.append(score)
         if item.eligible and score >= threshold:
@@ -37,12 +52,13 @@ def analyze_career(
     candidate: CandidateSnapshot,
     opportunities: list[HiringNeedSnapshot],
     threshold: float,
+    ranker: RankFunction = rank_candidates,
 ) -> tuple[int, list[CareerAction], list[str]]:
     relevant = [
         need for need in opportunities
         if need.specialization.strip().lower() == candidate.specialization.strip().lower()
     ]
-    current, current_avg = _market_state(candidate, relevant, threshold)
+    current, current_avg = _market_state(candidate, relevant, threshold, ranker)
     demand_counter: Counter[str] = Counter()
 
     for need in relevant:
@@ -81,7 +97,7 @@ def analyze_career(
             existing.confidence = max(existing.confidence, 0.85)
             existing.level = max(existing.level, 0.75)
 
-        projected, projected_avg = _market_state(simulated, relevant, threshold)
+        projected, projected_avg = _market_state(simulated, relevant, threshold, ranker)
         uplift = projected - current
         score_uplift = projected_avg - current_avg
         if uplift <= 0 and score_uplift <= 0.002:

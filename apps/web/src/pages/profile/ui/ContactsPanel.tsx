@@ -8,12 +8,15 @@ import {
   gradeOptions,
   specializationOptions,
 } from "@/pages/profile/model/options";
+import { contactInput } from "@/pages/profile/model/save-contacts";
 import {
   assessedFromProfile,
   saveSkills,
 } from "@/pages/profile/model/save-skills";
-import type { ResumeDraftHit } from "@/pages/profile/model/types";
-import type { ContactValues } from "@/pages/profile/model/types";
+import type {
+  ContactValues,
+  ResumeDraftHit,
+} from "@/pages/profile/model/types";
 import { ContactIcon } from "@/pages/profile/ui/ContactIcon";
 import { ExpectationsFields } from "@/pages/profile/ui/ExpectationsFields";
 import { ProfileDownload } from "@/pages/profile/ui/ProfileDownload";
@@ -33,7 +36,6 @@ import {
 import { schemaResolver, useForm } from "@mantine/form";
 
 import { type CandidateProfile, saveContactsSchema } from "@hh/contracts";
-import { Grade, SearchStatus, Specialization, WorkFormat } from "@hh/types";
 
 export const ContactsPanel = ({
   profile,
@@ -72,27 +74,12 @@ export const ContactsPanel = ({
   const onSubmit = form.onSubmit(
     (values) => {
       // Резолвер уже проверил специализацию и грейд. В типе формы они шире.
+      const skills =
+        profiles.readSkills?.() ?? assessedFromProfile(profile.skills);
       void profiles.save(
         {
-          displayName: values.displayName,
-          specialization: values.specialization as Specialization,
-          claimedGrade: values.claimedGrade as Grade,
-          fspId: values.fspId,
-          telegram: values.telegram,
-          github: values.github,
-          linkedin: values.linkedin,
-          website: values.website,
-          desiredSalaryFrom:
-            values.desiredSalaryFrom === "" ? null : values.desiredSalaryFrom,
-          experienceYears:
-            values.experienceYears === "" ? null : values.experienceYears,
-          workFormats: values.workFormats as WorkFormat[],
-          searchStatus: values.searchStatus as SearchStatus,
-          showExperience: values.showExperience,
-          showSalary: values.showSalary,
-          showFsp: values.showFsp,
-          showUnverifiedSkills: values.showUnverifiedSkills,
-          skills: saveSkills(assessedFromProfile(profile.skills)),
+          ...contactInput(values),
+          skills: saveSkills(skills),
         },
         {
           onSuccess: () => {
@@ -105,6 +92,15 @@ export const ContactsPanel = ({
       focusFirstError(form, errors);
     },
   );
+
+  useEffect(() => {
+    profiles.bindContacts(() => {
+      return form.getValues();
+    });
+    return () => {
+      profiles.bindContacts(null);
+    };
+  }, [form, profiles]);
 
   useEffect(() => {
     if (!draft || seenDraft.current === draft.at) {

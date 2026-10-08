@@ -109,6 +109,8 @@ const reasonLabel: Record<string, string> = {
 const reasonWithArgument: Record<string, string> = {
   skill_missing: "Навык отсутствует",
   skill_not_verified: "Навык не подтверждён",
+  strong_competency: "Сильная тема теста",
+  semantic_overlap: "Опыт пересекается с задачами",
 };
 
 // Новый код от ранжирователя не должен пропасть из карточки, поэтому

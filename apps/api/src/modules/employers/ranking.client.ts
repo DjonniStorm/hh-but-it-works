@@ -62,10 +62,10 @@ const breakdownGroups: {
   {
     group: "category",
     parts: [
-      { key: "specialization", label: "Специализация", weight: 0.1 },
+      { key: "specialization", label: "Специализация", weight: 0.09 },
       { key: "grade", label: "Грейд", weight: 0.14 },
       { key: "experience", label: "Опыт", weight: 0.09 },
-      { key: "semantic", label: "Смысловое совпадение", weight: 0.08 },
+      { key: "semantic", label: "Смысловое совпадение", weight: 0.07 },
     ],
   },
   {
@@ -77,21 +77,21 @@ const breakdownGroups: {
         label: "Подтверждённые обязательные",
         weight: 0.09,
       },
-      { key: "niceSkills", label: "Бонусные навыки", weight: 0.04 },
+      { key: "niceSkills", label: "Бонусные навыки", weight: 0.03 },
       { key: "desiredSkills", label: "Желаемый стек", weight: 0.1 },
-      { key: "personalization", label: "Персонализация", weight: 0.02 },
+      { key: "personalization", label: "Персонализация", weight: 0.01 },
     ],
   },
   {
     group: "assessment",
     parts: [
       { key: "competency", label: "Компетенции", weight: 0.12 },
-      { key: "assessment", label: "Тестирование", weight: 0.09 },
+      { key: "assessment", label: "Тестирование", weight: 0.1 },
     ],
   },
   {
     group: "fsp",
-    parts: [{ key: "fspEvidence", label: "Достижения ФСП", weight: 0.03 }],
+    parts: [{ key: "fspEvidence", label: "Достижения ФСП", weight: 0.06 }],
   },
   {
     group: "preferences",
@@ -174,7 +174,7 @@ export class RankingClient {
   }
 }
 
-function toRankRequest(
+export function toRankRequest(
   need: HiringNeedInput,
   candidates: CandidateSnapshot[],
 ): Record<string, unknown> {
@@ -185,9 +185,14 @@ function toRankRequest(
       gradeMax: need.gradeTo,
       mustSkills: need.mustSkills,
       niceSkills: need.niceSkills,
+      competencyWeights: Object.fromEntries([
+        ...need.mustSkills.map((skill) => [skill, 1]),
+        ...need.niceSkills.map((skill) => [skill, 0.35]),
+      ]),
       salaryMin: need.salaryFrom,
       salaryMax: need.salaryTo,
       workModes: [need.workFormat],
+      text: need.description,
       // Бюджет и формат работы в потребности жёсткие: без совпадения кандидат
       // остаётся в подборке, но уходит в конец с причиной в «рисках».
       strictSalary: true,
@@ -217,6 +222,16 @@ function toRankCandidate(
       candidate.assessmentScore === null
         ? null
         : candidate.assessmentScore / 100,
+    competencies: Object.fromEntries(
+      candidate.skills
+        .filter((skill) => skill.score !== null)
+        .map((skill) => [skill.title, (skill.score ?? 0) / 100]),
+    ),
+    profileText: [
+      candidate.specialization,
+      ...candidate.skills.map((skill) => skill.title),
+    ].join(" "),
+    profileFreshness: candidate.profileFreshness,
     // ФСП остаётся supporting evidence: место в соревновании меняет только вес.
     fspEvidence: candidate.fspAchievements.map((achievement) => {
       return {
@@ -265,7 +280,7 @@ function fspScore(place: number | null): number {
   return 0.5;
 }
 
-function toBreakdown(components: unknown): MatchBreakdown[] {
+export function toBreakdown(components: unknown): MatchBreakdown[] {
   if (typeof components !== "object" || components === null) {
     return [];
   }

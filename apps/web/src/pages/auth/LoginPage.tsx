@@ -1,4 +1,7 @@
+import { useState } from "react";
+
 import { notifier } from "@/app/store/notifier";
+import { RequestFailed } from "@/app/store/request";
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { focusFirstError } from "@/shared/lib/focus-first-error";
@@ -31,6 +34,8 @@ export const LoginPage = observer(() => {
     initialValues: { email: "", password: "" },
     validate: schemaResolver(loginSchema, { sync: true }),
   });
+  // Почта, на которой вход упал с «Почта не подтверждена»: для неё предлагаем письмо ещё раз.
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
 
   if (auth.accessToken) {
     return <Navigate to={returnPath} replace />;
@@ -43,12 +48,29 @@ export const LoginPage = observer(() => {
           notifier.showSuccess("Вход выполнен");
           navigate(returnPath);
         },
+        onError: (error) => {
+          // 403 — пароль верный, но почта не подтверждена.
+          if (error instanceof RequestFailed && error.status === 403) {
+            setUnconfirmedEmail(values.email);
+          }
+        },
       });
     },
     (errors) => {
       focusFirstError(form, errors);
     },
   );
+
+  const resendConfirmation = (email: string) => {
+    void auth.resendConfirmation(
+      { email },
+      {
+        onSuccess: () => {
+          notifier.showSuccess("Письмо отправлено, проверьте почту");
+        },
+      },
+    );
+  };
 
   return (
     <Center mih="100vh" p="md">
@@ -77,6 +99,16 @@ export const LoginPage = observer(() => {
             {...form.getInputProps("password")}
           />
           <Button type="submit">Войти</Button>
+          {unconfirmedEmail ? (
+            <Button
+              variant="light"
+              onClick={() => {
+                resendConfirmation(unconfirmedEmail);
+              }}
+            >
+              Отправить письмо ещё раз
+            </Button>
+          ) : null}
           <Anchor component={Link} to={ROUTES.AUTH.REGISTER}>
             Регистрация
           </Anchor>

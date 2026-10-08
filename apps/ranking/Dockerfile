@@ -1,9 +1,34 @@
 FROM python:3.12-slim
 
+ARG DEBIAN_FRONTEND=noninteractive
+ARG RANKING_ARTIFACT_DIR=evaluation/artifacts/ltr-v1.1.0
+
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt requirements-runtime-ml.txt ./
+RUN pip install --no-cache-dir -r requirements-runtime-ml.txt
 COPY . .
 
+# Versioned, pre-trained artifacts are part of the source release. Building or
+# starting this image never imports scikit-learn and never trains a model.
+COPY ${RANKING_ARTIFACT_DIR}/model.txt ./model.txt
+COPY ${RANKING_ARTIFACT_DIR}/model.meta.json ./model.meta.json
+COPY ${RANKING_ARTIFACT_DIR}/calibrator.json ./calibrator.json
+COPY ${RANKING_ARTIFACT_DIR}/promotion-report.json ./promotion-report.json
+
+# The bundled model is controlled-synthetic. This explicit demo override makes
+# the ready-to-run image use hybrid ranking while /health still reports
+# productionApproved=false. A real deployment should replace the artifacts
+# with a human-approved bundle and remove the override.
+ENV RANKING_MODE=hybrid \
+    RANKING_LTR_WEIGHT=0.25 \
+    RANKING_ALLOW_UNAPPROVED_MODEL=true \
+    PYTHONUNBUFFERED=1
+
 EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

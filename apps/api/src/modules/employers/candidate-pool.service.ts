@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { In, Not, Repository } from "typeorm";
+import { type FindOptionsWhere, In, IsNull, Not, Repository } from "typeorm";
 
 import type { CandidateSnapshot, HiringNeedInput } from "@hh/contracts";
 import {
@@ -15,6 +15,14 @@ import { CandidateProfile } from "../profiles/candidate-profile.entity";
 import { CandidateSkill } from "../profiles/candidate-skill.entity";
 import { Skill } from "../profiles/skill.entity";
 import { FspClient } from "./fsp.client";
+
+// Кого работодатель видит на бирже: тест сдан (listed), грейд подтверждён, кандидат
+// не скрылся. Подборка, счётчик и приглашение проверяют одно и то же условие.
+export const onExchange = {
+  listed: true,
+  verifiedGrade: Not(IsNull()),
+  searchStatus: Not(SearchStatus.Hidden),
+} satisfies FindOptionsWhere<CandidateProfile>;
 
 type NeedFilter = Pick<
   HiringNeedInput,
@@ -35,15 +43,12 @@ export class CandidatePoolService {
     private readonly fsp: FspClient,
   ) {}
 
-  // На бирже только подтверждённые (listed) и не скрывшиеся кандидаты.
   listed(): Promise<CandidateProfile[]> {
-    return this.profiles.find({
-      where: { listed: true, searchStatus: Not(SearchStatus.Hidden) },
-    });
+    return this.profiles.find({ where: onExchange });
   }
 
-  // Своя специализация и грейд в диапазоне потребности ±1 ступень.
-  // Грейд берём подтверждённый, если тест уже был, иначе заявленный.
+  // Своя специализация и подтверждённый грейд в диапазоне потребности ±1 ступень.
+  // Заявленный грейд не открывает доступ к verified talent marketplace.
   // pool — результат listed(): подборка и счётчик в списке потребностей отбирают одинаково.
   eligible(need: NeedFilter, pool: CandidateProfile[]): CandidateProfile[] {
     const grades = gradesAround(need);
@@ -51,7 +56,9 @@ export class CandidatePoolService {
       if (profile.specialization !== need.specialization) {
         return false;
       }
-      return grades.includes(profile.verifiedGrade ?? profile.claimedGrade);
+      return (
+        profile.verifiedGrade !== null && grades.includes(profile.verifiedGrade)
+      );
     });
   }
 
@@ -121,6 +128,9 @@ export class CandidatePoolService {
             };
           }),
         assessmentScore: profile.assessmentScore,
+        profileFreshness: profileFreshness(
+          profile.verifiedAt ?? profile.updatedAt,
+        ),
         fspAchievements: profile.showFsp ? (achievements[index] ?? []) : [],
         preferences: {
           desiredSalaryFrom: profile.showSalary
@@ -132,6 +142,17 @@ export class CandidatePoolService {
       };
     });
   }
+}
+
+export function profileFreshness(lastSignalAt: Date, now = Date.now()): number {
+  const ageDays = Math.max(0, now - lastSignalAt.getTime()) / 86_400_000;
+  if (ageDays <= 180) {
+    return 1;
+  }
+  if (ageDays <= 365) {
+    return 0.7;
+  }
+  return 0.4;
 }
 
 // Грейды потребности и по ступени вокруг: для junior–middle это junior, middle, senior.

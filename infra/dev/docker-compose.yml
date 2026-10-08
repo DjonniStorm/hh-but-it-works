@@ -25,8 +25,17 @@ services:
       timeout: 3s
       retries: 10
 
+  # Ловит письма API локально: SMTP на 1025, ящик в браузере на http://localhost:8025.
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
   ranking:
+    image: ${RANKING_IMAGE:-ghcr.io/djonnistorm/hh-but-it-works-ranking:dev}
     build: ../../apps/ranking
+    pull_policy: missing
     ports:
       - "8000:8000"
 

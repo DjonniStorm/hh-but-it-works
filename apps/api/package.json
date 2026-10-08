@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "nest start --watch",
     "build": "nest build",
+    "test": "nest build && node --test test/*.test.cjs",
     "start": "node dist/main",
     "openapi": "nest build && node dist/openapi.js"
   },
@@ -27,6 +28,7 @@
     "ioredis": "^5.11.1",
     "multer": "^2.4.0",
     "nestjs-zod": "^5.5.0",
+    "nodemailer": "^10.0.15",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pdf-lib": "^1.17.1",

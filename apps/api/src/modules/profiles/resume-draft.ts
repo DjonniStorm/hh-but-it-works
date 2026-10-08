@@ -1,5 +1,5 @@
 import type { ResumeDraft } from "@hh/contracts";
-import { Grade } from "@hh/types";
+import { Grade, gradeIndex } from "@hh/types";
 
 import { skillCatalog } from "./skill-catalog";
 
@@ -18,16 +18,10 @@ const skillPatterns: Record<CatalogSlug, RegExp[]> = {
   "http-api": [
     term(String.raw`https?(?:\s*[/:,]\s*|\s+)api`),
     term(String.raw`rest(?:\s+|-)api`),
-    term("http(?!s)"),
   ],
   typescript: [term("typescript")],
   docker: [term("docker")],
-  testing: [
-    term("тестирование"),
-    term("pytest"),
-    term("jest"),
-    term("testing"),
-  ],
+  testing: [term("pytest"), term("jest")],
   python: [term("python")],
   csharp: [
     term(String.raw`c\s*#`),
@@ -35,7 +29,7 @@ const skillPatterns: Record<CatalogSlug, RegExp[]> = {
     term("csharp"),
   ],
   react: [term(String.raw`react(?:\.js|js)?`)],
-  go: [term("golang"), term("go")],
+  go: [term("golang")],
   java: [term("java(?!script)")],
 };
 
@@ -57,6 +51,9 @@ const gradeByWord: Record<string, Grade> = {
 
 const skippedLine =
   /^(резюме|resume|cv|curriculum vitae|контакты|навыки|опыт|experience|skills|profile|профиль)$/iu;
+
+const roleWord =
+  /^(developer|engineer|backend|frontend|разработчик|менеджер)$/iu;
 
 const githubSkip = new Set([
   "about",
@@ -135,6 +132,13 @@ function displayNameFrom(text: string): string | null {
     if (gradePattern.test(line)) {
       continue;
     }
+    if (
+      words.some((word) => {
+        return roleWord.test(word);
+      })
+    ) {
+      continue;
+    }
     // Имя в резюме с заглавной. Строчная строка — это предложение, не имя.
     const nameWord = /^\p{Lu}[\p{L}'’-]{0,39}$/u;
     if (
@@ -150,19 +154,24 @@ function displayNameFrom(text: string): string | null {
 }
 
 function gradeFrom(text: string): Grade | null {
-  const match = gradePattern.exec(text);
-  if (!match?.[1]) {
-    return null;
+  const pattern = new RegExp(gradePattern.source, "giu");
+  let best: Grade | null = null;
+  for (const match of text.matchAll(pattern)) {
+    const grade = gradeByWord[match[1]?.toLowerCase() ?? ""];
+    if (!grade) {
+      continue;
+    }
+    if (!best || gradeIndex(grade) > gradeIndex(best)) {
+      best = grade;
+    }
   }
-  return gradeByWord[match[1].toLowerCase()] ?? null;
+  return best;
 }
 
 function experienceFrom(text: string): number | null {
-  const near = /(?:опыт|стаж|experience)[^\d]{0,30}(\d+(?:[.,]\d+)?)/iu.exec(
-    text,
-  );
-  if (near?.[1]) {
-    const value = years(near[1]);
+  const near = /(?:опыт|стаж|experience)[^\d]{0,30}(\d+(?:[.,]\d+)?)/giu;
+  for (const match of text.matchAll(near)) {
+    const value = years(match[1] ?? "");
     if (value !== null) {
       return value;
     }
@@ -170,12 +179,20 @@ function experienceFrom(text: string): number | null {
   const loose =
     /(\d+(?:[.,]\d+)?)\s*\+?\s*(?:года|лет|год|years|year)(?![\p{L}\p{N}])/giu;
   for (const match of text.matchAll(loose)) {
+    if (isAge(text, match.index ?? 0)) {
+      continue;
+    }
     const value = years(match[1] ?? "");
     if (value !== null) {
       return value;
     }
   }
   return null;
+}
+
+function isAge(text: string, index: number): boolean {
+  const before = text.slice(Math.max(0, index - 40), index).toLowerCase();
+  return /возраст|родил|мужчина|женщина/.test(before);
 }
 
 function years(raw: string): number | null {

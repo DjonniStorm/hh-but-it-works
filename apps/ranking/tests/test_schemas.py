@@ -2,9 +2,12 @@ import json
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+import pytest
+from pydantic import ValidationError
 
 from factories import candidate, need
 from main import app
+from schemas import CareerAnalyzeRequest, RankRequest
 
 EXAMPLES = Path(__file__).resolve().parents[1] / "examples"
 
@@ -28,7 +31,17 @@ def test_empty_candidate_list_is_valid():
     status, body = rank({"vacancy": need().model_dump(mode="json"), "candidates": []})
     assert status == 200
     assert body["results"] == []
-    assert body["modelVersion"] == "rules-v1.0.0"
+    assert body["modelVersion"] == "rules-v1.1.0"
+
+
+def test_request_size_limits_protect_model_latency():
+    with pytest.raises(ValidationError):
+        RankRequest(vacancy=need(), candidates=[candidate()] * 5001)
+    with pytest.raises(ValidationError):
+        CareerAnalyzeRequest(
+            candidate=candidate(),
+            opportunities=[need()] * 1001,
+        )
 
 
 def test_duplicate_candidate_ids_are_both_scored():

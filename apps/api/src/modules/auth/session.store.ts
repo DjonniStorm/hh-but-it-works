@@ -6,6 +6,7 @@ import Redis from "ioredis";
 
 const emailConfirmTtlSeconds = 60 * 60 * 24;
 const refreshTtlSeconds = 60 * 60 * 24 * 7;
+const confirmResendCooldownSeconds = 60;
 
 @Injectable()
 export class SessionStore implements OnModuleDestroy {
@@ -28,6 +29,18 @@ export class SessionStore implements OnModuleDestroy {
 
   takeEmailConfirm(token: string): Promise<string | null> {
     return this.redis.getdel(this.emailConfirmKey(token));
+  }
+
+  // Письмо подтверждения не чаще раза в минуту на адрес. false — минута не прошла.
+  async claimConfirmSend(email: string): Promise<boolean> {
+    const result = await this.redis.set(
+      this.confirmSendKey(email),
+      "1",
+      "EX",
+      confirmResendCooldownSeconds,
+      "NX",
+    );
+    return result === "OK";
   }
 
   async saveRefresh(token: string, userId: string): Promise<void> {
@@ -53,6 +66,10 @@ export class SessionStore implements OnModuleDestroy {
 
   private emailConfirmKey(token: string): string {
     return `email-confirm:${hashToken(token)}`;
+  }
+
+  private confirmSendKey(email: string): string {
+    return `email-confirm-sent:${hashToken(email)}`;
   }
 
   private refreshKey(token: string): string {

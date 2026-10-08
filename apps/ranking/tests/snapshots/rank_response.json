@@ -1,5 +1,5 @@
 {
-  "modelVersion": "rules-v1.0.0",
+  "modelVersion": "rules-v1.1.0",
   "results": [
     {
       "candidateId": "c-strong",
@@ -25,19 +25,20 @@
       },
       "eligible": true,
       "intentScore": 0.981,
-      "matchScore": 0.884311,
-      "modelVersion": "rules-v1.0.0",
+      "matchScore": 0.876455,
+      "modelVersion": "rules-v1.1.0",
       "opportunityFit": 0.925,
-      "qualificationScore": 0.8388,
+      "qualificationScore": 0.8253,
       "reasons": [
         "verified_grade_match",
         "must_skills_3_of_3",
         "strong_assessment",
         "salary_full_match",
-        "work_mode_match"
+        "work_mode_match",
+        "strong_competency:databases"
       ],
       "rejectedBy": [],
-      "score": 0.884311,
+      "score": 0.876455,
       "warnings": []
     },
     {
@@ -64,18 +65,19 @@
       },
       "eligible": true,
       "intentScore": 0.981,
-      "matchScore": 0.74025,
-      "modelVersion": "rules-v1.0.0",
+      "matchScore": 0.729115,
+      "modelVersion": "rules-v1.1.0",
       "opportunityFit": 0.925,
-      "qualificationScore": 0.60708,
+      "qualificationScore": 0.59058,
       "reasons": [
         "verified_grade_match",
         "must_skills_2_of_3",
         "salary_full_match",
-        "work_mode_match"
+        "work_mode_match",
+        "strong_competency:databases"
       ],
       "rejectedBy": [],
-      "score": 0.74025,
+      "score": 0.729115,
       "warnings": [
         "skill_not_verified:python",
         "skill_not_verified:fastapi",
@@ -107,15 +109,16 @@
       "eligible": false,
       "intentScore": 0.0,
       "matchScore": 0.0,
-      "modelVersion": "rules-v1.0.0",
+      "modelVersion": "rules-v1.1.0",
       "opportunityFit": 0.925,
-      "qualificationScore": 0.8388,
+      "qualificationScore": 0.8253,
       "reasons": [
         "verified_grade_match",
         "must_skills_3_of_3",
         "strong_assessment",
         "salary_full_match",
-        "work_mode_match"
+        "work_mode_match",
+        "strong_competency:databases"
       ],
       "rejectedBy": ["candidate_hidden"],
       "score": 0.0,
@@ -146,15 +149,16 @@
       "eligible": false,
       "intentScore": 0.981,
       "matchScore": 0.0,
-      "modelVersion": "rules-v1.0.0",
+      "modelVersion": "rules-v1.1.0",
       "opportunityFit": 0.925,
-      "qualificationScore": 0.7738,
+      "qualificationScore": 0.7668,
       "reasons": [
         "verified_grade_match",
         "must_skills_3_of_3",
         "strong_assessment",
         "salary_full_match",
-        "work_mode_match"
+        "work_mode_match",
+        "strong_competency:databases"
       ],
       "rejectedBy": ["specialization_mismatch"],
       "score": 0.0,
@@ -185,10 +189,14 @@
       "eligible": false,
       "intentScore": 0.772,
       "matchScore": 0.0,
-      "modelVersion": "rules-v1.0.0",
+      "modelVersion": "rules-v1.1.0",
       "opportunityFit": 0.5757,
-      "qualificationScore": 0.4948,
-      "reasons": ["verified_grade_match", "must_skills_0_of_3"],
+      "qualificationScore": 0.4753,
+      "reasons": [
+        "verified_grade_match",
+        "must_skills_0_of_3",
+        "strong_competency:databases"
+      ],
       "rejectedBy": ["salary_incompatible"],
       "score": 0.0,
       "warnings": [

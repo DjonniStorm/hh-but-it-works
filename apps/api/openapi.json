@@ -78,6 +78,31 @@
         "tags": ["Auth"]
       }
     },
+    "/auth/confirm/resend": {
+      "post": {
+        "operationId": "AuthController_resendConfirmation",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendConfirmationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "429": {
+            "description": "Письмо уже отправлено"
+          }
+        },
+        "tags": ["Auth"]
+      }
+    },
     "/auth/login": {
       "post": {
         "operationId": "AuthController_login",
@@ -1120,6 +1145,17 @@
           }
         },
         "required": ["token"]
+      },
+      "ResendConfirmationDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          }
+        },
+        "required": ["email"]
       },
       "LoginDto": {
         "type": "object",
@@ -2653,6 +2689,12 @@
                       "maximum": 100,
                       "nullable": true
                     },
+                    "profileFreshness": {
+                      "default": 1,
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
                     "fspAchievements": {
                       "type": "array",
                       "items": {
@@ -2720,6 +2762,7 @@
                     "experienceYears",
                     "skills",
                     "assessmentScore",
+                    "profileFreshness",
                     "fspAchievements",
                     "preferences"
                   ],

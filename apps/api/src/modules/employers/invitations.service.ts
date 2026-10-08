@@ -2,11 +2,12 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
   OnModuleInit,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { In, Not, QueryFailedError, Repository } from "typeorm";
+import { In, QueryFailedError, Repository } from "typeorm";
 
 import type {
   CandidateInvitationList,
@@ -15,11 +16,15 @@ import type {
   InvitationList,
   Invitation as InvitationView,
 } from "@hh/contracts";
-import { InvitationStatus, SearchStatus } from "@hh/types";
+import { InvitationStatus } from "@hh/types";
 
+import { invitationAnsweredLetter } from "../../common/mail/letters/invitation-answered";
+import { invitationReceivedLetter } from "../../common/mail/letters/invitation-received";
+import type { Letter } from "../../common/mail/letters/layout";
+import { MailService } from "../../common/mail/mail.service";
 import { CandidateProfile } from "../profiles/candidate-profile.entity";
 import { User } from "../users/user.entity";
-import { aliasOf } from "./candidate-pool.service";
+import { aliasOf, onExchange } from "./candidate-pool.service";
 import { CompanyProfile } from "./company-profile.entity";
 import { EmployersService } from "./employers.service";
 import { HiringNeed } from "./hiring-need.entity";
@@ -27,8 +32,13 @@ import { Invitation, oneActiveIndex } from "./invitation.entity";
 
 const alreadyInvited = "Этому кандидату уже отправлено приглашение";
 
+// Страницы приглашений в вебе: ROUTES.INVITATIONS и ROUTES.EMPLOYER.INVITATIONS.
+const candidateInvitationsPath = "/invitations";
+const employerInvitationsPath = "/employer/invitations";
+
 @Injectable()
 export class InvitationsService implements OnModuleInit {
+  private readonly logger = new Logger(InvitationsService.name);
   constructor(
     @InjectRepository(Invitation)
     private readonly invitations: Repository<Invitation>,
@@ -41,6 +51,7 @@ export class InvitationsService implements OnModuleInit {
     @InjectRepository(CompanyProfile)
     private readonly companies: Repository<CompanyProfile>,
     private readonly employers: EmployersService,
+    private readonly mail: MailService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -78,13 +89,10 @@ export class InvitationsService implements OnModuleInit {
       throw new BadRequestException("Сначала заполните профиль компании");
     }
     const candidate = await this.profiles.findOne({
-      where: {
-        id: input.candidateId,
-        listed: true,
-        searchStatus: Not(SearchStatus.Hidden),
-      },
+      where: { id: input.candidateId, ...onExchange },
     });
-    // Скрывшийся кандидат для работодателя не существует, как и в подборке.
+    // Кандидат вне биржи (скрылся, нет подтверждённого грейда) для работодателя
+    // не существует, как и в подборке.
     if (!candidate) {
       throw new NotFoundException("Кандидат не найден");
     }
@@ -121,12 +129,20 @@ export class InvitationsService implements OnModuleInit {
           status: InvitationStatus.Sent,
         }),
       );
-      return toView(
+      const view = toView(
         saved,
         companyName,
         await this.needTitles([saved]),
         new Map(),
       );
+      this.notify(
+        candidate.userId,
+        invitationReceivedLetter(
+          view,
+          this.mail.webLink(candidateInvitationsPath),
+        ),
+      );
+      return view;
     } catch (error) {
       // Параллельный запрос успел раньше: сработал индекс одного активного приглашения.
       if (violates(error, oneActiveIndex)) {
@@ -195,11 +211,38 @@ export class InvitationsService implements OnModuleInit {
     if (!result.affected) {
       throw new ConflictException("Вы уже ответили на это приглашение");
     }
-    return toCandidateView(
+    const view = toCandidateView(
       row,
       await this.companiesOf([row]),
       await this.needTitles([row]),
     );
+    this.notify(
+      row.userId,
+      invitationAnsweredLetter(
+        {
+          ...view,
+          candidateAlias: aliasOf(row.candidateProfileId),
+          accepted: status === InvitationStatus.Accepted,
+        },
+        this.mail.webLink(employerInvitationsPath),
+      ),
+    );
+    return view;
+  }
+
+  // Письмо уходит в фоне: SMTP отвечает секундами, а действие уже сохранено.
+  // Только на подтверждённую почту: неподтверждённый адрес может быть чужим.
+  private notify(userId: string, letter: Letter): void {
+    void this.users
+      .findOne({ where: { id: userId } })
+      .then(async (user) => {
+        if (user?.emailVerifiedAt) {
+          await this.mail.send(user.email, letter);
+        }
+      })
+      .catch((error: unknown) => {
+        this.logger.error(`Письмо не отправлено: ${String(error)}`);
+      });
   }
 
   async withdraw(

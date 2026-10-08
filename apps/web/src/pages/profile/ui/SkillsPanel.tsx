@@ -5,6 +5,10 @@ import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { skillsWithDraft } from "@/pages/profile/model/apply-resume-draft";
 import {
+  contactInput,
+  contactsFromProfile,
+} from "@/pages/profile/model/save-contacts";
+import {
   assessedFromProfile,
   saveSkills,
 } from "@/pages/profile/model/save-skills";
@@ -49,25 +53,10 @@ export const SkillsPanel = ({
       notifier.showError("Сначала сохраните контакты");
       return;
     }
+    const contacts = profiles.readContacts?.() ?? contactsFromProfile(profile);
     void profiles.save(
       {
-        displayName: profile.displayName,
-        specialization: profile.specialization,
-        claimedGrade: profile.claimedGrade,
-        fspId: profile.fspId ?? "",
-        telegram: profile.telegram ?? "",
-        github: profile.github ?? "",
-        linkedin: profile.linkedin ?? "",
-        website: profile.website ?? "",
-        // Ожидания сохраняет форма контактов, здесь отдаём их как есть.
-        desiredSalaryFrom: profile.desiredSalaryFrom,
-        experienceYears: profile.experienceYears,
-        workFormats: profile.workFormats,
-        searchStatus: profile.searchStatus,
-        showExperience: profile.showExperience,
-        showSalary: profile.showSalary,
-        showFsp: profile.showFsp,
-        showUnverifiedSkills: profile.showUnverifiedSkills,
+        ...contactInput(contacts),
         skills: saveSkills(values.skills),
       },
       {
@@ -77,6 +66,15 @@ export const SkillsPanel = ({
       },
     );
   });
+
+  useEffect(() => {
+    profiles.bindSkills(() => {
+      return form.getValues().skills;
+    });
+    return () => {
+      profiles.bindSkills(null);
+    };
+  }, [form, profiles]);
 
   useEffect(() => {
     if (!draft || seenDraft.current === draft.at) {

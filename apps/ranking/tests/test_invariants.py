@@ -78,7 +78,13 @@ def test_typescript_weights_are_the_same_set_as_python_weights():
 def test_feature_order_matches_score_breakdown_fields():
     # Порядок признаков LTR задаёт оси обученной модели: тихая перестановка полей
     # в ScoreBreakdown молча ломает применение model.txt.
-    assert FEATURE_ORDER == list(ScoreBreakdown.model_fields)
+    assert FEATURE_ORDER == [
+        *ScoreBreakdown.model_fields,
+        "qualificationScore",
+        "opportunityFit",
+        "intentScore",
+        "rulesMatchScore",
+    ]
 
 
 def test_skill_catalog_slug_and_title_canonicalize_alike():
@@ -112,9 +118,27 @@ def test_input_order_does_not_change_scores():
     assert left == right
 
 
+def test_non_model_metadata_cannot_change_a_candidate_score():
+    plain = candidate(id="same", metadata={})
+    with_sensitive_metadata = candidate(
+        id="same",
+        metadata={
+            "name": "Иван Иванов",
+            "gender": "male",
+            "age": 42,
+            "email": "private@example.test",
+        },
+    )
+
+    assert score_pair(plain, need()).model_dump() == score_pair(
+        with_sensitive_metadata,
+        need(),
+    ).model_dump()
+
+
 def test_model_version_is_reported_on_every_item():
     items = rank_candidates([candidate()], need())
-    assert {item.modelVersion for item in items} == {"rules-v1.0.0"}
+    assert {item.modelVersion for item in items} == {"rules-v1.1.0"}
 
 
 def test_eligible_items_sort_before_rejected_ones():

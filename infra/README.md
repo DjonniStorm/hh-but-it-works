@@ -4,7 +4,7 @@
 
 ## `dev/`
 
-- `docker-compose.yml` — Postgres (`5432`), Redis (`6379`), мок ФСП (`mock:3001`, собирается из `apps/mock`). Ranking сюда не входит, он поднимается отдельно.
+- `docker-compose.yml` — Postgres (`5432`), Redis (`6379`), ranking (`8000`) и мок ФСП (`mock:3001`).
 - `.env.example` — креды для этого compose (`POSTGRES_USER=hh`, `POSTGRES_PASSWORD=hh`, `POSTGRES_DB=hh`).
 
 Запуск из корня:
@@ -29,4 +29,13 @@ docker run -p 8000:8000 hh-ranking-test
 curl -s localhost:8000/health
 ```
 
-В образ уходит только `requirements.txt` (fastapi, uvicorn, pydantic) — ML-зависимости для инференса не нужны. `.dockerignore` выкидывает `tests/`, `evaluation/`, `examples/`, кэши.
+Модель уже обучена и лежит в `apps/ranking/evaluation/artifacts/ltr-v1.1.0`.
+Docker build только копирует model/metadata/calibrator/report в минимальный runtime:
+scikit-learn и обучение ему не нужны. Workflow `ranking-image.yml` публикует
+готовые `amd64`/`arm64` образы в
+`ghcr.io/djonnistorm/hh-but-it-works-ranking` с тегами `dev`, `main`, git SHA и
+release tag. `docker-compose.yml` использует готовый образ, если он доступен.
+
+Bundled модель controlled-synthetic и в demo-образе явно включена через
+`RANKING_ALLOW_UNAPPROVED_MODEL=true`; `/health` показывает этот override.
+Production должен использовать human-approved artifact или убрать override.

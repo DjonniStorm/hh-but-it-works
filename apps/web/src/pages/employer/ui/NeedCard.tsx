@@ -1,5 +1,5 @@
 import { formatGradeRange } from "@/pages/employer/model/grade-range";
-import { formatDate, formatSalary } from "@/shared/lib/format";
+import { formatDate } from "@/shared/lib/format";
 import { specializationLabel, workFormatLabel } from "@/shared/lib/labels";
 import { needPath } from "@/shared/router/routes";
 import {
@@ -12,7 +12,7 @@ import {
 } from "@mantine/core";
 import { Link } from "react-router";
 
-import type { HiringNeed } from "@hh/contracts";
+import { type HiringNeed, formatSalary } from "@hh/contracts";
 
 export const NeedCard = ({ need }: { need: HiringNeed }) => {
   return (

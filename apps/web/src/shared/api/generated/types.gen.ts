@@ -26,6 +26,10 @@ export type ConfirmEmailDto = {
     token: string;
 };
 
+export type ResendConfirmationDto = {
+    email: string;
+};
+
 export type LoginDto = {
     email: string;
     password: string;
@@ -331,6 +335,7 @@ export type ShortlistDtoOutput = {
                 verifiedAt: string | null;
             }>;
             assessmentScore: number | null;
+            profileFreshness: number;
             fspAchievements: Array<{
                 title: string;
                 year: number;
@@ -475,6 +480,26 @@ export type AuthControllerConfirmResponses = {
 };
 
 export type AuthControllerConfirmResponse = AuthControllerConfirmResponses[keyof AuthControllerConfirmResponses];
+
+export type AuthControllerResendConfirmationData = {
+    body: ResendConfirmationDto;
+    path?: never;
+    query?: never;
+    url: '/auth/confirm/resend';
+};
+
+export type AuthControllerResendConfirmationErrors = {
+    /**
+     * Письмо уже отправлено
+     */
+    429: unknown;
+};
+
+export type AuthControllerResendConfirmationResponses = {
+    204: void;
+};
+
+export type AuthControllerResendConfirmationResponse = AuthControllerResendConfirmationResponses[keyof AuthControllerResendConfirmationResponses];
 
 export type AuthControllerLoginData = {
     body: LoginDto;
