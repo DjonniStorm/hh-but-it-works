@@ -590,6 +590,71 @@
           }
         ],
         "tags": ["Employers"]
+      },
+      "put": {
+        "operationId": "EmployersController_updateNeed",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HiringNeedInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HiringNeedDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      },
+      "delete": {
+        "operationId": "EmployersController_deleteNeed",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
       }
     },
     "/employer/needs/{id}/shortlist": {
@@ -2280,6 +2345,29 @@
           "modelVersion": {
             "type": "string"
           },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "grade": {
+                  "type": "string",
+                  "enum": ["junior", "middle", "senior"]
+                },
+                "match": {
+                  "type": "string",
+                  "enum": ["exact", "adjacent"]
+                },
+                "candidateCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": ["grade", "match", "candidateCount"],
+              "additionalProperties": false
+            }
+          },
           "items": {
             "type": "array",
             "items": {
@@ -2516,7 +2604,7 @@
             }
           }
         },
-        "required": ["needId", "modelVersion", "items"],
+        "required": ["needId", "modelVersion", "categories", "items"],
         "additionalProperties": false
       },
       "InvitationListDto_Output": {

@@ -1,5 +1,6 @@
 import type {
   CandidateInvitation,
+  CategoryMatch,
   CompanyProfile,
   HiringNeed,
   Invitation,
@@ -24,6 +25,11 @@ import type {
   InvitationDtoOutput,
   ShortlistDtoOutput,
 } from "./generated/types.gen";
+
+const categoryMatches: Record<CategoryMatch, CategoryMatch> = {
+  exact: "exact",
+  adjacent: "adjacent",
+};
 
 const matchGroups: Record<MatchGroup, MatchGroup> = {
   category: "category",
@@ -66,6 +72,13 @@ export function mapShortlist(shortlist: ShortlistDtoOutput): Shortlist {
   return {
     needId: shortlist.needId,
     modelVersion: shortlist.modelVersion,
+    categories: shortlist.categories.map((category) => {
+      return {
+        grade: oneOf(Grade, category.grade),
+        match: oneOf(categoryMatches, category.match),
+        candidateCount: category.candidateCount,
+      };
+    }),
     items: shortlist.items.map(mapMatch),
   };
 }

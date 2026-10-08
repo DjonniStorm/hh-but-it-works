@@ -13,6 +13,7 @@ export const ROUTES = {
     NEEDS: "/employer/needs",
     NEED_NEW: "/employer/needs/new",
     NEED: "/employer/needs/:needId",
+    NEED_EDIT: "/employer/needs/:needId/edit",
     INVITATIONS: "/employer/invitations",
     COMPANY: "/employer/company",
   },
@@ -22,4 +23,11 @@ export const ROUTES = {
 
 export function needPath(needId: string): string {
   return ROUTES.EMPLOYER.NEED.replace(":needId", encodeURIComponent(needId));
+}
+
+export function needEditPath(needId: string): string {
+  return ROUTES.EMPLOYER.NEED_EDIT.replace(
+    ":needId",
+    encodeURIComponent(needId),
+  );
 }

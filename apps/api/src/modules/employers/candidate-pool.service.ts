@@ -2,7 +2,11 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { type FindOptionsWhere, In, IsNull, Not, Repository } from "typeorm";
 
-import type { CandidateSnapshot, HiringNeedInput } from "@hh/contracts";
+import type {
+  CandidateSnapshot,
+  CategoryMatch,
+  HiringNeedInput,
+} from "@hh/contracts";
 import { Grade, SearchStatus, gradeIndex, gradeOrder } from "@hh/types";
 
 import { CandidateProfile } from "../profiles/candidate-profile.entity";
@@ -45,7 +49,9 @@ export class CandidatePoolService {
   // Заявленный грейд не открывает доступ к verified talent marketplace.
   // pool — результат listed(): подборка и счётчик в списке потребностей отбирают одинаково.
   eligible(need: NeedFilter, pool: CandidateProfile[]): CandidateProfile[] {
-    const grades = gradesAround(need);
+    const grades = categoriesOf(need).map((category) => {
+      return category.grade;
+    });
     return pool.filter((profile) => {
       if (profile.specialization !== need.specialization) {
         return false;
@@ -137,11 +143,20 @@ export function profileFreshness(lastSignalAt: Date, now = Date.now()): number {
   return 0.4;
 }
 
-// Грейды потребности и по ступени вокруг: для junior–middle это junior, middle, senior.
-function gradesAround(need: NeedFilter): Grade[] {
+// Грейды потребности и по ступени вокруг: для junior–middle это junior, middle (exact)
+// и senior (adjacent). По этому же списку подборка отбирает кандидатов.
+export function categoriesOf(
+  need: NeedFilter,
+): { grade: Grade; match: CategoryMatch }[] {
   const from = gradeIndex(need.gradeFrom);
   const to = gradeIndex(need.gradeTo);
-  return gradeOrder.slice(Math.max(0, from - 1), to + 2);
+  return gradeOrder.slice(Math.max(0, from - 1), to + 2).map((grade) => {
+    const index = gradeIndex(grade);
+    return {
+      grade,
+      match: index >= from && index <= to ? "exact" : "adjacent",
+    };
+  });
 }
 
 // Имя и контакты работодатель видит только после принятия приглашения (ТЗ 2.2.2).

@@ -314,9 +314,21 @@ export const matchSchema = z.object({
   dismissed: z.boolean(),
 });
 
+// Категория — специализация потребности и один подтверждённый грейд.
+// exact — грейд в диапазоне потребности, adjacent — ступень вокруг, её подборка тоже берёт.
+export const categoryMatchSchema = z.enum(["exact", "adjacent"]);
+
+// candidateCount — кандидаты этой категории в подборке без отклонённых.
+export const shortlistCategorySchema = z.object({
+  grade: gradeSchema,
+  match: categoryMatchSchema,
+  candidateCount: z.number().int().min(0),
+});
+
 export const shortlistSchema = z.object({
   needId: z.string(),
   modelVersion: z.string(),
+  categories: z.array(shortlistCategorySchema),
   items: z.array(matchSchema),
 });
 
@@ -516,6 +528,8 @@ export type CandidateSnapshot = z.infer<typeof candidateSnapshotSchema>;
 export type MatchGroup = z.infer<typeof matchGroupSchema>;
 export type MatchBreakdown = z.infer<typeof matchBreakdownSchema>;
 export type Match = z.infer<typeof matchSchema>;
+export type CategoryMatch = z.infer<typeof categoryMatchSchema>;
+export type ShortlistCategory = z.infer<typeof shortlistCategorySchema>;
 export type Shortlist = z.infer<typeof shortlistSchema>;
 export type InvitationInput = z.infer<typeof invitationInputSchema>;
 export type Invitation = z.infer<typeof invitationSchema>;

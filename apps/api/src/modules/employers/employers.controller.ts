@@ -3,13 +3,14 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   ParseUUIDPipe,
   Post,
   Put,
   UseGuards,
 } from "@nestjs/common";
-import { ApiBearerAuth } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiNoContentResponse } from "@nestjs/swagger";
 import { ZodResponse } from "nestjs-zod";
 
 import { Role } from "@hh/types";
@@ -74,6 +75,26 @@ export class EmployersController {
     @Param("id", new ParseUUIDPipe()) id: string,
   ) {
     return this.employers.getNeed(user.id, id);
+  }
+
+  @Put("needs/:id")
+  @ZodResponse({ status: 200, type: HiringNeedDto })
+  updateNeed(
+    @CurrentUser() user: User,
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Body() body: HiringNeedInputDto,
+  ) {
+    return this.employers.updateNeed(user.id, id, body);
+  }
+
+  @Delete("needs/:id")
+  @HttpCode(204)
+  @ApiNoContentResponse()
+  deleteNeed(
+    @CurrentUser() user: User,
+    @Param("id", new ParseUUIDPipe()) id: string,
+  ) {
+    return this.employers.deleteNeed(user.id, id);
   }
 
   @Get("needs/:id/shortlist")

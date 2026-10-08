@@ -295,6 +295,11 @@ export type HiringNeedDtoOutput = {
 export type ShortlistDtoOutput = {
     needId: string;
     modelVersion: string;
+    categories: Array<{
+        grade: 'junior' | 'middle' | 'senior';
+        match: 'exact' | 'adjacent';
+        candidateCount: number;
+    }>;
     items: Array<{
         candidate: {
             id: string;
@@ -684,6 +689,21 @@ export type EmployersControllerCreateNeedResponses = {
 
 export type EmployersControllerCreateNeedResponse = EmployersControllerCreateNeedResponses[keyof EmployersControllerCreateNeedResponses];
 
+export type EmployersControllerDeleteNeedData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/employer/needs/{id}';
+};
+
+export type EmployersControllerDeleteNeedResponses = {
+    204: void;
+};
+
+export type EmployersControllerDeleteNeedResponse = EmployersControllerDeleteNeedResponses[keyof EmployersControllerDeleteNeedResponses];
+
 export type EmployersControllerGetNeedData = {
     body?: never;
     path: {
@@ -698,6 +718,21 @@ export type EmployersControllerGetNeedResponses = {
 };
 
 export type EmployersControllerGetNeedResponse = EmployersControllerGetNeedResponses[keyof EmployersControllerGetNeedResponses];
+
+export type EmployersControllerUpdateNeedData = {
+    body: HiringNeedInputDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/employer/needs/{id}';
+};
+
+export type EmployersControllerUpdateNeedResponses = {
+    200: HiringNeedDtoOutput;
+};
+
+export type EmployersControllerUpdateNeedResponse = EmployersControllerUpdateNeedResponses[keyof EmployersControllerUpdateNeedResponses];
 
 export type EmployersControllerShortlistData = {
     body?: never;

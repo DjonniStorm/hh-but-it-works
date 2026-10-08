@@ -1,11 +1,13 @@
 import {
   employersControllerCreateNeed,
+  employersControllerDeleteNeed,
   employersControllerDismiss,
   employersControllerGetCompany,
   employersControllerListNeeds,
   employersControllerRestore,
   employersControllerSaveCompany,
   employersControllerShortlist,
+  employersControllerUpdateNeed,
 } from "@/shared/api/generated/sdk.gen";
 import { mapCompany, mapNeed, mapShortlist } from "@/shared/api/map-employer";
 import { makeAutoObservable, observable, runInAction } from "mobx";
@@ -98,6 +100,52 @@ export class EmployerStore {
           this.needs.unshift(need);
         });
         return need;
+      },
+      { loader: true, ...options },
+    );
+  }
+
+  updateNeed(
+    needId: string,
+    input: HiringNeedInput,
+    options?: CallOptions<HiringNeed>,
+  ) {
+    return request(
+      this.root,
+      async () => {
+        const result = await employersControllerUpdateNeed({
+          path: { id: needId },
+          body: input,
+        });
+        const need = mapNeed(readData(result));
+        runInAction(() => {
+          this.needs = this.needs.map((item) => {
+            return item.id === need.id ? need : item;
+          });
+          // Состав подборки зависит от требований: старую не показываем, экран загрузит новую.
+          this.shortlists.delete(need.id);
+          this.root.invitations.renameNeed(need.id, need.title);
+        });
+        return need;
+      },
+      { loader: true, ...options },
+    );
+  }
+
+  deleteNeed(needId: string, options?: CallOptions<void>) {
+    return request(
+      this.root,
+      async () => {
+        const result = await employersControllerDeleteNeed({
+          path: { id: needId },
+        });
+        readData(result);
+        runInAction(() => {
+          this.needs = this.needs.filter((need) => {
+            return need.id !== needId;
+          });
+          this.shortlists.delete(needId);
+        });
       },
       { loader: true, ...options },
     );

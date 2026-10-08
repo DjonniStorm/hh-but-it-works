@@ -4,6 +4,7 @@ import { RegisterPage } from "@/pages/auth/RegisterPage";
 import { CompanyPage } from "@/pages/employer/ui/CompanyPage";
 import { EmployerLayout } from "@/pages/employer/ui/EmployerLayout";
 import { InvitationsPage } from "@/pages/employer/ui/InvitationsPage";
+import { NeedEditPage } from "@/pages/employer/ui/NeedEditPage";
 import { NeedNewPage } from "@/pages/employer/ui/NeedNewPage";
 import { NeedPage } from "@/pages/employer/ui/NeedPage";
 import { NeedsPage } from "@/pages/employer/ui/NeedsPage";
@@ -54,6 +55,10 @@ export const router = createBrowserRouter([
                   { path: ROUTES.EMPLOYER.NEEDS, element: <NeedsPage /> },
                   { path: ROUTES.EMPLOYER.NEED_NEW, element: <NeedNewPage /> },
                   { path: ROUTES.EMPLOYER.NEED, element: <NeedPage /> },
+                  {
+                    path: ROUTES.EMPLOYER.NEED_EDIT,
+                    element: <NeedEditPage />,
+                  },
                   {
                     path: ROUTES.EMPLOYER.INVITATIONS,
                     element: <InvitationsPage />,

@@ -11,6 +11,7 @@ export const pageTitle = {
   candidateInvitations: "Приглашения",
   needs: "Подборки",
   needNew: "Новая подборка",
+  needEdit: "Изменить потребность",
   employerInvitations: "Приглашения",
   company: "Компания",
   error: "Ошибка",
