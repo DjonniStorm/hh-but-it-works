@@ -9,10 +9,15 @@ Production does not require LightGBM: V0 remains the fallback.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from collections import defaultdict
 from pathlib import Path
 import sys
+
+HERE = Path(__file__).resolve().parent
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -44,6 +49,7 @@ def main() -> None:
             "LightGBM не входит в production dependencies. Установите requirements-ml.txt для offline training."
         ) from exc
 
+    dataset_sha = hashlib.sha256(args.dataset.read_bytes()).hexdigest()
     grouped = load_groups(args.dataset)
     x: list[list[float]] = []
     y: list[int] = []
@@ -79,6 +85,8 @@ def main() -> None:
                 "groups": len(group_sizes),
                 "rows": len(x),
                 "labels": sorted(set(y)),
+                "lightgbmVersion": lgb.__version__,
+                "datasetSha256": dataset_sha,
                 "note": "Use only after held-out benchmark proves uplift over rules-v1.",
             },
             ensure_ascii=False,

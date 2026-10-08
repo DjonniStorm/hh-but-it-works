@@ -214,10 +214,12 @@ python evaluation/train_ltr.py evaluation/data/sanity_gold.jsonl
 - Меняешь формулу/веса → обнови **одновременно**: `MODEL_VERSION` (bump `rules-v1.0.0` → `rules-v1.1.0`), веса в `breakdownGroups` (`ranking.client.ts`), таблицу в `README.md` и `HANDOFF.md`, gold-набор, если порядок пар меняется.
 - Меняешь контракт `/rank` → правишь только адаптер, `@hh/contracts` не трогаешь (см. `contracts/README.md`).
 - Новый код reason/warning → пункт в `apps/web/src/shared/lib/labels.ts`, иначе в UI увидишь `skill_foo`.
-- Доменные числа для eval (навыки, бюджеты, веса компетенций) добавляются только в `evaluation/fixtures.py`. Тесты держат свой минимальный словарь намеренно (одна гипотеза — один набор полей), gold-набор — размеченные данные: их не унифицируем.
-- Списки констант, продублированные между языками (веса `qualification`/`opportunity` ↔ `breakdownGroups`, `FEATURE_ORDER` ↔ `ScoreBreakdown`, `taxonomy.py` ↔ `skill-catalog.ts`), сверяются автотестами, а не вручную — см. issue #34, этап 8.
+- Доменные числа для eval (навыки, бюджеты, веса компетенций) добавляются только в `factories.py` (общая синтетика: `need()`, `backend_need()`, `candidate()`, `synthetic_candidate()`, её же гоняют eval-скрипты). Тесты держат свой минимальный словарь намеренно (одна гипотеза — один набор полей), gold-набор — размеченные данные: их не унифицируем.
+- Списки констант, продублированные между языками (веса `qualification`/`opportunity` ↔ `breakdownGroups`, `FEATURE_ORDER` ↔ `ScoreBreakdown`, `taxonomy.py` ↔ `skill-catalog.ts`), сверяются автотестами в `tests/test_invariants.py`, а не вручную.
+- Пороги качества и скорости живут рядом с кодом и валят прогон сами: `scripts/check.sh` — покрытие ≥ 90 %, `evaluation/benchmark.py --min-ndcg/--min-mrr`, бюджет `evaluation/performance_budget.json`. Ответ `/rank` зафиксирован снапшотом `tests/snapshots/` (обновить: `UPDATE_SNAPSHOTS=1 pytest tests/test_snapshot.py`).
+- Медлительные и ML-прогоны не в основном контуре: `pytest -m "not slow"` в `check.sh`, обучение LTR помечено `ml` и требует `requirements-ml.txt`.
 - Ни в коем случае не добавляй в `apps/ranking`: БД, Redis, очереди, HTTP-вызовы в `score_pair`, LLM в горячем пути.
-- Venv и ML-артефакты (`model.txt`, `model.meta.json`, `.pytest_cache`) в git не попадают — уже в `.gitignore`.
+- Venv и ML-артефакты (`model.txt`, `model.meta.json`, `.pytest_cache`, `.coverage`, `.hypothesis`) в git не попадают — уже в `.gitignore`.
 
 ### 7.3 Что делать дальше
 
