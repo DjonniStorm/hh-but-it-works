@@ -17,6 +17,13 @@ pnpm start:api                    # node dist/main
 
 Swagger у запущенного Nest: `http://localhost:3000/docs`. В SPA его нет, `openapi.json` в репозиторий записывается командой `pnpm openapi`.
 
+### Ошибки в Swagger
+
+У каждой ручки описаны коды ошибок, которые она реально отдаёт, со схемой `ApiErrorDto` (`apiErrorSchema` в `@hh/contracts`): `statusCode`, `message`, необязательные `error` и `errors`. `errors` — замечания Zod, приходят с `400`, когда тело не прошло схему.
+
+- `@Auth(...roles)` из `common/auth` вешает guard'ы, `ApiBearerAuth` и описывает их ошибки: `401` всегда, `403` если указаны роли. Guard'ы руками на контроллер не ставить.
+- `@ApiErrors({ 404: "…", 409: "…" })` из `common/openapi` — коды самой ручки с пояснением, когда она их отдаёт. Новое исключение в сервисе — строка здесь.
+
 Переменные окружения — в `.env.example`: `PORT`, `DATABASE_URL`, `REDIS_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `WEB_URL`, `FSP_URL` (`mock:3001`), `RANKING_URL` (`ranking:8000`). `SEED_CANDIDATE_PASSWORD` — пароль сид-кандидатов вида `seed.b101@candidates.hh.test`, в production (`NODE_ENV=production`) игнорируется.
 
 ## Структура `src`
@@ -26,7 +33,8 @@ src/
   app.module.ts            TypeORM + Config + BullMQ (выключается при OPENAPI_EXPORT=1)
   main.ts, swagger.ts, openapi.ts
   health.controller.ts     GET /health
-  common/auth/             JWT guard, roles guard, @CurrentUser, @Roles
+  common/auth/             @Auth (guard'ы + их ошибки в Swagger), JWT guard, roles guard, @CurrentUser, @Roles
+  common/openapi/          @ApiErrors и ApiErrorDto: коды ошибок ручек в Swagger
   common/mail/             MailService (nodemailer) и шаблоны писем в letters/
   modules/
     users/                 User entity

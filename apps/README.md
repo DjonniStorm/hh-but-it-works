@@ -19,4 +19,11 @@ web  ──HTTP/JSON──>  api  ──SQL──> postgres
 
 `ranking` и `mock` не хранят состояние и к auth отношения не имеют. В production `ranking` крутится в Docker, `mock` не разворачивается.
 
+## Спецификации OpenAPI
+
+| Сервис    | Swagger UI                   | JSON                                    |
+| --------- | ---------------------------- | --------------------------------------- |
+| `api`     | `http://localhost:3000/docs` | `/docs-json`, в репо `api/openapi.json` |
+| `ranking` | `http://localhost:8000/docs` | `/openapi.json`, генерирует FastAPI     |
+
 Подробности и команды — в `README.md` внутри каждого приложения.

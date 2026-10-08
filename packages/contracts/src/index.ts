@@ -59,6 +59,23 @@ export const healthSchema = z.object({
   status: z.literal("ok"),
 });
 
+// Замечание Zod: что не так и в каком поле. Остальные поля зависят от code.
+// В path имена полей и индексы массивов.
+export const validationIssueSchema = z.looseObject({
+  code: z.string(),
+  path: z.array(z.union([z.string(), z.number().int().nonnegative()])),
+  message: z.string(),
+});
+
+// Тело ошибки Nest. error — название статуса, его нет у 401 из guard и у 429.
+// errors приходят только с 400, когда тело запроса не прошло схему.
+export const apiErrorSchema = z.object({
+  statusCode: z.number().int().min(400).max(599),
+  message: z.string(),
+  error: z.string().optional(),
+  errors: z.array(validationIssueSchema).optional(),
+});
+
 export const specializationSchema = z.enum(Specialization);
 export const gradeSchema = z.enum(Grade);
 export const skillLevelSchema = z.enum(SkillLevel);
@@ -502,6 +519,8 @@ export type RefreshInput = z.infer<typeof refreshSchema>;
 export type PublicUser = z.infer<typeof publicUserSchema>;
 export type Session = z.infer<typeof sessionSchema>;
 export type Health = z.infer<typeof healthSchema>;
+export type ValidationIssue = z.infer<typeof validationIssueSchema>;
+export type ApiError = z.infer<typeof apiErrorSchema>;
 export type CandidateProfile = z.infer<typeof candidateProfileSchema>;
 export type SaveProfileInput = z.infer<typeof saveProfileSchema>;
 export type CompanyProfile = z.infer<typeof companyProfileSchema>;
