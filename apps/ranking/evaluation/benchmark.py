@@ -77,8 +77,26 @@ def evaluate(path: Path) -> dict[str, float]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("dataset", type=Path, help="JSONL with need, candidate, label(0..3)")
+    parser.add_argument("--min-ndcg", type=float, help="минимальный допустимый ndcg@5")
+    parser.add_argument("--min-mrr", type=float, help="минимальный допустимый mrr")
+    parser.add_argument("--min-precision", type=float, help="минимальный допустимый precision@5")
     args = parser.parse_args()
-    print(json.dumps(evaluate(args.dataset), ensure_ascii=False, indent=2))
+
+    result = evaluate(args.dataset)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+
+    failures = [
+        f"{name}={result[name]:.4f} < {limit}"
+        for name, limit in (
+            ("ndcg@5", args.min_ndcg),
+            ("mrr", args.min_mrr),
+            ("precision@5", args.min_precision),
+        )
+        if limit is not None and result[name] < limit
+    ]
+    if failures:
+        print("benchmark thresholds failed: " + ", ".join(failures), file=sys.stderr)
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
