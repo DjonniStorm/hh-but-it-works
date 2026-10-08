@@ -58,6 +58,10 @@ export type CandidateProfileDtoOutput = {
     desiredSalaryFrom: number | null;
     workFormats: Array<'office' | 'hybrid' | 'remote'>;
     searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden';
+    showExperience: boolean;
+    showSalary: boolean;
+    showFsp: boolean;
+    showUnverifiedSkills: boolean;
     listed: boolean;
     verifiedGrade: 'junior' | 'middle' | 'senior' | null;
     verifiedAt: string | null;
@@ -85,6 +89,10 @@ export type SaveProfileDto = {
     desiredSalaryFrom: '' | number | null;
     workFormats: Array<'office' | 'hybrid' | 'remote'>;
     searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden';
+    showExperience: boolean;
+    showSalary: boolean;
+    showFsp: boolean;
+    showUnverifiedSkills: boolean;
     skills: Array<{
         skillId: string;
         level: 'basic' | 'confident' | 'strong' | null;
@@ -332,6 +340,7 @@ export type ShortlistDtoOutput = {
             details: Array<string>;
         }>;
         dismissed: boolean;
+        favorite: boolean;
     }>;
 };
 
@@ -344,7 +353,7 @@ export type InvitationListDtoOutput = {
         salaryFrom: number;
         salaryTo: number;
         id: string;
-        status: 'sent' | 'viewed' | 'accepted' | 'declined';
+        status: 'sent' | 'viewed' | 'accepted' | 'declined' | 'withdrawn';
         createdAt: string;
         updatedAt: string;
         companyName: string;
@@ -352,15 +361,6 @@ export type InvitationListDtoOutput = {
         needTitle: string | null;
         candidateContact: string | null;
     }>;
-};
-
-export type InvitationInputDto = {
-    candidateId: string;
-    needId: string | null;
-    message: string;
-    contact: string;
-    salaryFrom: number;
-    salaryTo: number;
 };
 
 export type InvitationDtoOutput = {
@@ -371,13 +371,22 @@ export type InvitationDtoOutput = {
     salaryFrom: number;
     salaryTo: number;
     id: string;
-    status: 'sent' | 'viewed' | 'accepted' | 'declined';
+    status: 'sent' | 'viewed' | 'accepted' | 'declined' | 'withdrawn';
     createdAt: string;
     updatedAt: string;
     companyName: string;
     candidateAlias: string;
     needTitle: string | null;
     candidateContact: string | null;
+};
+
+export type InvitationInputDto = {
+    candidateId: string;
+    needId: string | null;
+    message: string;
+    contact: string;
+    salaryFrom: number;
+    salaryTo: number;
 };
 
 export type CandidateInvitationListDtoOutput = {
@@ -390,7 +399,7 @@ export type CandidateInvitationListDtoOutput = {
         contact: string;
         salaryFrom: number;
         salaryTo: number;
-        status: 'sent' | 'viewed' | 'accepted' | 'declined';
+        status: 'sent' | 'viewed' | 'accepted' | 'declined' | 'withdrawn';
         createdAt: string;
         updatedAt: string;
     }>;
@@ -409,7 +418,7 @@ export type CandidateInvitationDtoOutput = {
     contact: string;
     salaryFrom: number;
     salaryTo: number;
-    status: 'sent' | 'viewed' | 'accepted' | 'declined';
+    status: 'sent' | 'viewed' | 'accepted' | 'declined' | 'withdrawn';
     createdAt: string;
     updatedAt: string;
 };
@@ -723,6 +732,38 @@ export type EmployersControllerDismissResponses = {
 
 export type EmployersControllerDismissResponse = EmployersControllerDismissResponses[keyof EmployersControllerDismissResponses];
 
+export type EmployersControllerUnfavoriteData = {
+    body?: never;
+    path: {
+        id: string;
+        candidateId: string;
+    };
+    query?: never;
+    url: '/employer/needs/{id}/favorites/{candidateId}';
+};
+
+export type EmployersControllerUnfavoriteResponses = {
+    200: ShortlistDtoOutput;
+};
+
+export type EmployersControllerUnfavoriteResponse = EmployersControllerUnfavoriteResponses[keyof EmployersControllerUnfavoriteResponses];
+
+export type EmployersControllerFavoriteData = {
+    body?: never;
+    path: {
+        id: string;
+        candidateId: string;
+    };
+    query?: never;
+    url: '/employer/needs/{id}/favorites/{candidateId}';
+};
+
+export type EmployersControllerFavoriteResponses = {
+    200: ShortlistDtoOutput;
+};
+
+export type EmployersControllerFavoriteResponse = EmployersControllerFavoriteResponses[keyof EmployersControllerFavoriteResponses];
+
 export type EmployersControllerListInvitationsData = {
     body?: never;
     path?: never;
@@ -748,6 +789,21 @@ export type EmployersControllerCreateInvitationResponses = {
 };
 
 export type EmployersControllerCreateInvitationResponse = EmployersControllerCreateInvitationResponses[keyof EmployersControllerCreateInvitationResponses];
+
+export type EmployersControllerWithdrawData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/employer/invitations/{id}/withdraw';
+};
+
+export type EmployersControllerWithdrawResponses = {
+    200: InvitationDtoOutput;
+};
+
+export type EmployersControllerWithdrawResponse = EmployersControllerWithdrawResponses[keyof EmployersControllerWithdrawResponses];
 
 export type CandidateInvitationsControllerListData = {
     body?: never;

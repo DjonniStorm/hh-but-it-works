@@ -20,6 +20,10 @@ export function mapCandidateProfile(profile: {
   desiredSalaryFrom: number | null;
   workFormats: string[];
   searchStatus: string;
+  showExperience: boolean;
+  showSalary: boolean;
+  showFsp: boolean;
+  showUnverifiedSkills: boolean;
   listed: boolean;
   verifiedGrade: string | null;
   verifiedAt: string | null;
@@ -46,6 +50,10 @@ export function mapCandidateProfile(profile: {
     desiredSalaryFrom: profile.desiredSalaryFrom,
     workFormats: profile.workFormats.map(mapWorkFormat),
     searchStatus: mapSearchStatus(profile.searchStatus),
+    showExperience: profile.showExperience,
+    showSalary: profile.showSalary,
+    showFsp: profile.showFsp,
+    showUnverifiedSkills: profile.showUnverifiedSkills,
     listed: profile.listed,
     verifiedGrade: mapGrade(profile.verifiedGrade),
     verifiedAt: profile.verifiedAt,

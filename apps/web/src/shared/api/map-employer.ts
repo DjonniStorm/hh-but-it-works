@@ -111,6 +111,7 @@ function mapMatch(match: ShortlistDtoOutput["items"][number]): Match {
       return { ...item, group: oneOf(matchGroups, item.group) };
     }),
     dismissed: match.dismissed,
+    favorite: match.favorite,
   };
 }
 

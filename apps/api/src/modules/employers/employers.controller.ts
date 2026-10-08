@@ -96,6 +96,26 @@ export class EmployersController {
     return this.employers.setDismissed(user.id, id, candidateId, true);
   }
 
+  @Put("needs/:id/favorites/:candidateId")
+  @ZodResponse({ status: 200, type: ShortlistDto })
+  favorite(
+    @CurrentUser() user: User,
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Param("candidateId", new ParseUUIDPipe()) candidateId: string,
+  ) {
+    return this.employers.setFavorite(user.id, id, candidateId, true);
+  }
+
+  @Delete("needs/:id/favorites/:candidateId")
+  @ZodResponse({ status: 200, type: ShortlistDto })
+  unfavorite(
+    @CurrentUser() user: User,
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Param("candidateId", new ParseUUIDPipe()) candidateId: string,
+  ) {
+    return this.employers.setFavorite(user.id, id, candidateId, false);
+  }
+
   @Delete("needs/:id/dismissed/:candidateId")
   @ZodResponse({ status: 200, type: ShortlistDto })
   restore(
@@ -110,6 +130,15 @@ export class EmployersController {
   @ZodResponse({ status: 200, type: InvitationListDto })
   listInvitations(@CurrentUser() user: User) {
     return this.invitations.list(user.id);
+  }
+
+  @Post("invitations/:id/withdraw")
+  @ZodResponse({ status: 200, type: InvitationDto })
+  withdraw(
+    @CurrentUser() user: User,
+    @Param("id", new ParseUUIDPipe()) id: string,
+  ) {
+    return this.invitations.withdraw(user.id, id);
   }
 
   @Post("invitations")

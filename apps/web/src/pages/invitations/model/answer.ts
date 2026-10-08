@@ -7,6 +7,7 @@ export const candidateStatusLabel: Record<InvitationStatus, string> = {
   [InvitationStatus.Viewed]: "Ждёт ответа",
   [InvitationStatus.Accepted]: "Вы приняли",
   [InvitationStatus.Declined]: "Вы отклонили",
+  [InvitationStatus.Withdrawn]: "Компания отозвала",
 };
 
 // То же условие, что в InvitationsService.answer: ответить можно один раз.

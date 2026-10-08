@@ -34,6 +34,7 @@ export const invitationStatusLabel: Record<InvitationStatus, string> = {
   [InvitationStatus.Viewed]: "Просмотрено",
   [InvitationStatus.Accepted]: "Принято",
   [InvitationStatus.Declined]: "Отклонено",
+  [InvitationStatus.Withdrawn]: "Отозвано",
 };
 
 export const verificationLabel: Record<SkillVerification, string> = {

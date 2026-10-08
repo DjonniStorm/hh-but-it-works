@@ -160,34 +160,33 @@ export class ProfilesService implements OnModuleInit {
       return { gradeChanged: false };
     }
 
-    // Провал и несданная секция не снимают уже подтверждённый навык и не ставят новый.
-    if (result.status === AttemptStatus.Passed) {
-      const confirmedAt = new Date();
-      for (const section of result.sections) {
-        if (!section.passed) {
-          continue;
-        }
-        const row = await this.candidateSkills.findOne({
-          where: { profileId: profile.id, skillId: section.skillId },
-        });
-        if (!row) {
-          await this.candidateSkills.save(
-            this.candidateSkills.create({
-              profileId: profile.id,
-              skillId: section.skillId,
-              level: levelByGrade[result.grade],
-              verification: SkillVerification.Verified,
-              score: section.score,
-              verifiedAt: confirmedAt,
-            }),
-          );
-          continue;
-        }
-        row.verification = SkillVerification.Verified;
-        row.score = section.score;
-        row.verifiedAt = confirmedAt;
-        await this.candidateSkills.save(row);
+    const confirmedAt = new Date();
+    for (const section of result.sections) {
+      const row = await this.candidateSkills.findOne({
+        where: { profileId: profile.id, skillId: section.skillId },
+      });
+      if (!row && section.passed) {
+        await this.candidateSkills.save(
+          this.candidateSkills.create({
+            profileId: profile.id,
+            skillId: section.skillId,
+            level: levelByGrade[result.grade],
+            verification: SkillVerification.Verified,
+            score: section.score,
+            verifiedAt: confirmedAt,
+          }),
+        );
+        continue;
       }
+      if (!row) {
+        continue;
+      }
+      row.verification = section.passed
+        ? SkillVerification.Verified
+        : SkillVerification.Unverified;
+      row.score = section.passed ? section.score : null;
+      row.verifiedAt = section.passed ? confirmedAt : null;
+      await this.candidateSkills.save(row);
     }
 
     if (result.status !== AttemptStatus.Passed) {
@@ -487,6 +486,10 @@ export class ProfilesService implements OnModuleInit {
       desiredSalaryFrom: profile?.desiredSalaryFrom ?? null,
       workFormats: profile?.workFormats ?? [],
       searchStatus: profile?.searchStatus ?? SearchStatus.OpenToOffers,
+      showExperience: profile?.showExperience ?? true,
+      showSalary: profile?.showSalary ?? true,
+      showFsp: profile?.showFsp ?? true,
+      showUnverifiedSkills: profile?.showUnverifiedSkills ?? true,
       listed: profile?.listed ?? false,
       verifiedGrade: profile?.verifiedGrade ?? null,
       verifiedAt: profile?.verifiedAt?.toISOString() ?? null,
@@ -529,12 +532,22 @@ function expectations(
   input: SaveProfileInput,
 ): Pick<
   CandidateProfile,
-  "desiredSalaryFrom" | "workFormats" | "searchStatus"
+  | "desiredSalaryFrom"
+  | "workFormats"
+  | "searchStatus"
+  | "showExperience"
+  | "showSalary"
+  | "showFsp"
+  | "showUnverifiedSkills"
 > {
   return {
     desiredSalaryFrom: input.desiredSalaryFrom,
     workFormats: input.workFormats,
     searchStatus: input.searchStatus,
+    showExperience: input.showExperience,
+    showSalary: input.showSalary,
+    showFsp: input.showFsp,
+    showUnverifiedSkills: input.showUnverifiedSkills,
   };
 }
 

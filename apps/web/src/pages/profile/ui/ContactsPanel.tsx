@@ -12,6 +12,7 @@ import {
 import type { ContactValues } from "@/pages/profile/model/types";
 import { ContactIcon } from "@/pages/profile/ui/ContactIcon";
 import { ExpectationsFields } from "@/pages/profile/ui/ExpectationsFields";
+import { VisibilityFields } from "@/pages/profile/ui/VisibilityFields";
 import { focusFirstError } from "@/shared/lib/focus-first-error";
 import {
   Button,
@@ -49,6 +50,10 @@ export const ContactsPanel = ({
       // Обычный массив: у observable klona уходит в символ MobX и зацикливается.
       workFormats: profile.workFormats.slice(),
       searchStatus: profile.searchStatus,
+      showExperience: profile.showExperience,
+      showSalary: profile.showSalary,
+      showFsp: profile.showFsp,
+      showUnverifiedSkills: profile.showUnverifiedSkills,
     },
     validate: schemaResolver(saveContactsSchema, { sync: true }),
   });
@@ -70,6 +75,10 @@ export const ContactsPanel = ({
             values.desiredSalaryFrom === "" ? null : values.desiredSalaryFrom,
           workFormats: values.workFormats as WorkFormat[],
           searchStatus: values.searchStatus as SearchStatus,
+          showExperience: values.showExperience,
+          showSalary: values.showSalary,
+          showFsp: values.showFsp,
+          showUnverifiedSkills: values.showUnverifiedSkills,
           skills: saveSkills(assessedFromProfile(profile.skills)),
         },
         {
@@ -144,6 +153,7 @@ export const ContactsPanel = ({
           {...form.getInputProps("website")}
         />
         <ExpectationsFields form={form} />
+        <VisibilityFields form={form} />
         <Text>
           {profile.listed
             ? "Профиль на бирже."

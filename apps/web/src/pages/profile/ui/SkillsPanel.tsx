@@ -49,6 +49,10 @@ export const SkillsPanel = ({ profile }: { profile: CandidateProfile }) => {
         desiredSalaryFrom: profile.desiredSalaryFrom,
         workFormats: profile.workFormats,
         searchStatus: profile.searchStatus,
+        showExperience: profile.showExperience,
+        showSalary: profile.showSalary,
+        showFsp: profile.showFsp,
+        showUnverifiedSkills: profile.showUnverifiedSkills,
         skills: saveSkills(values.skills),
       },
       {

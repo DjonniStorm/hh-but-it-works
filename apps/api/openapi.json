@@ -680,6 +680,86 @@
         "tags": ["Employers"]
       }
     },
+    "/employer/needs/{id}/favorites/{candidateId}": {
+      "put": {
+        "operationId": "EmployersController_favorite",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "candidateId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortlistDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      },
+      "delete": {
+        "operationId": "EmployersController_unfavorite",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "candidateId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortlistDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      }
+    },
     "/employer/invitations": {
       "get": {
         "operationId": "EmployersController_listInvitations",
@@ -718,6 +798,39 @@
         },
         "responses": {
           "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      }
+    },
+    "/employer/invitations/{id}/withdraw": {
+      "post": {
+        "operationId": "EmployersController_withdraw",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
             "description": "",
             "content": {
               "application/json": {
@@ -1065,6 +1178,18 @@
             "type": "string",
             "enum": ["actively-looking", "open-to-offers", "hidden"]
           },
+          "showExperience": {
+            "type": "boolean"
+          },
+          "showSalary": {
+            "type": "boolean"
+          },
+          "showFsp": {
+            "type": "boolean"
+          },
+          "showUnverifiedSkills": {
+            "type": "boolean"
+          },
           "listed": {
             "type": "boolean"
           },
@@ -1148,6 +1273,10 @@
           "desiredSalaryFrom",
           "workFormats",
           "searchStatus",
+          "showExperience",
+          "showSalary",
+          "showFsp",
+          "showUnverifiedSkills",
           "listed",
           "verifiedGrade",
           "verifiedAt",
@@ -1219,6 +1348,18 @@
             "type": "string",
             "enum": ["actively-looking", "open-to-offers", "hidden"]
           },
+          "showExperience": {
+            "type": "boolean"
+          },
+          "showSalary": {
+            "type": "boolean"
+          },
+          "showFsp": {
+            "type": "boolean"
+          },
+          "showUnverifiedSkills": {
+            "type": "boolean"
+          },
           "skills": {
             "type": "array",
             "items": {
@@ -1271,6 +1412,10 @@
           "desiredSalaryFrom",
           "workFormats",
           "searchStatus",
+          "showExperience",
+          "showSalary",
+          "showFsp",
+          "showUnverifiedSkills",
           "skills"
         ]
       },
@@ -2502,6 +2647,9 @@
                 },
                 "dismissed": {
                   "type": "boolean"
+                },
+                "favorite": {
+                  "type": "boolean"
                 }
               },
               "required": [
@@ -2512,7 +2660,8 @@
                 "reasons",
                 "risks",
                 "breakdown",
-                "dismissed"
+                "dismissed",
+                "favorite"
               ],
               "additionalProperties": false
             }
@@ -2565,7 +2714,13 @@
                 },
                 "status": {
                   "type": "string",
-                  "enum": ["sent", "viewed", "accepted", "declined"]
+                  "enum": [
+                    "sent",
+                    "viewed",
+                    "accepted",
+                    "declined",
+                    "withdrawn"
+                  ]
                 },
                 "createdAt": {
                   "type": "string",
@@ -2617,50 +2772,6 @@
         "required": ["items"],
         "additionalProperties": false
       },
-      "InvitationInputDto": {
-        "type": "object",
-        "properties": {
-          "candidateId": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-          },
-          "needId": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-            "nullable": true
-          },
-          "message": {
-            "type": "string",
-            "minLength": 20
-          },
-          "contact": {
-            "type": "string",
-            "minLength": 3
-          },
-          "salaryFrom": {
-            "type": "integer",
-            "exclusiveMinimum": true,
-            "maximum": 9007199254740991,
-            "minimum": 0
-          },
-          "salaryTo": {
-            "type": "integer",
-            "exclusiveMinimum": true,
-            "maximum": 9007199254740991,
-            "minimum": 0
-          }
-        },
-        "required": [
-          "candidateId",
-          "needId",
-          "message",
-          "contact",
-          "salaryFrom",
-          "salaryTo"
-        ]
-      },
       "InvitationDto_Output": {
         "type": "object",
         "properties": {
@@ -2700,7 +2811,7 @@
           },
           "status": {
             "type": "string",
-            "enum": ["sent", "viewed", "accepted", "declined"]
+            "enum": ["sent", "viewed", "accepted", "declined", "withdrawn"]
           },
           "createdAt": {
             "type": "string",
@@ -2747,6 +2858,50 @@
         ],
         "additionalProperties": false
       },
+      "InvitationInputDto": {
+        "type": "object",
+        "properties": {
+          "candidateId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "needId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "minLength": 20
+          },
+          "contact": {
+            "type": "string",
+            "minLength": 3
+          },
+          "salaryFrom": {
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991,
+            "minimum": 0
+          },
+          "salaryTo": {
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991,
+            "minimum": 0
+          }
+        },
+        "required": [
+          "candidateId",
+          "needId",
+          "message",
+          "contact",
+          "salaryFrom",
+          "salaryTo"
+        ]
+      },
       "CandidateInvitationListDto_Output": {
         "type": "object",
         "properties": {
@@ -2789,7 +2944,13 @@
                 },
                 "status": {
                   "type": "string",
-                  "enum": ["sent", "viewed", "accepted", "declined"]
+                  "enum": [
+                    "sent",
+                    "viewed",
+                    "accepted",
+                    "declined",
+                    "withdrawn"
+                  ]
                 },
                 "createdAt": {
                   "type": "string",
@@ -2874,7 +3035,7 @@
           },
           "status": {
             "type": "string",
-            "enum": ["sent", "viewed", "accepted", "declined"]
+            "enum": ["sent", "viewed", "accepted", "declined", "withdrawn"]
           },
           "createdAt": {
             "type": "string",

@@ -17,6 +17,7 @@ import { CandidatePoolService } from "./candidate-pool.service";
 import { CompanyProfile } from "./company-profile.entity";
 import { HiringNeed } from "./hiring-need.entity";
 import { NeedDismissal } from "./need-dismissal.entity";
+import { NeedFavorite } from "./need-favorite.entity";
 import { RankingClient } from "./ranking.client";
 
 @Injectable()
@@ -28,6 +29,8 @@ export class EmployersService {
     private readonly needs: Repository<HiringNeed>,
     @InjectRepository(NeedDismissal)
     private readonly dismissals: Repository<NeedDismissal>,
+    @InjectRepository(NeedFavorite)
+    private readonly favorites: Repository<NeedFavorite>,
     private readonly pool: CandidatePoolService,
     private readonly ranking: RankingClient,
   ) {}
@@ -94,9 +97,10 @@ export class EmployersService {
 
   async shortlist(userId: string, needId: string): Promise<Shortlist> {
     const need = await this.requireNeed(userId, needId);
-    const [listed, dismissed] = await Promise.all([
+    const [listed, dismissed, favorites] = await Promise.all([
       this.pool.listed(),
       this.dismissedIds(need.id),
+      this.favoriteIds(need.id),
     ]);
     const candidates = await this.pool.snapshots(
       this.pool.eligible(need, listed),
@@ -115,6 +119,7 @@ export class EmployersService {
         risks: result?.risks ?? [],
         breakdown: result?.breakdown ?? [],
         dismissed: dismissed.has(candidate.id),
+        favorite: favorites.has(candidate.id),
       };
     });
     items.sort((left, right) => {
@@ -147,6 +152,24 @@ export class EmployersService {
     return this.shortlist(userId, needId);
   }
 
+  async setFavorite(
+    userId: string,
+    needId: string,
+    candidateProfileId: string,
+    favorite: boolean,
+  ): Promise<Shortlist> {
+    const need = await this.requireNeed(userId, needId);
+    if (favorite) {
+      await this.favorites.upsert({ needId: need.id, candidateProfileId }, [
+        "needId",
+        "candidateProfileId",
+      ]);
+    } else {
+      await this.favorites.delete({ needId: need.id, candidateProfileId });
+    }
+    return this.shortlist(userId, needId);
+  }
+
   async requireNeed(userId: string, id: string): Promise<HiringNeed> {
     // Чужую потребность не отдаём: для работодателя её просто нет.
     const need = await this.needs.findOne({ where: { id, userId } });
@@ -159,6 +182,15 @@ export class EmployersService {
   async companyName(userId: string): Promise<string | null> {
     const company = await this.companies.findOne({ where: { userId } });
     return company?.name ?? null;
+  }
+
+  private async favoriteIds(needId: string): Promise<Set<string>> {
+    const rows = await this.favorites.find({ where: { needId } });
+    return new Set(
+      rows.map((row) => {
+        return row.candidateProfileId;
+      }),
+    );
   }
 
   private async dismissedIds(needId: string): Promise<Set<string>> {

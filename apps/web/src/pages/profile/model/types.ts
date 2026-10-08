@@ -21,6 +21,10 @@ export type ContactValues = {
   desiredSalaryFrom: number | "";
   workFormats: string[];
   searchStatus: string;
+  showExperience: boolean;
+  showSalary: boolean;
+  showFsp: boolean;
+  showUnverifiedSkills: boolean;
 };
 
 export type SkillsFormValues = {

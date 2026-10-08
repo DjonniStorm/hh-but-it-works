@@ -79,7 +79,9 @@ export const CandidateInvitationCard = observer(
               <Text c="dimmed" size="sm">
                 {invitation.status === InvitationStatus.Accepted
                   ? "Компания видит ваш контакт и свяжется с вами"
-                  : "Вы отказались от этого предложения"}
+                  : invitation.status === InvitationStatus.Withdrawn
+                    ? "Компания отозвала приглашение"
+                    : "Вы отказались от этого предложения"}
               </Text>
             )}
           </Group>

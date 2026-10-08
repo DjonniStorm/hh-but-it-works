@@ -85,6 +85,10 @@ export const candidateProfileSchema = z.object({
   desiredSalaryFrom: z.number().int().positive().nullable(),
   workFormats: z.array(workFormatSchema),
   searchStatus: searchStatusSchema,
+  showExperience: z.boolean(),
+  showSalary: z.boolean(),
+  showFsp: z.boolean(),
+  showUnverifiedSkills: z.boolean(),
   listed: z.boolean(),
   // Итог теста. Меняет его только попытка, форма профиля их не шлёт.
   verifiedGrade: gradeSchema.nullable(),
@@ -120,6 +124,10 @@ export const saveContactsSchema = z.object({
   desiredSalaryFrom: optionalSalarySchema,
   workFormats: z.array(workFormatSchema).max(3),
   searchStatus: searchStatusSchema,
+  showExperience: z.boolean(),
+  showSalary: z.boolean(),
+  showFsp: z.boolean(),
+  showUnverifiedSkills: z.boolean(),
 });
 
 export const saveSkillSchema = z.union([
@@ -307,6 +315,7 @@ export const matchSchema = z.object({
   risks: z.array(z.string()),
   breakdown: z.array(matchBreakdownSchema),
   dismissed: z.boolean(),
+  favorite: z.boolean(),
 });
 
 export const shortlistSchema = z.object({
