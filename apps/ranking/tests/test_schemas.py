@@ -168,3 +168,33 @@ def test_every_example_payload_has_a_companion_negative_case():
         endpoint = "/career/analyze" if "career" in positive else "/rank"
         response = client.post(endpoint, json=payload)
         assert response.status_code == 422, negative
+
+
+def test_grade_confidence_must_be_a_number():
+    payload = {
+        "vacancy": need().model_dump(mode="json"),
+        "candidates": [raw_candidate(gradeConfidence=None)],
+    }
+    status, _ = rank(payload)
+    assert status == 422
+
+
+def test_negative_experience_is_rejected():
+    payload = {
+        "vacancy": need().model_dump(mode="json"),
+        "candidates": [raw_candidate(experienceYears=-1)],
+    }
+    status, _ = rank(payload)
+    assert status == 422
+
+
+def test_emoji_and_whitespace_in_identifiers_do_not_break_ranking():
+    payload = {
+        "vacancy": need(id="vac 🚀", specialization="backend").model_dump(mode="json"),
+        "candidates": [
+            raw_candidate(id="кандидат 👨‍💻", specialization=" backend "),
+        ],
+    }
+    status, body = rank(payload)
+    assert status == 200
+    assert body["results"][0]["eligible"] is True

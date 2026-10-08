@@ -1,0 +1,73 @@
+{
+  "hiringNeed": {
+    "id": "need-backend-junior",
+    "specialization": "backend",
+    "gradeMin": "junior",
+    "gradeMax": "middle",
+    "mustSkills": ["python", "fastapi", "postgresql"],
+    "niceSkills": ["docker", "redis"],
+    "competencyWeights": {
+      "databases": 0.6,
+      "testing": 0.4
+    },
+    "experienceMin": 0.5,
+    "salaryMin": 120000,
+    "salaryMax": 200000,
+    "workModes": ["remote"],
+    "strictSalary": true,
+    "strictWorkMode": true
+  },
+  "candidates": [
+    {
+      "id": "candidate-1",
+      "specialization": "backend",
+      "claimedGrade": "junior",
+      "verifiedGrade": "junior",
+      "gradeConfidence": 0.9,
+      "experienceYears": 1.1,
+      "skills": [
+        {
+          "id": "python",
+          "verified": true,
+          "verificationState": "verified",
+          "level": 0.9,
+          "confidence": 0.9
+        },
+        {
+          "id": "fastapi",
+          "verified": true,
+          "verificationState": "verified",
+          "level": 0.85,
+          "confidence": 0.9
+        },
+        {
+          "id": "postgresql",
+          "verified": false,
+          "verificationState": "queued",
+          "level": 0.7,
+          "confidence": 0.65
+        }
+      ],
+      "competencies": {
+        "databases": 0.72,
+        "testing": 0.68
+      },
+      "assessmentScore": 1.2,
+      "fspEvidence": [
+        {
+          "language": "python",
+          "title": "Открытый чемпионат",
+          "year": 2026,
+          "score": 0.8
+        }
+      ],
+      "preferences": {
+        "salaryMin": 130000,
+        "workModes": ["remote"],
+        "targetSpecializations": ["backend"]
+      },
+      "availability": "actively_looking",
+      "profileFreshness": 0.95
+    }
+  ]
+}

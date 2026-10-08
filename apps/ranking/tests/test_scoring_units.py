@@ -404,3 +404,41 @@ def test_rank_candidates_is_stable_for_equal_scores():
 
 def test_rank_candidates_returns_empty_list_for_empty_input():
     assert rank_candidates([], need()) == []
+
+
+def test_salary_inverted_candidate_range_is_handled_by_min_edge():
+    # Схема не валидирует порядок у кандидата: логика опирается на salaryMin,
+    # поэтому перевёрнутый диапазон не роняет сервис и не выдаёт NaN.
+    inverted_high = candidate(preferences={"salaryMin": 500000, "salaryMax": 100000})
+    inverted_low = candidate(preferences={"salaryMin": 100000, "salaryMax": 500000})
+
+    assert round(_salary_fit(inverted_high, need()), 6) == round(180000 / 500000 * 0.70, 6)
+    assert _salary_fit(inverted_low, need()) == 1.0
+    assert 0.0 <= _salary_fit(inverted_high, need()) <= 1.0
+
+
+def test_best_skill_reverse_relation_is_discounted():
+    # Кандидат знает fastapi, требуется python: обратная связь идёт с коэффициентом 0.8.
+    holder = candidate(skills=[{"id": "fastapi", "verified": True, "level": 1.0, "confidence": 1.0}])
+    forward = _best_skill_score("fastapi", holder)
+    reverse = _best_skill_score("python", holder)
+    assert forward == pytest.approx(1.0)
+    assert reverse == pytest.approx(0.68 * 0.8)
+
+
+def test_personalization_mixes_skill_and_competency_boosts():
+    only_skill = _personalization_fit(candidate(), need(), RankingContext(skillBoosts={"python": 1.0}))
+    mixed = _personalization_fit(
+        candidate(),
+        need(),
+        RankingContext(skillBoosts={"python": 1.0}, competencyBoosts={"databases": 1.0}),
+    )
+    only_competency = _personalization_fit(
+        candidate(),
+        need(),
+        RankingContext(competencyBoosts={"databases": 1.0}),
+    )
+    assert only_skill != mixed
+    assert only_competency != mixed
+    # Все три комбинации остаются в пределах шкалы.
+    assert all(0.0 <= value <= 1.0 for value in (only_skill, mixed, only_competency))
