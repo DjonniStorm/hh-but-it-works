@@ -27,7 +27,7 @@ src/
   main.ts, swagger.ts, openapi.ts
   health.controller.ts     GET /health
   common/auth/             JWT guard, roles guard, @CurrentUser, @Roles
-  common/mail/             MailService: пишет ссылку в лог, SMTP нет
+  common/mail/             MailService (nodemailer) и шаблоны писем в letters/
   modules/
     users/                 User entity
     auth/                  register, confirm, confirm/resend, login, refresh, logout, me + session store в Redis

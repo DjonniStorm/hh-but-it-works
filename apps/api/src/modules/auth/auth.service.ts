@@ -55,7 +55,8 @@ export class AuthService {
     // Минута отсчитывается и от регистрации: сразу после неё повтор не нужен.
     await this.sessions.claimConfirmSend(email);
     const link = await this.createConfirmationLink(user.id);
-    await this.mail.sendConfirmation(email, link);
+    // Письмо уходит в фоне, как уведомления о приглашениях: регистрация не ждёт SMTP.
+    void this.mail.sendConfirmation(email, link);
     return toPublicUser(user);
   }
 

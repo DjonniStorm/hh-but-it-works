@@ -1,9 +1,6 @@
-import {
-  type Letter,
-  automaticFootnote,
-  formatSalary,
-  renderLetter,
-} from "./layout";
+import { formatSalary } from "@hh/contracts";
+
+import { type Letter, automaticFootnote, renderLetter } from "./layout";
 
 export type InvitationReceived = {
   companyName: string;
