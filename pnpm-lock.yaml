@@ -247,6 +247,9 @@ importers:
       nestjs-zod:
         specifier: ^5.5.0
         version: 5.5.0(@nestjs/common@11.2.7(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/swagger@11.4.7(@nestjs/common@11.2.7(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.2.7)(reflect-metadata@0.2.2))(rxjs@7.8.2)(zod@4.6.5)
+      nodemailer:
+        specifier: ^10.0.15
+        version: 10.0.15
       passport:
         specifier: ^0.7.0
         version: 0.7.0
@@ -2778,6 +2781,10 @@ packages:
   node-releases@2.0.57:
     resolution: {integrity: sha512-kQK9LGGFiHtrWiNhZtA7Qbw17AQz+dmsEKODRIVTXA9+e5MS/2gZEBhYJt13GrAz5/IOZKddH/0Z3TP/Zgo+yw==}
     engines: {node: '>=18'}
+
+  nodemailer@10.0.15:
+    resolution: {integrity: sha512-EUqp5PhtcsYXs9Fq/lS7s/8zlTrnBqmzZWzFFROrNikMiz+om/YRKMwqN907t+0A1KKyT8jd39CBUbFZmaZmcA==}
+    engines: {node: '>=20.0.0'}
 
   nuqs@2.10.1:
     resolution: {integrity: sha512-7lPZrPJVOsD0VvfQSKtodYBBPGPLsLzkFU8ueYIap9yMMJvSw6UC12p8luA5NW7aKe7AbPHKxcxb3OluH6iAJA==}
@@ -6067,6 +6074,8 @@ snapshots:
   node-gyp-build@4.8.4: {}
 
   node-releases@2.0.57: {}
+
+  nodemailer@10.0.15: {}
 
   nuqs@2.10.1(react-router@8.4.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0):
     dependencies:

@@ -46,7 +46,7 @@ export class AuthService {
     });
     const token = randomBytes(32).toString("base64url");
     await this.sessions.saveEmailConfirm(token, user.id);
-    this.mail.sendConfirmation(email, this.confirmationLink(token));
+    await this.mail.sendConfirmation(email, this.confirmationLink(token));
     return toPublicUser(user);
   }
 

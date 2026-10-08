@@ -25,6 +25,7 @@
     "bullmq": "^6.3.11",
     "ioredis": "^5.11.1",
     "nestjs-zod": "^5.5.0",
+    "nodemailer": "^10.0.15",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.23.1",

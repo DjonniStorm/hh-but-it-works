@@ -2,7 +2,7 @@
 
 pnpm workspace. `apps/web` — Vite, React, Mantine, MobX, react-router. `apps/api` — Nest, TypeORM, Postgres, Redis, BullMQ, Swagger. `packages/types` — enum и общие типы. `packages/contracts` — Zod-схемы запросов и ответов, их же ест API. `apps/mock` и `apps/ranking` к текущей авторизации не относятся.
 
-Доменные модули API лежат в `apps/api/src/modules`. Общее (`common/auth`, почта) и конфиг приложения — в `apps/api/src`, не внутри модуля. Новые модули не заводить, пока их не согласовали. Пользователь живёт в Postgres. Refresh и токен подтверждения почты — ключи в Redis, не таблицы. SMTP нет: `MailService` пишет ссылку в лог. Ссылка ведёт на веб: `WEB_URL/auth/confirm?token=...`.
+Доменные модули API лежат в `apps/api/src/modules`. Общее (`common/auth`, почта) и конфиг приложения — в `apps/api/src`, не внутри модуля. Новые модули не заводить, пока их не согласовали. Пользователь живёт в Postgres. Refresh и токен подтверждения почты — ключи в Redis, не таблицы. Почта — `common/mail`, nodemailer. Без `SMTP_HOST` письма не уходят, `MailService` пишет ссылку в лог. Локально — Mailpit из `infra/dev` (`SMTP_HOST=localhost`, `SMTP_PORT=1025`, ящик на `http://localhost:8025`), настоящая отправка — Яндекс, креды только в своём `apps/api/.env`. Ссылка ведёт на веб: `WEB_URL/auth/confirm?token=...`.
 
 Swagger только у запущенного Nest: `http://localhost:3000/docs`. В SPA его нет.
 
