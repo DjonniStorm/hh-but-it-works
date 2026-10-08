@@ -1,3 +1,4 @@
+import { reasonText } from "@/shared/lib/labels";
 import { reasonColor } from "@/shared/theme";
 import { List, Stack, Text } from "@mantine/core";
 
@@ -31,7 +32,7 @@ export const ReasonList = ({
         icon={<Text c={reasonColor[kind]}>{reasonMark[kind]}</Text>}
       >
         {items.map((item) => {
-          return <List.Item key={item}>{item}</List.Item>;
+          return <List.Item key={item}>{reasonText(item)}</List.Item>;
         })}
       </List>
     </Stack>

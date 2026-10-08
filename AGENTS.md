@@ -66,3 +66,25 @@ const form = useForm({
 - `model` — хелперы, типы и константы экрана, без разметки
 
 Пример: `pages/profile/ui/ProfilePage.tsx`, опции селектов — `pages/profile/model`.
+
+## Документация
+
+Индекс всех доков — [`docs/README.md`](docs/README.md). Обязательно до начала работы:
+
+- [`docs/dev/AGENT_HANDOFF.md`](docs/dev/AGENT_HANDOFF.md) — системный контекст, команды, подводные камни, что нельзя делать.
+- [`docs/dev/architecture.md`](docs/dev/architecture.md), [`docs/dev/model.md`](docs/dev/model.md) — схема и модель данных.
+- [`docs/dev/testing-validation.md`](docs/dev/testing-validation.md) — как устроены тесты кандидатов.
+
+README в каждой поддиректории (`apps/*`, `packages/*`, `infra/`, `docs/`) описывает, что там лежит и как запускается:
+
+| Где                           | Что                                                                                |
+| ----------------------------- | ---------------------------------------------------------------------------------- |
+| `apps/README.md`              | карта приложений и связи между ними                                                |
+| `apps/api/README.md`          | модули, эндпоинты, env, интеграция с ranking и FSP                                 |
+| `apps/web/README.md`          | структура, роуты, сторы, подборка в UI                                             |
+| `apps/mock/README.md`         | мок реестра ФСП и правило синхронизации с сидом                                    |
+| `apps/ranking/README.md`      | спека сервиса, формулы, коды причин                                                |
+| `apps/ranking/HANDOFF.md`     | **что уже сделано по рекомендательной системе**: статус, системный анализ, хэндофф |
+| `apps/ranking/INTEGRATION.md` | форматы контракта Nest ↔ `/rank`                                                   |
+| `packages/README.md`          | общие пакеты и правило «кто что импортирует»                                       |
+| `infra/README.md`             | compose, окружения, сборка контейнера ranking                                      |
