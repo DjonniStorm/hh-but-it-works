@@ -3,6 +3,8 @@ import { randomBytes } from "node:crypto";
 import {
   ConflictException,
   ForbiddenException,
+  HttpException,
+  HttpStatus,
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
@@ -13,7 +15,13 @@ import { MailService } from "../../common/mail/mail.service";
 import { PublicUser, toPublicUser } from "../users/public-user";
 import { User } from "../users/user.entity";
 import { UsersService } from "../users/users.service";
-import { ConfirmEmailDto, LoginDto, RefreshDto, RegisterDto } from "./dto";
+import {
+  ConfirmEmailDto,
+  LoginDto,
+  RefreshDto,
+  RegisterDto,
+  ResendConfirmationDto,
+} from "./dto";
 import { SessionStore } from "./session.store";
 
 type Session = {
@@ -44,11 +52,32 @@ export class AuthService {
       password: input.password,
       role: input.role,
     });
-    const token = randomBytes(32).toString("base64url");
-    await this.sessions.saveEmailConfirm(token, user.id);
+    // Минута отсчитывается и от регистрации: сразу после неё повтор не нужен.
+    await this.sessions.claimConfirmSend(email);
+    const link = await this.createConfirmationLink(user.id);
     // Письмо уходит в фоне, как уведомления о приглашениях: регистрация не ждёт SMTP.
-    void this.mail.sendConfirmation(email, this.confirmationLink(token));
+    void this.mail.sendConfirmation(email, link);
     return toPublicUser(user);
+  }
+
+  // Ответ одинаковый для любой почты. Лимит считается до поиска пользователя,
+  // поэтому и 429 не говорит, есть ли такой адрес.
+  async resendConfirmation(input: ResendConfirmationDto): Promise<void> {
+    const email = normalizeEmail(input.email);
+    if (!(await this.sessions.claimConfirmSend(email))) {
+      throw new HttpException(
+        "Письмо уже отправлено, повторить можно через минуту",
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+    const user = await this.users.findByEmail(email);
+    if (!user || user.emailVerifiedAt) {
+      return;
+    }
+    const link = await this.createConfirmationLink(user.id);
+    // SMTP не ждём: по времени ответа тоже не отличить существующий адрес.
+    // sendConfirmation сам ловит и пишет в лог ошибку отправки.
+    void this.mail.sendConfirmation(email, link);
   }
 
   async confirmEmail(input: ConfirmEmailDto): Promise<PublicUser> {
@@ -118,6 +147,13 @@ export class AuthService {
     } catch {
       return null;
     }
+  }
+
+  // Прежняя ссылка остаётся рабочей до конца своих суток.
+  private async createConfirmationLink(userId: string): Promise<string> {
+    const token = randomBytes(32).toString("base64url");
+    await this.sessions.saveEmailConfirm(token, userId);
+    return this.confirmationLink(token);
   }
 
   private confirmationLink(token: string): string {

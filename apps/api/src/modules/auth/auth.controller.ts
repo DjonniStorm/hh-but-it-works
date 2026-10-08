@@ -6,7 +6,11 @@ import {
   Post,
   UseGuards,
 } from "@nestjs/common";
-import { ApiBearerAuth, ApiNoContentResponse } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiNoContentResponse,
+  ApiTooManyRequestsResponse,
+} from "@nestjs/swagger";
 import { ZodResponse } from "nestjs-zod";
 
 import { CurrentUser } from "../../common/auth/current-user.decorator";
@@ -20,6 +24,7 @@ import {
   PublicUserDto,
   RefreshDto,
   RegisterDto,
+  ResendConfirmationDto,
   SessionDto,
 } from "./dto";
 
@@ -38,6 +43,15 @@ export class AuthController {
   @ZodResponse({ status: 200, type: PublicUserDto })
   confirm(@Body() body: ConfirmEmailDto) {
     return this.auth.confirmEmail(body);
+  }
+
+  // Ответ одинаковый для любой почты: по нему не узнать, кто зарегистрирован.
+  @Post("confirm/resend")
+  @HttpCode(204)
+  @ApiNoContentResponse()
+  @ApiTooManyRequestsResponse({ description: "Письмо уже отправлено" })
+  resendConfirmation(@Body() body: ResendConfirmationDto) {
+    return this.auth.resendConfirmation(body);
   }
 
   @Post("login")
