@@ -89,6 +89,7 @@ function mapMatch(match: ShortlistDtoOutput["items"][number]): Match {
           level: skill.level ? oneOf(SkillLevel, skill.level) : null,
           verification: oneOf(SkillVerification, skill.verification),
           score: skill.score,
+          verifiedAt: skill.verifiedAt,
         };
       }),
       assessmentScore: candidate.assessmentScore,
@@ -111,6 +112,7 @@ function mapMatch(match: ShortlistDtoOutput["items"][number]): Match {
       return { ...item, group: oneOf(matchGroups, item.group) };
     }),
     dismissed: match.dismissed,
+    favorite: match.favorite,
   };
 }
 

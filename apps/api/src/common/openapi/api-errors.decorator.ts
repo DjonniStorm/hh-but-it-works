@@ -6,7 +6,7 @@ import { apiErrorSchema } from "@hh/contracts";
 
 export class ApiErrorDto extends createZodDto(apiErrorSchema) {}
 
-type ErrorStatus = 400 | 401 | 403 | 404 | 409 | 429 | 503;
+type ErrorStatus = 400 | 401 | 403 | 404 | 409 | 422 | 429 | 503;
 
 // Тексты для 400, которые повторяются у многих ручек.
 export const invalidBody =

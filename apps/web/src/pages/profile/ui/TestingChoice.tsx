@@ -5,17 +5,20 @@ export const TestingChoice = ({
   index,
   label,
   selected,
+  mode,
   onSelect,
 }: {
   index: number;
   label: string;
   selected: boolean;
+  mode: "radio" | "check";
   onSelect: () => void;
 }) => {
   return (
     <UnstyledButton
       type="button"
-      aria-pressed={selected}
+      role={mode === "radio" ? "radio" : "checkbox"}
+      aria-checked={selected}
       onClick={onSelect}
       style={{
         display: "flex",
@@ -41,7 +44,23 @@ export const TestingChoice = ({
         },
       }}
     >
-      <span style={{ width: 24 }}>{index + 1}</span>
+      {mode === "radio" ? (
+        <span style={{ width: 24 }}>{index + 1}</span>
+      ) : (
+        // Квадрат, не цифра: цифра читается как единственный номер.
+        <span
+          aria-hidden
+          style={{
+            width: 18,
+            height: 18,
+            flexShrink: 0,
+            background: selected ? "var(--mantine-color-fsp-6)" : surfaceColor,
+            border: selected
+              ? "1px solid var(--mantine-color-fsp-6)"
+              : `1px solid ${fieldBorderColor}`,
+          }}
+        />
+      )}
       <span>{label}</span>
     </UnstyledButton>
   );

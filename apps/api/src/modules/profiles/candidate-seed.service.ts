@@ -5,7 +5,7 @@ import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
-import { Role } from "@hh/types";
+import { Role, SkillVerification } from "@hh/types";
 
 import { UsersService } from "../users/users.service";
 import { CandidateProfile } from "./candidate-profile.entity";
@@ -124,6 +124,10 @@ export class CandidateSeedService implements OnApplicationBootstrap {
           skillId,
           level: skill.level,
           verification: skill.verification,
+          verifiedAt:
+            skill.verification === SkillVerification.Unverified
+              ? null
+              : new Date("2026-01-15T00:00:00.000Z"),
         }),
       );
     }

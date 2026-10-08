@@ -18,8 +18,13 @@ export function mapCandidateProfile(profile: {
   linkedin: string | null;
   website: string | null;
   desiredSalaryFrom: number | null;
+  experienceYears: number | null;
   workFormats: string[];
   searchStatus: string;
+  showExperience: boolean;
+  showSalary: boolean;
+  showFsp: boolean;
+  showUnverifiedSkills: boolean;
   listed: boolean;
   verifiedGrade: string | null;
   verifiedAt: string | null;
@@ -31,6 +36,7 @@ export function mapCandidateProfile(profile: {
     title: string;
     level: string | null;
     verification: string | null;
+    verifiedAt: string | null;
   }[];
 }): CandidateProfile {
   return {
@@ -43,8 +49,13 @@ export function mapCandidateProfile(profile: {
     linkedin: profile.linkedin,
     website: profile.website,
     desiredSalaryFrom: profile.desiredSalaryFrom,
+    experienceYears: profile.experienceYears,
     workFormats: profile.workFormats.map(mapWorkFormat),
     searchStatus: mapSearchStatus(profile.searchStatus),
+    showExperience: profile.showExperience,
+    showSalary: profile.showSalary,
+    showFsp: profile.showFsp,
+    showUnverifiedSkills: profile.showUnverifiedSkills,
     listed: profile.listed,
     verifiedGrade: mapGrade(profile.verifiedGrade),
     verifiedAt: profile.verifiedAt,
@@ -57,6 +68,7 @@ export function mapCandidateProfile(profile: {
         title: skill.title,
         level: mapSkillLevel(skill.level),
         verification: mapVerification(skill.verification),
+        verifiedAt: skill.verifiedAt,
       };
     }),
   };

@@ -15,6 +15,7 @@ export function assessedFromProfile(
         title: skill.title,
         level: skill.level,
         verification: skill.verification,
+        verifiedAt: skill.verifiedAt,
       },
     ];
   });

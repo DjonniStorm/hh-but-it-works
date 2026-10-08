@@ -90,6 +90,7 @@ export const profileSkillSchema = z.object({
   title: z.string(),
   level: skillLevelSchema.nullable(),
   verification: skillVerificationSchema.nullable(),
+  verifiedAt: z.iso.datetime().nullable(),
 });
 
 const linkField = z.string().trim().max(120, "Слишком длинная ссылка");
@@ -105,8 +106,13 @@ export const candidateProfileSchema = z.object({
   website: z.string().max(120).nullable(),
   // Ожидания кандидата: по ним подборка сверяет вилку и формат работодателя.
   desiredSalaryFrom: z.number().int().positive().nullable(),
+  experienceYears: z.number().min(0).nullable(),
   workFormats: z.array(workFormatSchema),
   searchStatus: searchStatusSchema,
+  showExperience: z.boolean(),
+  showSalary: z.boolean(),
+  showFsp: z.boolean(),
+  showUnverifiedSkills: z.boolean(),
   listed: z.boolean(),
   // Итог теста. Меняет его только попытка, форма профиля их не шлёт.
   verifiedGrade: gradeSchema.nullable(),
@@ -130,6 +136,20 @@ const optionalSalarySchema = z
     return value === "" ? null : value;
   });
 
+// Пустое поле стажа в форме — "", на сервер уходит null.
+const optionalYearsSchema = z
+  .union([
+    z.literal(""),
+    z
+      .number("Укажите стаж")
+      .min(0, "Стаж не меньше нуля")
+      .max(40, "Стаж не больше 40 лет"),
+  ])
+  .nullable()
+  .transform((value) => {
+    return value === "" ? null : value;
+  });
+
 export const saveContactsSchema = z.object({
   displayName: z.string().trim().min(1, "Укажите имя"),
   specialization: specializationSchema,
@@ -140,8 +160,13 @@ export const saveContactsSchema = z.object({
   linkedin: linkField,
   website: linkField,
   desiredSalaryFrom: optionalSalarySchema,
+  experienceYears: optionalYearsSchema,
   workFormats: z.array(workFormatSchema).max(3),
   searchStatus: searchStatusSchema,
+  showExperience: z.boolean(),
+  showSalary: z.boolean(),
+  showFsp: z.boolean(),
+  showUnverifiedSkills: z.boolean(),
 });
 
 export const saveSkillSchema = z.union([
@@ -165,6 +190,21 @@ export const saveSkillsSchema = z.object({
 
 export const saveProfileSchema = saveContactsSchema.extend({
   skills: saveSkillsSchema.shape.skills,
+});
+
+// Черновик из текста резюме. В профиль не пишется, пока кандидат не сохранит форму.
+export const resumeDraftSchema = z.object({
+  displayName: z.string().max(80).nullable(),
+  experienceYears: z.number().min(0).max(40).nullable(),
+  claimedGrade: gradeSchema.nullable(),
+  telegram: z.string().max(120).nullable(),
+  github: z.string().max(120).nullable(),
+  skills: z.array(
+    z.object({
+      slug: z.string(),
+      title: z.string(),
+    }),
+  ),
 });
 
 // Модель работодателя: профиль компании, потребности, подборка, приглашения.
@@ -275,6 +315,7 @@ export const candidateSkillSchema = z.object({
   level: skillLevelSchema.nullable(),
   verification: skillVerificationSchema,
   score: z.number().min(0).max(100).nullable(),
+  verifiedAt: z.iso.datetime().nullable(),
 });
 
 export const fspAchievementSchema = z.object({
@@ -329,6 +370,7 @@ export const matchSchema = z.object({
   risks: z.array(z.string()),
   breakdown: z.array(matchBreakdownSchema),
   dismissed: z.boolean(),
+  favorite: z.boolean(),
 });
 
 export const shortlistSchema = z.object({
@@ -414,7 +456,16 @@ export const assessmentItemKindSchema = z.enum([
   "order",
 ]);
 
-export const codeLangSchema = z.enum(["typescript", "dockerfile", "sql"]);
+export const codeLangSchema = z.enum([
+  "typescript",
+  "dockerfile",
+  "sql",
+  "python",
+  "csharp",
+  "go",
+  "java",
+  "tsx",
+]);
 
 export const startAssessmentSchema = z.object({
   grade: gradeSchema,
@@ -523,6 +574,7 @@ export type ValidationIssue = z.infer<typeof validationIssueSchema>;
 export type ApiError = z.infer<typeof apiErrorSchema>;
 export type CandidateProfile = z.infer<typeof candidateProfileSchema>;
 export type SaveProfileInput = z.infer<typeof saveProfileSchema>;
+export type ResumeDraft = z.infer<typeof resumeDraftSchema>;
 export type CompanyProfile = z.infer<typeof companyProfileSchema>;
 export type HiringNeedInput = z.infer<typeof hiringNeedInputSchema>;
 export type HiringNeed = z.infer<typeof hiringNeedSchema>;

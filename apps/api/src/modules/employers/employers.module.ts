@@ -16,6 +16,7 @@ import { HiringNeed } from "./hiring-need.entity";
 import { Invitation } from "./invitation.entity";
 import { InvitationsService } from "./invitations.service";
 import { NeedDismissal } from "./need-dismissal.entity";
+import { NeedFavorite } from "./need-favorite.entity";
 import { RankingClient } from "./ranking.client";
 
 @Module({
@@ -24,6 +25,7 @@ import { RankingClient } from "./ranking.client";
       CompanyProfile,
       HiringNeed,
       NeedDismissal,
+      NeedFavorite,
       Invitation,
       // Кандидатов подборка читает из модуля профилей, только на чтение.
       CandidateProfile,

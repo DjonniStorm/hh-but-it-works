@@ -72,8 +72,13 @@ export type CandidateProfileDtoOutput = {
     linkedin: string | null;
     website: string | null;
     desiredSalaryFrom: number | null;
+    experienceYears: number | null;
     workFormats: Array<'office' | 'hybrid' | 'remote'>;
     searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden';
+    showExperience: boolean;
+    showSalary: boolean;
+    showFsp: boolean;
+    showUnverifiedSkills: boolean;
     listed: boolean;
     verifiedGrade: 'junior' | 'middle' | 'senior' | null;
     verifiedAt: string | null;
@@ -85,6 +90,19 @@ export type CandidateProfileDtoOutput = {
         title: string;
         level: 'basic' | 'confident' | 'strong' | null;
         verification: 'unverified' | 'verified' | 'verified_external' | null;
+        verifiedAt: string | null;
+    }>;
+};
+
+export type ResumeDraftDtoOutput = {
+    displayName: string | null;
+    experienceYears: number | null;
+    claimedGrade: 'junior' | 'middle' | 'senior' | null;
+    telegram: string | null;
+    github: string | null;
+    skills: Array<{
+        slug: string;
+        title: string;
     }>;
 };
 
@@ -98,8 +116,13 @@ export type SaveProfileDto = {
     linkedin: string;
     website: string;
     desiredSalaryFrom: '' | number | null;
+    experienceYears: '' | number | null;
     workFormats: Array<'office' | 'hybrid' | 'remote'>;
     searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden';
+    showExperience: boolean;
+    showSalary: boolean;
+    showFsp: boolean;
+    showUnverifiedSkills: boolean;
     skills: Array<{
         skillId: string;
         level: 'basic' | 'confident' | 'strong' | null;
@@ -129,7 +152,7 @@ export type ActiveAttemptDtoOutput = {
         kind: 'single' | 'multiple' | 'numeric' | 'code' | 'order';
         prompt: string;
         code: string | null;
-        lang: 'typescript' | 'dockerfile' | 'sql' | null;
+        lang: 'typescript' | 'dockerfile' | 'sql' | 'python' | 'csharp' | 'go' | 'java' | 'tsx' | null;
         choices: Array<string>;
         seconds: number;
     } | null;
@@ -153,7 +176,7 @@ export type CurrentAttemptDtoOutput = {
             kind: 'single' | 'multiple' | 'numeric' | 'code' | 'order';
             prompt: string;
             code: string | null;
-            lang: 'typescript' | 'dockerfile' | 'sql' | null;
+            lang: 'typescript' | 'dockerfile' | 'sql' | 'python' | 'csharp' | 'go' | 'java' | 'tsx' | null;
             choices: Array<string>;
             seconds: number;
         } | null;
@@ -321,6 +344,7 @@ export type ShortlistDtoOutput = {
                 level: 'basic' | 'confident' | 'strong' | null;
                 verification: 'unverified' | 'verified' | 'verified_external';
                 score: number | null;
+                verifiedAt: string | null;
             }>;
             assessmentScore: number | null;
             profileFreshness: number;
@@ -347,6 +371,7 @@ export type ShortlistDtoOutput = {
             details: Array<string>;
         }>;
         dismissed: boolean;
+        favorite: boolean;
     }>;
 };
 
@@ -359,7 +384,7 @@ export type InvitationListDtoOutput = {
         salaryFrom: number;
         salaryTo: number;
         id: string;
-        status: 'sent' | 'viewed' | 'accepted' | 'declined';
+        status: 'sent' | 'viewed' | 'accepted' | 'declined' | 'withdrawn';
         createdAt: string;
         updatedAt: string;
         companyName: string;
@@ -367,15 +392,6 @@ export type InvitationListDtoOutput = {
         needTitle: string | null;
         candidateContact: string | null;
     }>;
-};
-
-export type InvitationInputDto = {
-    candidateId: string;
-    needId: string | null;
-    message: string;
-    contact: string;
-    salaryFrom: number;
-    salaryTo: number;
 };
 
 export type InvitationDtoOutput = {
@@ -386,13 +402,22 @@ export type InvitationDtoOutput = {
     salaryFrom: number;
     salaryTo: number;
     id: string;
-    status: 'sent' | 'viewed' | 'accepted' | 'declined';
+    status: 'sent' | 'viewed' | 'accepted' | 'declined' | 'withdrawn';
     createdAt: string;
     updatedAt: string;
     companyName: string;
     candidateAlias: string;
     needTitle: string | null;
     candidateContact: string | null;
+};
+
+export type InvitationInputDto = {
+    candidateId: string;
+    needId: string | null;
+    message: string;
+    contact: string;
+    salaryFrom: number;
+    salaryTo: number;
 };
 
 export type CandidateInvitationListDtoOutput = {
@@ -405,7 +430,7 @@ export type CandidateInvitationListDtoOutput = {
         contact: string;
         salaryFrom: number;
         salaryTo: number;
-        status: 'sent' | 'viewed' | 'accepted' | 'declined';
+        status: 'sent' | 'viewed' | 'accepted' | 'declined' | 'withdrawn';
         createdAt: string;
         updatedAt: string;
     }>;
@@ -424,7 +449,7 @@ export type CandidateInvitationDtoOutput = {
     contact: string;
     salaryFrom: number;
     salaryTo: number;
-    status: 'sent' | 'viewed' | 'accepted' | 'declined';
+    status: 'sent' | 'viewed' | 'accepted' | 'declined' | 'withdrawn';
     createdAt: string;
     updatedAt: string;
 };
@@ -679,6 +704,72 @@ export type ProfilesControllerSaveResponses = {
 };
 
 export type ProfilesControllerSaveResponse = ProfilesControllerSaveResponses[keyof ProfilesControllerSaveResponses];
+
+export type ProfilesControllerResumeDraftData = {
+    body: {
+        file: Blob | File;
+    };
+    path?: never;
+    query?: never;
+    url: '/profile/resume-draft';
+};
+
+export type ProfilesControllerResumeDraftErrors = {
+    /**
+     * Файла нет, это не PDF, PDF больше 5 МБ или 10 страниц, не читается
+     */
+    400: ApiErrorDto;
+    /**
+     * Нет access-токена, он истёк или пользователя уже нет
+     */
+    401: ApiErrorDto;
+    /**
+     * Ручка только для роли candidate
+     */
+    403: ApiErrorDto;
+    /**
+     * В PDF нет текста, из которого собрать анкету
+     */
+    422: ApiErrorDto;
+};
+
+export type ProfilesControllerResumeDraftError = ProfilesControllerResumeDraftErrors[keyof ProfilesControllerResumeDraftErrors];
+
+export type ProfilesControllerResumeDraftResponses = {
+    200: ResumeDraftDtoOutput;
+};
+
+export type ProfilesControllerResumeDraftResponse = ProfilesControllerResumeDraftResponses[keyof ProfilesControllerResumeDraftResponses];
+
+export type ProfilesControllerExportPdfData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/profile/export.pdf';
+};
+
+export type ProfilesControllerExportPdfErrors = {
+    /**
+     * Нет access-токена, он истёк или пользователя уже нет
+     */
+    401: ApiErrorDto;
+    /**
+     * Ручка только для роли candidate
+     */
+    403: ApiErrorDto;
+    /**
+     * Анкета ещё не сохранена
+     */
+    404: ApiErrorDto;
+};
+
+export type ProfilesControllerExportPdfError = ProfilesControllerExportPdfErrors[keyof ProfilesControllerExportPdfErrors];
+
+export type ProfilesControllerExportPdfResponses = {
+    200: Blob | File;
+};
+
+export type ProfilesControllerExportPdfResponse = ProfilesControllerExportPdfResponses[keyof ProfilesControllerExportPdfResponses];
 
 export type AssessmentsControllerStartData = {
     body: StartAssessmentDto;
@@ -1134,6 +1225,88 @@ export type EmployersControllerDismissResponses = {
 
 export type EmployersControllerDismissResponse = EmployersControllerDismissResponses[keyof EmployersControllerDismissResponses];
 
+export type EmployersControllerUnfavoriteData = {
+    body?: never;
+    path: {
+        id: string;
+        candidateId: string;
+    };
+    query?: never;
+    url: '/employer/needs/{id}/favorites/{candidateId}';
+};
+
+export type EmployersControllerUnfavoriteErrors = {
+    /**
+     * id в пути — не UUID
+     */
+    400: ApiErrorDto;
+    /**
+     * Нет access-токена, он истёк или пользователя уже нет
+     */
+    401: ApiErrorDto;
+    /**
+     * Ручка только для роли employer
+     */
+    403: ApiErrorDto;
+    /**
+     * Потребности нет или она чужая
+     */
+    404: ApiErrorDto;
+    /**
+     * Сервис ранжирования недоступен
+     */
+    503: ApiErrorDto;
+};
+
+export type EmployersControllerUnfavoriteError = EmployersControllerUnfavoriteErrors[keyof EmployersControllerUnfavoriteErrors];
+
+export type EmployersControllerUnfavoriteResponses = {
+    200: ShortlistDtoOutput;
+};
+
+export type EmployersControllerUnfavoriteResponse = EmployersControllerUnfavoriteResponses[keyof EmployersControllerUnfavoriteResponses];
+
+export type EmployersControllerFavoriteData = {
+    body?: never;
+    path: {
+        id: string;
+        candidateId: string;
+    };
+    query?: never;
+    url: '/employer/needs/{id}/favorites/{candidateId}';
+};
+
+export type EmployersControllerFavoriteErrors = {
+    /**
+     * id в пути — не UUID
+     */
+    400: ApiErrorDto;
+    /**
+     * Нет access-токена, он истёк или пользователя уже нет
+     */
+    401: ApiErrorDto;
+    /**
+     * Ручка только для роли employer
+     */
+    403: ApiErrorDto;
+    /**
+     * Потребности нет или она чужая
+     */
+    404: ApiErrorDto;
+    /**
+     * Сервис ранжирования недоступен
+     */
+    503: ApiErrorDto;
+};
+
+export type EmployersControllerFavoriteError = EmployersControllerFavoriteErrors[keyof EmployersControllerFavoriteErrors];
+
+export type EmployersControllerFavoriteResponses = {
+    200: ShortlistDtoOutput;
+};
+
+export type EmployersControllerFavoriteResponse = EmployersControllerFavoriteResponses[keyof EmployersControllerFavoriteResponses];
+
 export type EmployersControllerListInvitationsData = {
     body?: never;
     path?: never;
@@ -1197,6 +1370,46 @@ export type EmployersControllerCreateInvitationResponses = {
 };
 
 export type EmployersControllerCreateInvitationResponse = EmployersControllerCreateInvitationResponses[keyof EmployersControllerCreateInvitationResponses];
+
+export type EmployersControllerWithdrawData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/employer/invitations/{id}/withdraw';
+};
+
+export type EmployersControllerWithdrawErrors = {
+    /**
+     * id в пути — не UUID
+     */
+    400: ApiErrorDto;
+    /**
+     * Нет access-токена, он истёк или пользователя уже нет
+     */
+    401: ApiErrorDto;
+    /**
+     * Ручка только для роли employer
+     */
+    403: ApiErrorDto;
+    /**
+     * Приглашения нет или оно чужое
+     */
+    404: ApiErrorDto;
+    /**
+     * Кандидат уже ответил или приглашение уже отозвано
+     */
+    409: ApiErrorDto;
+};
+
+export type EmployersControllerWithdrawError = EmployersControllerWithdrawErrors[keyof EmployersControllerWithdrawErrors];
+
+export type EmployersControllerWithdrawResponses = {
+    200: InvitationDtoOutput;
+};
+
+export type EmployersControllerWithdrawResponse = EmployersControllerWithdrawResponses[keyof EmployersControllerWithdrawResponses];
 
 export type CandidateInvitationsControllerListData = {
     body?: never;

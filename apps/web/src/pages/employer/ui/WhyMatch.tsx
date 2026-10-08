@@ -1,6 +1,6 @@
 import { BreakdownGroup } from "@/pages/employer/ui/BreakdownGroup";
 import { FspHistory } from "@/pages/employer/ui/FspHistory";
-import { verificationLabel } from "@/shared/lib/labels";
+import { skillPassport, verificationLabel } from "@/shared/lib/labels";
 import { verificationColor } from "@/shared/theme";
 import { Badge, Divider, Group, SimpleGrid, Stack, Text } from "@mantine/core";
 
@@ -28,6 +28,10 @@ export const WhyMatch = ({ match }: { match: Match }) => {
         </Text>
         <Group gap={6}>
           {match.candidate.skills.map((skill) => {
+            const passport = skillPassport(
+              skill.verification,
+              skill.verifiedAt,
+            );
             return (
               <Badge
                 key={skill.title}
@@ -35,7 +39,8 @@ export const WhyMatch = ({ match }: { match: Match }) => {
                 color={verificationColor[skill.verification]}
                 tt="none"
               >
-                {skill.title} · {verificationLabel[skill.verification]}
+                {skill.title} ·{" "}
+                {passport ?? verificationLabel[skill.verification]}
                 {skill.score === null ? "" : ` ${skill.score}`}
               </Badge>
             );
