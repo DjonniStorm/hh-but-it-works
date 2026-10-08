@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 import {
+  AttemptStatus,
   Grade,
+  IntegrityFlag,
   InvitationStatus,
   Role,
   SearchStatus,
@@ -83,6 +85,11 @@ export const candidateProfileSchema = z.object({
   workFormats: z.array(workFormatSchema),
   searchStatus: searchStatusSchema,
   listed: z.boolean(),
+  // Итог теста. Меняет его только попытка, форма профиля их не шлёт.
+  verifiedGrade: gradeSchema.nullable(),
+  verifiedAt: z.iso.datetime().nullable(),
+  assessmentScore: z.number().int().min(0).max(100).nullable(),
+  nextGradeChangeAt: z.iso.datetime().nullable(),
   skills: z.array(profileSkillSchema),
 });
 
@@ -339,6 +346,147 @@ export const invitationListSchema = z.object({
   items: z.array(invitationSchema),
 });
 
+// Приглашение глазами кандидата: компания и условия, без алиаса и контакта кандидата.
+export const candidateInvitationSchema = z.object({
+  id: z.string(),
+  companyName: z.string(),
+  companyIndustry: z.string(),
+  needTitle: z.string().min(1).nullable(),
+  message: z.string(),
+  // Способ связи с работодателем. Его кандидат видит сразу, свой контакт — открывает принятием.
+  contact: z.string(),
+  ...salaryShape,
+  status: invitationStatusSchema,
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+});
+
+export const candidateInvitationListSchema = z.object({
+  items: z.array(candidateInvitationSchema),
+});
+
+// Отмечаем просмотренными только показанные: пришедшее после загрузки списка остаётся новым.
+export const markInvitationsViewedSchema = z.object({
+  ids: z.array(z.uuid()).min(1),
+});
+
+export const attemptStatusSchema = z.enum(AttemptStatus);
+export const integrityFlagSchema = z.enum(IntegrityFlag);
+
+// Браузер сообщает только то, что видит сам. IP, агент и скорость ответа проверяет сервер.
+export const clientIntegrityFlagSchema = z.enum([
+  IntegrityFlag.TabHidden,
+  IntegrityFlag.WindowBlur,
+  IntegrityFlag.FullscreenExit,
+  IntegrityFlag.FullscreenDenied,
+  IntegrityFlag.Copy,
+]);
+
+export const assessmentItemKindSchema = z.enum([
+  "single",
+  "multiple",
+  "numeric",
+  "code",
+  "order",
+]);
+
+export const codeLangSchema = z.enum(["typescript", "dockerfile", "sql"]);
+
+export const startAssessmentSchema = z.object({
+  grade: gradeSchema,
+});
+
+export const assessmentSectionSchema = z.object({
+  skillId: z.uuid(),
+  title: z.string(),
+  count: z.number().int().positive(),
+});
+
+// Текст вопроса без ответа: верные индексы остаются на сервере.
+export const assessmentItemSchema = z.object({
+  itemId: z.string(),
+  skillId: z.uuid(),
+  kind: assessmentItemKindSchema,
+  prompt: z.string(),
+  code: z.string().max(4000).nullable(),
+  lang: codeLangSchema.nullable(),
+  choices: z.array(z.string()),
+  seconds: z.number().int().positive(),
+});
+
+// item пустой до первого вопроса (план попытки) и после последнего, когда index === total.
+export const activeAttemptSchema = z.object({
+  attemptId: z.uuid(),
+  grade: gradeSchema,
+  sections: z.array(assessmentSectionSchema),
+  index: z.number().int().min(0),
+  total: z.number().int().positive(),
+  item: assessmentItemSchema.nullable(),
+  secondsLeft: z.number().int().min(0).max(3600).nullable(),
+});
+
+export const currentAttemptSchema = z.object({
+  attempt: activeAttemptSchema.nullable(),
+});
+
+// choices: single и code — один индекс, multiple — набор, order — порядок шагов. value — для numeric.
+export const answerAssessmentSchema = z.object({
+  attemptId: z.uuid(),
+  itemId: z.string().min(1),
+  choices: z.array(z.number().int().nonnegative()).max(10),
+  value: z.number().optional(),
+});
+
+export const assessmentEventsSchema = z.object({
+  attemptId: z.uuid(),
+  events: z
+    .array(
+      z.object({
+        type: clientIntegrityFlagSchema,
+        durationMs: z.number().int().min(0).optional(),
+      }),
+    )
+    .min(1)
+    .max(20),
+});
+
+export const assessmentEventsAcceptedSchema = z.object({
+  accepted: z.number().int().min(0),
+});
+
+export const finishAssessmentSchema = z.object({
+  attemptId: z.uuid(),
+});
+
+export const assessmentSectionResultSchema = z.object({
+  skillId: z.uuid(),
+  title: z.string(),
+  score: z.number().int().min(0).max(100),
+  passed: z.boolean(),
+});
+
+export const flagCountSchema = z.object({
+  type: integrityFlagSchema,
+  count: z.number().int().positive(),
+});
+
+export const assessmentResultSchema = z.object({
+  attemptId: z.uuid(),
+  status: attemptStatusSchema,
+  score: z.number().int().min(0).max(100),
+  grade: gradeSchema,
+  integrity: z.number().int().min(0).max(100),
+  flags: z.array(flagCountSchema),
+  sections: z.array(assessmentSectionResultSchema),
+  gradeChanged: z.boolean(),
+  startedAt: z.iso.datetime(),
+  finishedAt: z.iso.datetime(),
+});
+
+export const assessmentHistorySchema = z.object({
+  items: z.array(assessmentResultSchema),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ConfirmEmailInput = z.infer<typeof confirmEmailSchema>;
@@ -364,3 +512,19 @@ export type Shortlist = z.infer<typeof shortlistSchema>;
 export type InvitationInput = z.infer<typeof invitationInputSchema>;
 export type Invitation = z.infer<typeof invitationSchema>;
 export type InvitationList = z.infer<typeof invitationListSchema>;
+export type CandidateInvitation = z.infer<typeof candidateInvitationSchema>;
+export type CandidateInvitationList = z.infer<
+  typeof candidateInvitationListSchema
+>;
+export type MarkInvitationsViewedInput = z.infer<
+  typeof markInvitationsViewedSchema
+>;
+export type StartAssessmentInput = z.infer<typeof startAssessmentSchema>;
+export type AssessmentItem = z.infer<typeof assessmentItemSchema>;
+export type ActiveAttempt = z.infer<typeof activeAttemptSchema>;
+export type CurrentAttempt = z.infer<typeof currentAttemptSchema>;
+export type AnswerAssessmentInput = z.infer<typeof answerAssessmentSchema>;
+export type AssessmentEventsInput = z.infer<typeof assessmentEventsSchema>;
+export type FinishAssessmentInput = z.infer<typeof finishAssessmentSchema>;
+export type AssessmentResult = z.infer<typeof assessmentResultSchema>;
+export type AssessmentHistory = z.infer<typeof assessmentHistorySchema>;

@@ -16,5 +16,6 @@ import { Skill } from "./skill.entity";
   ],
   controllers: [ProfilesController],
   providers: [ProfilesService, CandidateSeedService],
+  exports: [ProfilesService],
 })
 export class ProfilesModule {}

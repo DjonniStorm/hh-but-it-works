@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AuthControllerConfirmData, AuthControllerConfirmResponses, AuthControllerLoginData, AuthControllerLoginResponses, AuthControllerLogoutData, AuthControllerLogoutResponses, AuthControllerMeData, AuthControllerMeResponses, AuthControllerRefreshData, AuthControllerRefreshResponses, AuthControllerRegisterData, AuthControllerRegisterResponses, EmployersControllerCreateInvitationData, EmployersControllerCreateInvitationResponses, EmployersControllerCreateNeedData, EmployersControllerCreateNeedResponses, EmployersControllerDismissData, EmployersControllerDismissResponses, EmployersControllerGetCompanyData, EmployersControllerGetCompanyResponses, EmployersControllerGetNeedData, EmployersControllerGetNeedResponses, EmployersControllerListInvitationsData, EmployersControllerListInvitationsResponses, EmployersControllerListNeedsData, EmployersControllerListNeedsResponses, EmployersControllerRestoreData, EmployersControllerRestoreResponses, EmployersControllerSaveCompanyData, EmployersControllerSaveCompanyResponses, EmployersControllerShortlistData, EmployersControllerShortlistResponses, HealthControllerHealthData, HealthControllerHealthResponses, ProfilesControllerGetData, ProfilesControllerGetResponses, ProfilesControllerSaveData, ProfilesControllerSaveResponses } from './types.gen';
+import type { AssessmentsControllerAnswerData, AssessmentsControllerAnswerResponses, AssessmentsControllerCurrentData, AssessmentsControllerCurrentResponses, AssessmentsControllerEventsData, AssessmentsControllerEventsResponses, AssessmentsControllerFinishData, AssessmentsControllerFinishResponses, AssessmentsControllerHistoryData, AssessmentsControllerHistoryResponses, AssessmentsControllerStartData, AssessmentsControllerStartResponses, AuthControllerConfirmData, AuthControllerConfirmResponses, AuthControllerLoginData, AuthControllerLoginResponses, AuthControllerLogoutData, AuthControllerLogoutResponses, AuthControllerMeData, AuthControllerMeResponses, AuthControllerRefreshData, AuthControllerRefreshResponses, AuthControllerRegisterData, AuthControllerRegisterResponses, CandidateInvitationsControllerAcceptData, CandidateInvitationsControllerAcceptResponses, CandidateInvitationsControllerDeclineData, CandidateInvitationsControllerDeclineResponses, CandidateInvitationsControllerListData, CandidateInvitationsControllerListResponses, CandidateInvitationsControllerMarkViewedData, CandidateInvitationsControllerMarkViewedResponses, EmployersControllerCreateInvitationData, EmployersControllerCreateInvitationResponses, EmployersControllerCreateNeedData, EmployersControllerCreateNeedResponses, EmployersControllerDismissData, EmployersControllerDismissResponses, EmployersControllerGetCompanyData, EmployersControllerGetCompanyResponses, EmployersControllerGetNeedData, EmployersControllerGetNeedResponses, EmployersControllerListInvitationsData, EmployersControllerListInvitationsResponses, EmployersControllerListNeedsData, EmployersControllerListNeedsResponses, EmployersControllerRestoreData, EmployersControllerRestoreResponses, EmployersControllerSaveCompanyData, EmployersControllerSaveCompanyResponses, EmployersControllerShortlistData, EmployersControllerShortlistResponses, HealthControllerHealthData, HealthControllerHealthResponses, ProfilesControllerGetData, ProfilesControllerGetResponses, ProfilesControllerSaveData, ProfilesControllerSaveResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -87,6 +87,58 @@ export const profilesControllerSave = <ThrowOnError extends boolean = false>(opt
     }
 });
 
+export const assessmentsControllerStart = <ThrowOnError extends boolean = false>(options: Options<AssessmentsControllerStartData, ThrowOnError>): RequestResult<AssessmentsControllerStartResponses, unknown, ThrowOnError> => (options.client ?? client).post<AssessmentsControllerStartResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/assessment/attempts',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const assessmentsControllerCurrent = <ThrowOnError extends boolean = false>(options?: Options<AssessmentsControllerCurrentData, ThrowOnError>): RequestResult<AssessmentsControllerCurrentResponses, unknown, ThrowOnError> => (options?.client ?? client).get<AssessmentsControllerCurrentResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/assessment/attempts/current',
+    ...options
+});
+
+export const assessmentsControllerAnswer = <ThrowOnError extends boolean = false>(options: Options<AssessmentsControllerAnswerData, ThrowOnError>): RequestResult<AssessmentsControllerAnswerResponses, unknown, ThrowOnError> => (options.client ?? client).post<AssessmentsControllerAnswerResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/assessment/attempts/answer',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const assessmentsControllerEvents = <ThrowOnError extends boolean = false>(options: Options<AssessmentsControllerEventsData, ThrowOnError>): RequestResult<AssessmentsControllerEventsResponses, unknown, ThrowOnError> => (options.client ?? client).post<AssessmentsControllerEventsResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/assessment/attempts/events',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const assessmentsControllerFinish = <ThrowOnError extends boolean = false>(options: Options<AssessmentsControllerFinishData, ThrowOnError>): RequestResult<AssessmentsControllerFinishResponses, unknown, ThrowOnError> => (options.client ?? client).post<AssessmentsControllerFinishResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/assessment/attempts/finish',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const assessmentsControllerHistory = <ThrowOnError extends boolean = false>(options?: Options<AssessmentsControllerHistoryData, ThrowOnError>): RequestResult<AssessmentsControllerHistoryResponses, unknown, ThrowOnError> => (options?.client ?? client).get<AssessmentsControllerHistoryResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/assessment/attempts/history',
+    ...options
+});
+
 export const employersControllerGetCompany = <ThrowOnError extends boolean = false>(options?: Options<EmployersControllerGetCompanyData, ThrowOnError>): RequestResult<EmployersControllerGetCompanyResponses, unknown, ThrowOnError> => (options?.client ?? client).get<EmployersControllerGetCompanyResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/employer/company',
@@ -157,4 +209,32 @@ export const employersControllerCreateInvitation = <ThrowOnError extends boolean
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+export const candidateInvitationsControllerList = <ThrowOnError extends boolean = false>(options?: Options<CandidateInvitationsControllerListData, ThrowOnError>): RequestResult<CandidateInvitationsControllerListResponses, unknown, ThrowOnError> => (options?.client ?? client).get<CandidateInvitationsControllerListResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/candidate/invitations',
+    ...options
+});
+
+export const candidateInvitationsControllerMarkViewed = <ThrowOnError extends boolean = false>(options: Options<CandidateInvitationsControllerMarkViewedData, ThrowOnError>): RequestResult<CandidateInvitationsControllerMarkViewedResponses, unknown, ThrowOnError> => (options.client ?? client).post<CandidateInvitationsControllerMarkViewedResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/candidate/invitations/viewed',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const candidateInvitationsControllerAccept = <ThrowOnError extends boolean = false>(options: Options<CandidateInvitationsControllerAcceptData, ThrowOnError>): RequestResult<CandidateInvitationsControllerAcceptResponses, unknown, ThrowOnError> => (options.client ?? client).post<CandidateInvitationsControllerAcceptResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/candidate/invitations/{id}/accept',
+    ...options
+});
+
+export const candidateInvitationsControllerDecline = <ThrowOnError extends boolean = false>(options: Options<CandidateInvitationsControllerDeclineData, ThrowOnError>): RequestResult<CandidateInvitationsControllerDeclineResponses, unknown, ThrowOnError> => (options.client ?? client).post<CandidateInvitationsControllerDeclineResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/candidate/invitations/{id}/decline',
+    ...options
 });

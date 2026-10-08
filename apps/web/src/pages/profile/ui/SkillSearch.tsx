@@ -139,9 +139,5 @@ export const SkillSearch = ({
 };
 
 function isSkillLevel(value: string | null): value is SkillLevel {
-  return (
-    value === SkillLevel.Basic ||
-    value === SkillLevel.Confident ||
-    value === SkillLevel.Strong
-  );
+  return Object.values(SkillLevel).includes(value as SkillLevel);
 }

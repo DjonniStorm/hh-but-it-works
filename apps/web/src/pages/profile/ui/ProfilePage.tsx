@@ -6,14 +6,17 @@ import { StoreKey } from "@/app/store/store-key";
 import { profileTabParser } from "@/pages/profile/model/profile-tab";
 import { BackHome } from "@/pages/profile/ui/BackHome";
 import { ProfilePanels } from "@/pages/profile/ui/ProfilePanels";
-import { TestingLobby } from "@/pages/profile/ui/TestingLobby";
+import { TestingTab } from "@/pages/profile/ui/TestingTab";
+import { pageTitle } from "@/shared/router/page-title";
 import { Stack, Tabs, Text, Title } from "@mantine/core";
+import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { useQueryState } from "nuqs";
 
 import { Role } from "@hh/types";
 
 export const ProfilePage = observer(() => {
+  useHead({ title: pageTitle.profile });
   const auth = useStore(StoreKey.Auth);
   const profiles = useStore(StoreKey.Profile);
   const loading = useStore(StoreKey.Loading);
@@ -64,7 +67,7 @@ export const ProfilePage = observer(() => {
             />
           </Tabs.Panel>
           <Tabs.Panel value="testing" style={{ flex: 1, minHeight: 0 }}>
-            <TestingLobby profile={profiles.profile} />
+            <TestingTab profile={profiles.profile} />
           </Tabs.Panel>
         </Tabs>
       ) : loading.visible ? null : (

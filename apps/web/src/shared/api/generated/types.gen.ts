@@ -59,6 +59,10 @@ export type CandidateProfileDtoOutput = {
     workFormats: Array<'office' | 'hybrid' | 'remote'>;
     searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden';
     listed: boolean;
+    verifiedGrade: 'junior' | 'middle' | 'senior' | null;
+    verifiedAt: string | null;
+    assessmentScore: number | null;
+    nextGradeChangeAt: string | null;
     skills: Array<{
         skillId: string;
         slug: string;
@@ -86,6 +90,125 @@ export type SaveProfileDto = {
     } | {
         title: string;
         level: 'basic' | 'confident' | 'strong' | null;
+    }>;
+};
+
+export type StartAssessmentDto = {
+    grade: 'junior' | 'middle' | 'senior';
+};
+
+export type ActiveAttemptDtoOutput = {
+    attemptId: string;
+    grade: 'junior' | 'middle' | 'senior';
+    sections: Array<{
+        skillId: string;
+        title: string;
+        count: number;
+    }>;
+    index: number;
+    total: number;
+    item: {
+        itemId: string;
+        skillId: string;
+        kind: 'single' | 'multiple' | 'numeric' | 'code' | 'order';
+        prompt: string;
+        code: string | null;
+        lang: 'typescript' | 'dockerfile' | 'sql' | null;
+        choices: Array<string>;
+        seconds: number;
+    } | null;
+    secondsLeft: number | null;
+};
+
+export type CurrentAttemptDtoOutput = {
+    attempt: {
+        attemptId: string;
+        grade: 'junior' | 'middle' | 'senior';
+        sections: Array<{
+            skillId: string;
+            title: string;
+            count: number;
+        }>;
+        index: number;
+        total: number;
+        item: {
+            itemId: string;
+            skillId: string;
+            kind: 'single' | 'multiple' | 'numeric' | 'code' | 'order';
+            prompt: string;
+            code: string | null;
+            lang: 'typescript' | 'dockerfile' | 'sql' | null;
+            choices: Array<string>;
+            seconds: number;
+        } | null;
+        secondsLeft: number | null;
+    } | null;
+};
+
+export type AnswerAssessmentDto = {
+    attemptId: string;
+    itemId: string;
+    choices: Array<number>;
+    value?: number;
+};
+
+export type AssessmentEventsDto = {
+    attemptId: string;
+    events: Array<{
+        type: 'tab-hidden' | 'window-blur' | 'fullscreen-exit' | 'fullscreen-denied' | 'copy';
+        durationMs?: number;
+    }>;
+};
+
+export type AssessmentEventsAcceptedDtoOutput = {
+    accepted: number;
+};
+
+export type FinishAssessmentDto = {
+    attemptId: string;
+};
+
+export type AssessmentResultDtoOutput = {
+    attemptId: string;
+    status: 'passed' | 'failed' | 'annulled';
+    score: number;
+    grade: 'junior' | 'middle' | 'senior';
+    integrity: number;
+    flags: Array<{
+        type: 'tab-hidden' | 'window-blur' | 'fullscreen-exit' | 'fullscreen-denied' | 'copy' | 'ip-change' | 'agent-change' | 'fast-answer';
+        count: number;
+    }>;
+    sections: Array<{
+        skillId: string;
+        title: string;
+        score: number;
+        passed: boolean;
+    }>;
+    gradeChanged: boolean;
+    startedAt: string;
+    finishedAt: string;
+};
+
+export type AssessmentHistoryDtoOutput = {
+    items: Array<{
+        attemptId: string;
+        status: 'passed' | 'failed' | 'annulled';
+        score: number;
+        grade: 'junior' | 'middle' | 'senior';
+        integrity: number;
+        flags: Array<{
+            type: 'tab-hidden' | 'window-blur' | 'fullscreen-exit' | 'fullscreen-denied' | 'copy' | 'ip-change' | 'agent-change' | 'fast-answer';
+            count: number;
+        }>;
+        sections: Array<{
+            skillId: string;
+            title: string;
+            score: number;
+            passed: boolean;
+        }>;
+        gradeChanged: boolean;
+        startedAt: string;
+        finishedAt: string;
     }>;
 };
 
@@ -255,6 +378,40 @@ export type InvitationDtoOutput = {
     candidateContact: string | null;
 };
 
+export type CandidateInvitationListDtoOutput = {
+    items: Array<{
+        id: string;
+        companyName: string;
+        companyIndustry: string;
+        needTitle: string | null;
+        message: string;
+        contact: string;
+        salaryFrom: number;
+        salaryTo: number;
+        status: 'sent' | 'viewed' | 'accepted' | 'declined';
+        createdAt: string;
+        updatedAt: string;
+    }>;
+};
+
+export type MarkInvitationsViewedDto = {
+    ids: Array<string>;
+};
+
+export type CandidateInvitationDtoOutput = {
+    id: string;
+    companyName: string;
+    companyIndustry: string;
+    needTitle: string | null;
+    message: string;
+    contact: string;
+    salaryFrom: number;
+    salaryTo: number;
+    status: 'sent' | 'viewed' | 'accepted' | 'declined';
+    createdAt: string;
+    updatedAt: string;
+};
+
 export type HealthControllerHealthData = {
     body?: never;
     path?: never;
@@ -371,6 +528,84 @@ export type ProfilesControllerSaveResponses = {
 };
 
 export type ProfilesControllerSaveResponse = ProfilesControllerSaveResponses[keyof ProfilesControllerSaveResponses];
+
+export type AssessmentsControllerStartData = {
+    body: StartAssessmentDto;
+    path?: never;
+    query?: never;
+    url: '/assessment/attempts';
+};
+
+export type AssessmentsControllerStartResponses = {
+    201: ActiveAttemptDtoOutput;
+};
+
+export type AssessmentsControllerStartResponse = AssessmentsControllerStartResponses[keyof AssessmentsControllerStartResponses];
+
+export type AssessmentsControllerCurrentData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/assessment/attempts/current';
+};
+
+export type AssessmentsControllerCurrentResponses = {
+    200: CurrentAttemptDtoOutput;
+};
+
+export type AssessmentsControllerCurrentResponse = AssessmentsControllerCurrentResponses[keyof AssessmentsControllerCurrentResponses];
+
+export type AssessmentsControllerAnswerData = {
+    body: AnswerAssessmentDto;
+    path?: never;
+    query?: never;
+    url: '/assessment/attempts/answer';
+};
+
+export type AssessmentsControllerAnswerResponses = {
+    200: ActiveAttemptDtoOutput;
+};
+
+export type AssessmentsControllerAnswerResponse = AssessmentsControllerAnswerResponses[keyof AssessmentsControllerAnswerResponses];
+
+export type AssessmentsControllerEventsData = {
+    body: AssessmentEventsDto;
+    path?: never;
+    query?: never;
+    url: '/assessment/attempts/events';
+};
+
+export type AssessmentsControllerEventsResponses = {
+    200: AssessmentEventsAcceptedDtoOutput;
+};
+
+export type AssessmentsControllerEventsResponse = AssessmentsControllerEventsResponses[keyof AssessmentsControllerEventsResponses];
+
+export type AssessmentsControllerFinishData = {
+    body: FinishAssessmentDto;
+    path?: never;
+    query?: never;
+    url: '/assessment/attempts/finish';
+};
+
+export type AssessmentsControllerFinishResponses = {
+    200: AssessmentResultDtoOutput;
+};
+
+export type AssessmentsControllerFinishResponse = AssessmentsControllerFinishResponses[keyof AssessmentsControllerFinishResponses];
+
+export type AssessmentsControllerHistoryData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/assessment/attempts/history';
+};
+
+export type AssessmentsControllerHistoryResponses = {
+    200: AssessmentHistoryDtoOutput;
+};
+
+export type AssessmentsControllerHistoryResponse = AssessmentsControllerHistoryResponses[keyof AssessmentsControllerHistoryResponses];
 
 export type EmployersControllerGetCompanyData = {
     body?: never;
@@ -511,3 +746,59 @@ export type EmployersControllerCreateInvitationResponses = {
 };
 
 export type EmployersControllerCreateInvitationResponse = EmployersControllerCreateInvitationResponses[keyof EmployersControllerCreateInvitationResponses];
+
+export type CandidateInvitationsControllerListData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/candidate/invitations';
+};
+
+export type CandidateInvitationsControllerListResponses = {
+    200: CandidateInvitationListDtoOutput;
+};
+
+export type CandidateInvitationsControllerListResponse = CandidateInvitationsControllerListResponses[keyof CandidateInvitationsControllerListResponses];
+
+export type CandidateInvitationsControllerMarkViewedData = {
+    body: MarkInvitationsViewedDto;
+    path?: never;
+    query?: never;
+    url: '/candidate/invitations/viewed';
+};
+
+export type CandidateInvitationsControllerMarkViewedResponses = {
+    204: void;
+};
+
+export type CandidateInvitationsControllerMarkViewedResponse = CandidateInvitationsControllerMarkViewedResponses[keyof CandidateInvitationsControllerMarkViewedResponses];
+
+export type CandidateInvitationsControllerAcceptData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/candidate/invitations/{id}/accept';
+};
+
+export type CandidateInvitationsControllerAcceptResponses = {
+    200: CandidateInvitationDtoOutput;
+};
+
+export type CandidateInvitationsControllerAcceptResponse = CandidateInvitationsControllerAcceptResponses[keyof CandidateInvitationsControllerAcceptResponses];
+
+export type CandidateInvitationsControllerDeclineData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/candidate/invitations/{id}/decline';
+};
+
+export type CandidateInvitationsControllerDeclineResponses = {
+    200: CandidateInvitationDtoOutput;
+};
+
+export type CandidateInvitationsControllerDeclineResponse = CandidateInvitationsControllerDeclineResponses[keyof CandidateInvitationsControllerDeclineResponses];

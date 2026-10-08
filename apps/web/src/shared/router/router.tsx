@@ -8,6 +8,7 @@ import { NeedNewPage } from "@/pages/employer/ui/NeedNewPage";
 import { NeedPage } from "@/pages/employer/ui/NeedPage";
 import { NeedsPage } from "@/pages/employer/ui/NeedsPage";
 import { HomePage } from "@/pages/home/HomePage";
+import { CandidateInvitationsPage } from "@/pages/invitations/ui/CandidateInvitationsPage";
 import { ProfilePage } from "@/pages/profile/ui/ProfilePage";
 import { TestPage } from "@/pages/test/TestPage";
 import { Navigate, createBrowserRouter } from "react-router";
@@ -31,7 +32,13 @@ export const router = createBrowserRouter([
           { index: true, element: <HomePage /> },
           {
             element: <CandidateRoute />,
-            children: [{ path: ROUTES.PROFILE, element: <ProfilePage /> }],
+            children: [
+              { path: ROUTES.PROFILE, element: <ProfilePage /> },
+              {
+                path: ROUTES.INVITATIONS,
+                element: <CandidateInvitationsPage />,
+              },
+            ],
           },
           {
             element: <EmployerRoute />,

@@ -75,6 +75,26 @@ export class CandidateProfile {
   @Column({ type: "int", nullable: true })
   assessmentScore!: number | null;
 
+  /** Когда подтвердили грейд. От этой даты считается пауза перед сменой. */
+  @Column({ type: "timestamptz", nullable: true })
+  verifiedAt!: Date | null;
+
+  /**
+   * Последний грейд, на который сменилось подтверждение, и когда. От них считается пауза.
+   * Смена специализации их не сбрасывает, в отличие от verifiedGrade и verifiedAt.
+   */
+  @Column({
+    type: "enum",
+    enum: Grade,
+    // Свой тип: общий с verifiedGrade synchronize не сможет удалить на ветке без этой колонки.
+    enumName: "cooldown_grade",
+    nullable: true,
+  })
+  cooldownGrade!: Grade | null;
+
+  @Column({ type: "timestamptz", nullable: true })
+  cooldownFrom!: Date | null;
+
   @Column({ type: "real", nullable: true })
   experienceYears!: number | null;
 

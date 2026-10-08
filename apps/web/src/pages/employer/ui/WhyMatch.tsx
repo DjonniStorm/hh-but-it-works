@@ -10,7 +10,7 @@ import type { Match } from "@hh/contracts";
 export const WhyMatch = ({ match }: { match: Match }) => {
   return (
     <Stack gap="md">
-      {/* Разбор по группам отдаёт сервис ранжирования. Пока он заглушка, групп нет. */}
+      {/* Группы собирает Nest из компонентов ответа apps/ranking. */}
       {match.breakdown.length > 0 ? (
         <>
           <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">

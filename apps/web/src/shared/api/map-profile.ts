@@ -21,6 +21,10 @@ export function mapCandidateProfile(profile: {
   workFormats: string[];
   searchStatus: string;
   listed: boolean;
+  verifiedGrade: string | null;
+  verifiedAt: string | null;
+  assessmentScore: number | null;
+  nextGradeChangeAt: string | null;
   skills: {
     skillId: string;
     slug: string;
@@ -42,6 +46,10 @@ export function mapCandidateProfile(profile: {
     workFormats: profile.workFormats.map(mapWorkFormat),
     searchStatus: mapSearchStatus(profile.searchStatus),
     listed: profile.listed,
+    verifiedGrade: mapGrade(profile.verifiedGrade),
+    verifiedAt: profile.verifiedAt,
+    assessmentScore: profile.assessmentScore,
+    nextGradeChangeAt: profile.nextGradeChangeAt,
     skills: profile.skills.map((skill) => {
       return {
         skillId: skill.skillId,

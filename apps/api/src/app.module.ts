@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
 import { HealthController } from "./health.controller";
+import { AssessmentsModule } from "./modules/assessments/assessments.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { EmployersModule } from "./modules/employers/employers.module";
 import { ProfilesModule } from "./modules/profiles/profiles.module";
@@ -25,6 +26,7 @@ import { UsersModule } from "./modules/users/users.module";
     UsersModule,
     AuthModule,
     ProfilesModule,
+    AssessmentsModule,
     EmployersModule,
     ...(process.env.OPENAPI_EXPORT === "1"
       ? []

@@ -5,6 +5,7 @@ import { CandidateProfile } from "../profiles/candidate-profile.entity";
 import { CandidateSkill } from "../profiles/candidate-skill.entity";
 import { Skill } from "../profiles/skill.entity";
 import { User } from "../users/user.entity";
+import { CandidateInvitationsController } from "./candidate-invitations.controller";
 import { CandidatePoolService } from "./candidate-pool.service";
 import { CompanyProfile } from "./company-profile.entity";
 import { EmployersController } from "./employers.controller";
@@ -30,7 +31,8 @@ import { RankingClient } from "./ranking.client";
       User,
     ]),
   ],
-  controllers: [EmployersController],
+  // Ответ кандидата живёт рядом с приглашениями: те же сущности и правила статусов.
+  controllers: [EmployersController, CandidateInvitationsController],
   providers: [
     EmployersService,
     InvitationsService,

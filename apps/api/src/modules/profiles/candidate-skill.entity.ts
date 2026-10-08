@@ -25,4 +25,8 @@ export class CandidateSkill {
     default: SkillVerification.Unverified,
   })
   verification!: SkillVerification;
+
+  /** Балл теста. Пустой, пока эта попытка навык не подтвердила. */
+  @Column({ type: "int", nullable: true })
+  score!: number | null;
 }

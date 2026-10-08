@@ -1,4 +1,5 @@
 import type {
+  CandidateInvitation,
   CompanyProfile,
   HiringNeed,
   Invitation,
@@ -17,6 +18,7 @@ import {
 } from "@hh/types";
 
 import type {
+  CandidateInvitationDtoOutput,
   CompanyProfileDtoOutput,
   HiringNeedDtoOutput,
   InvitationDtoOutput,
@@ -112,6 +114,15 @@ function mapMatch(match: ShortlistDtoOutput["items"][number]): Match {
 }
 
 export function mapInvitation(invitation: InvitationDtoOutput): Invitation {
+  return {
+    ...invitation,
+    status: oneOf(InvitationStatus, invitation.status),
+  };
+}
+
+export function mapCandidateInvitation(
+  invitation: CandidateInvitationDtoOutput,
+): CandidateInvitation {
   return {
     ...invitation,
     status: oneOf(InvitationStatus, invitation.status),

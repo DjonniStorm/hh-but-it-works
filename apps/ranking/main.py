@@ -1,38 +1,36 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+
+from career import analyze_career
+from schemas import CareerAnalyzeRequest, CareerAnalyzeResponse, RankRequest, RankResponse
+from scoring import MODEL_VERSION, rank_candidates
 
 
-class RankRequest(BaseModel):
-    vacancy: dict
-    candidates: list[dict]
-
-
-class RankItem(BaseModel):
-    candidateId: str
-    score: float
-    reasons: list[str]
-
-
-class RankResponse(BaseModel):
-    results: list[RankItem]
-
-
-app = FastAPI()
+app = FastAPI(title="hh-but-it-works ranking", version=MODEL_VERSION)
 
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "service": "ranking"}
+    return {"status": "ok", "service": "ranking", "modelVersion": MODEL_VERSION}
 
 
-@app.post("/rank")
+@app.post("/rank", response_model=RankResponse)
 def rank(body: RankRequest) -> RankResponse:
-    results = [
-        RankItem(
-            candidateId=str(candidate.get("id", "")),
-            score=0,
-            reasons=["stub"],
-        )
-        for candidate in body.candidates
-    ]
-    return RankResponse(results=results)
+    return RankResponse(
+        results=rank_candidates(body.candidates, body.need(), body.context),
+        modelVersion=MODEL_VERSION,
+    )
+
+
+@app.post("/career/analyze", response_model=CareerAnalyzeResponse)
+def career_analyze(body: CareerAnalyzeRequest) -> CareerAnalyzeResponse:
+    current, actions, gaps = analyze_career(
+        body.candidate,
+        body.opportunities,
+        body.strongMatchThreshold,
+    )
+    return CareerAnalyzeResponse(
+        currentStrongMatches=current,
+        actions=actions,
+        topGaps=gaps,
+        modelVersion=MODEL_VERSION,
+    )

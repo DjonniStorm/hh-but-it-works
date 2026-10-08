@@ -8,6 +8,7 @@ const swatches = [
   { name: "Текст", hex: "#1B1C21" },
 ] as const;
 
+// СТРАНИЦА ТЕСТИРОВАНИЯ ЦВЕТОВ И ПРОЧЕГО, К ПРИЛОЖЕНИЮ И ТЕСТАМ ОТНОШЕНИЯ НЕ ИМЕЕТ!
 export const TestPage = () => {
   return (
     <Stack p="xl" gap="lg">
