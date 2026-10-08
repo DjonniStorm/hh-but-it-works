@@ -2,9 +2,10 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { type Transporter, createTransport } from "nodemailer";
 
-import { confirmationLetter } from "./confirmation-letter";
+import { confirmationLetter } from "./letters/confirmation";
+import type { Letter } from "./letters/layout";
 
-// Зависший SMTP не должен держать регистрацию: по умолчанию nodemailer ждёт минуты.
+// Зависший SMTP не должен держать запрос: по умолчанию nodemailer ждёт минуты.
 const timeoutMs = 10_000;
 
 // Без SMTP_HOST письма не уходят, ссылка только в логе: так работают openapi-экспорт
@@ -16,6 +17,8 @@ export class MailService {
   private readonly transport: Transporter | null;
   private readonly from: string | undefined;
   private readonly production: boolean;
+  private readonly local: boolean;
+  private readonly webUrl: string;
 
   constructor(config: ConfigService) {
     const host = config.get<string>("SMTP_HOST");
@@ -23,6 +26,8 @@ export class MailService {
     const user = config.get<string>("SMTP_USER");
     const pass = config.get<string>("SMTP_PASS");
     this.production = config.get<string>("NODE_ENV") === "production";
+    this.local = host === "localhost" || host === "127.0.0.1";
+    this.webUrl = config.get<string>("WEB_URL") ?? "http://localhost:5173";
     // Яндекс отклоняет письмо, если отправитель не совпадает с логином.
     this.from = config.get<string>("MAIL_FROM") || user;
     this.transport = host
@@ -39,20 +44,37 @@ export class MailService {
       : null;
   }
 
-  // Ошибку не пробрасываем: пользователь уже создан, и повторная регистрация дала бы 409.
+  // Ссылка из письма на страницу веба. Пути — из apps/web/src/shared/router/routes.ts.
+  webLink(path: string): string {
+    return `${this.webUrl}${path}`;
+  }
+
   async sendConfirmation(email: string, link: string): Promise<void> {
     if (!this.transport || !this.production) {
       this.logger.log(`confirmation for ${email}: ${link}`);
     }
+    await this.send(email, confirmationLetter(link));
+  }
+
+  // Ошибку не пробрасываем: письмо — побочный эффект, действие пользователя
+  // уже сохранено. Повторная регистрация, например, дала бы 409.
+  async send(email: string, letter: Letter): Promise<void> {
     if (!this.transport) {
+      this.logger.log(
+        `письмо «${letter.subject}» для ${email} не отправлено: нет SMTP_HOST`,
+      );
+      return;
+    }
+    // Сид-кандидаты живут в зоне .test (RFC 2606): настоящий SMTP вернёт
+    // их как недоставленные и испортит репутацию ящика. Mailpit ловит всё.
+    if (!this.local && email.endsWith(".test")) {
+      this.logger.log(
+        `письмо «${letter.subject}» для ${email} пропущено: адрес .test`,
+      );
       return;
     }
     try {
-      await this.transport.sendMail({
-        from: this.from,
-        to: email,
-        ...confirmationLetter(link),
-      });
+      await this.transport.sendMail({ from: this.from, to: email, ...letter });
     } catch (error) {
       this.logger.error(`Письмо для ${email} не ушло: ${String(error)}`);
     }
