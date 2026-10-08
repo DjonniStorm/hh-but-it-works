@@ -161,3 +161,25 @@ def test_offline_training_artifacts_are_ignored_by_git():
     entries = set(gitignore.read_text(encoding="utf-8").split())
     assert "apps/ranking/model.txt" in entries
     assert "apps/ranking/model.meta.json" in entries
+
+
+@pytest.mark.ml
+def test_train_ltr_smoke_on_committed_gold(tmp_path):
+    pytest.importorskip("lightgbm", reason="LightGBM ставится из requirements-ml.txt")
+    dataset = Path(__file__).resolve().parents[1] / "evaluation/data/sanity_gold.jsonl"
+    model = tmp_path / "model.txt"
+    metadata = tmp_path / "model.meta.json"
+
+    result = subprocess.run(
+        [sys.executable, str(TRAIN), str(dataset), "--output", str(model), "--metadata", str(metadata)],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+
+    meta = json.loads(metadata.read_text(encoding="utf-8"))
+    assert meta["groups"] == 3
+    assert meta["rows"] == 12
+    assert meta["labels"] == [0, 1, 2, 3]
+    assert meta["featureOrder"] == FEATURE_ORDER
+    assert model.stat().st_size > 0

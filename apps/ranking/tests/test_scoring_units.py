@@ -442,3 +442,16 @@ def test_personalization_mixes_skill_and_competency_boosts():
     assert only_competency != mixed
     # Все три комбинации остаются в пределах шкалы.
     assert all(0.0 <= value <= 1.0 for value in (only_skill, mixed, only_competency))
+
+
+def test_best_skill_score_grows_with_level_confidence_and_verification():
+    def score(**skill):
+        base = {"id": "python", "verified": False, "level": 0.1, "confidence": 0.1}
+        base.update(skill)
+        return _best_skill_score("python", candidate(skills=[base]))
+
+    low = score()
+    assert score(level=0.9) > low
+    assert score(confidence=0.9) > low
+    assert score(verified=True) > low
+    assert score(verified=True, level=1.0, confidence=1.0) == pytest.approx(1.0)
