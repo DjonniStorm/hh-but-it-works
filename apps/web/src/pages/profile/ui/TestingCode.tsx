@@ -2,7 +2,15 @@ import { useEffect, useState } from "react";
 
 import { Box, Text } from "@mantine/core";
 
-type CodeLang = "typescript" | "dockerfile" | "sql";
+type CodeLang =
+  | "typescript"
+  | "dockerfile"
+  | "sql"
+  | "python"
+  | "csharp"
+  | "go"
+  | "java"
+  | "tsx";
 
 type Highlighter = {
   codeToHtml: (
@@ -25,6 +33,11 @@ function loadHighlighter(): Promise<Highlighter> {
           import("@shikijs/langs/typescript"),
           import("@shikijs/langs/dockerfile"),
           import("@shikijs/langs/sql"),
+          import("@shikijs/langs/python"),
+          import("@shikijs/langs/csharp"),
+          import("@shikijs/langs/go"),
+          import("@shikijs/langs/java"),
+          import("@shikijs/langs/tsx"),
         ],
         engine: createJavaScriptRegexEngine(),
       });

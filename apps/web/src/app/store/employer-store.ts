@@ -2,11 +2,13 @@ import {
   employersControllerCreateNeed,
   employersControllerDeleteNeed,
   employersControllerDismiss,
+  employersControllerFavorite,
   employersControllerGetCompany,
   employersControllerListNeeds,
   employersControllerRestore,
   employersControllerSaveCompany,
   employersControllerShortlist,
+  employersControllerUnfavorite,
   employersControllerUpdateNeed,
 } from "@/shared/api/generated/sdk.gen";
 import { mapCompany, mapNeed, mapShortlist } from "@/shared/api/map-employer";
@@ -193,6 +195,28 @@ export class EmployerStore {
           if (need) {
             need.candidateCount = active;
           }
+        });
+      },
+      { loader: true, ...options },
+    );
+  }
+
+  setFavorite(
+    needId: string,
+    candidateId: string,
+    favorite: boolean,
+    options?: CallOptions<void>,
+  ) {
+    return request(
+      this.root,
+      async () => {
+        const path = { id: needId, candidateId };
+        const result = favorite
+          ? await employersControllerFavorite({ path })
+          : await employersControllerUnfavorite({ path });
+        const shortlist = mapShortlist(readData(result));
+        runInAction(() => {
+          this.shortlists.set(needId, shortlist);
         });
       },
       { loader: true, ...options },

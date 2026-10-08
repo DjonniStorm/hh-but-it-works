@@ -177,6 +177,13 @@ export const NeedPage = observer(() => {
                         true,
                       );
                     }}
+                    onFavorite={() => {
+                      void employer.setFavorite(
+                        need.id,
+                        match.candidate.id,
+                        !match.favorite,
+                      );
+                    }}
                   />
                 );
               })}

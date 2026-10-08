@@ -7,7 +7,13 @@ import type {
   CategoryMatch,
   HiringNeedInput,
 } from "@hh/contracts";
-import { Grade, SearchStatus, gradeIndex, gradeOrder } from "@hh/types";
+import {
+  Grade,
+  SearchStatus,
+  SkillVerification,
+  gradeIndex,
+  gradeOrder,
+} from "@hh/types";
 
 import { CandidateProfile } from "../profiles/candidate-profile.entity";
 import { CandidateSkill } from "../profiles/candidate-skill.entity";
@@ -108,22 +114,34 @@ export class CandidatePoolService {
           profile.assessmentScore === null
             ? null
             : profile.assessmentScore / 100,
-        experienceYears: profile.experienceYears,
-        skills: (skillsByProfile.get(profile.id) ?? []).map((row) => {
-          return {
-            title: titles.get(row.skillId) ?? "",
-            level: row.level,
-            verification: row.verification,
-            score: row.score,
-          };
-        }),
+        experienceYears: profile.showExperience
+          ? profile.experienceYears
+          : null,
+        skills: (skillsByProfile.get(profile.id) ?? [])
+          .filter((row) => {
+            return (
+              profile.showUnverifiedSkills ||
+              row.verification !== SkillVerification.Unverified
+            );
+          })
+          .map((row) => {
+            return {
+              title: titles.get(row.skillId) ?? "",
+              level: row.level,
+              verification: row.verification,
+              score: row.score,
+              verifiedAt: row.verifiedAt?.toISOString() ?? null,
+            };
+          }),
         assessmentScore: profile.assessmentScore,
         profileFreshness: profileFreshness(
           profile.verifiedAt ?? profile.updatedAt,
         ),
-        fspAchievements: achievements[index] ?? [],
+        fspAchievements: profile.showFsp ? (achievements[index] ?? []) : [],
         preferences: {
-          desiredSalaryFrom: profile.desiredSalaryFrom,
+          desiredSalaryFrom: profile.showSalary
+            ? profile.desiredSalaryFrom
+            : null,
           workFormats: profile.workFormats,
           searchStatus: profile.searchStatus,
         },

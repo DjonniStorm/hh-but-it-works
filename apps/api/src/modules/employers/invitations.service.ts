@@ -4,9 +4,10 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  OnModuleInit,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { In, Not, QueryFailedError, Repository } from "typeorm";
+import { In, QueryFailedError, Repository } from "typeorm";
 
 import type {
   CandidateInvitationList,
@@ -36,9 +37,8 @@ const candidateInvitationsPath = "/invitations";
 const employerInvitationsPath = "/employer/invitations";
 
 @Injectable()
-export class InvitationsService {
+export class InvitationsService implements OnModuleInit {
   private readonly logger = new Logger(InvitationsService.name);
-
   constructor(
     @InjectRepository(Invitation)
     private readonly invitations: Repository<Invitation>,
@@ -53,6 +53,16 @@ export class InvitationsService {
     private readonly employers: EmployersService,
     private readonly mail: MailService,
   ) {}
+
+  async onModuleInit(): Promise<void> {
+    if (process.env.OPENAPI_EXPORT === "1") {
+      return;
+    }
+    // Старый индекс держал и отзыв. synchronize его не снимает: where у него не сравнивается.
+    await this.invitations.query(
+      `DROP INDEX IF EXISTS "invitations_one_active"`,
+    );
+  }
 
   async list(userId: string): Promise<InvitationList> {
     const rows = await this.invitations.find({
@@ -95,7 +105,11 @@ export class InvitationsService {
       where: {
         userId,
         candidateProfileId: candidate.id,
-        status: Not(InvitationStatus.Declined),
+        status: In([
+          InvitationStatus.Sent,
+          InvitationStatus.Viewed,
+          InvitationStatus.Accepted,
+        ]),
       },
     });
     if (active) {
@@ -229,6 +243,35 @@ export class InvitationsService {
       .catch((error: unknown) => {
         this.logger.error(`Письмо не отправлено: ${String(error)}`);
       });
+  }
+
+  async withdraw(
+    userId: string,
+    invitationId: string,
+  ): Promise<InvitationView> {
+    const mine = { id: invitationId, userId };
+    const result = await this.invitations.update(
+      {
+        ...mine,
+        status: In([InvitationStatus.Sent, InvitationStatus.Viewed]),
+      },
+      { status: InvitationStatus.Withdrawn },
+    );
+    const row = await this.invitations.findOne({ where: mine });
+    if (!row) {
+      throw new NotFoundException("Приглашение не найдено");
+    }
+    if (!result.affected) {
+      throw new ConflictException(
+        "Отозвать можно только приглашение, на которое ещё не ответили",
+      );
+    }
+    return toView(
+      row,
+      (await this.employers.companyName(userId)) ?? "",
+      await this.needTitles([row]),
+      await this.contacts([row]),
+    );
   }
 
   private async companiesOf(

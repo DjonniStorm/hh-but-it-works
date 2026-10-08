@@ -9,7 +9,7 @@ import { useCountdown } from "@/pages/profile/model/use-countdown";
 import { OrderAnswer } from "@/pages/profile/ui/OrderAnswer";
 import { TestingChoice } from "@/pages/profile/ui/TestingChoice";
 import { TestingCode } from "@/pages/profile/ui/TestingCode";
-import { Button, NumberInput, Stack, Text } from "@mantine/core";
+import { Button, Group, NumberInput, Stack, Text } from "@mantine/core";
 
 const kindHints: Record<AttemptItem["kind"], string> = {
   single: "Один верный ответ. Клавиши 1–9, затем Enter.",
@@ -70,15 +70,32 @@ export const TestingQuestion = ({
         onSubmit(draft);
         return;
       }
-      if (item.kind !== "single" && item.kind !== "code") {
-        return;
-      }
       const key = Number(event.key);
       if (key < 1 || key > item.choices.length || key > 9) {
         return;
       }
+      const index = key - 1;
+      if (item.kind === "multiple") {
+        event.preventDefault();
+        // Цифра переключает вариант и не сбрасывает остальные.
+        setDraft((current) => {
+          const selected = current.choices.includes(index);
+          return {
+            choices: selected
+              ? current.choices.filter((chosen) => {
+                  return chosen !== index;
+                })
+              : [...current.choices, index],
+            value: null,
+          };
+        });
+        return;
+      }
+      if (item.kind !== "single" && item.kind !== "code") {
+        return;
+      }
       event.preventDefault();
-      setDraft({ choices: [key - 1], value: null });
+      setDraft({ choices: [index], value: null });
     };
     window.addEventListener("keydown", onKey);
     return () => {
@@ -107,9 +124,14 @@ export const TestingQuestion = ({
       </Text>
       {hidden ? null : (
         <>
-          <Text size="sm" c="dimmed">
-            {kindHints[item.kind]}
-          </Text>
+          <Group justify="space-between" gap="sm">
+            <Text size="sm" c="dimmed">
+              {kindHints[item.kind]}
+            </Text>
+            {item.kind === "multiple" ? (
+              <Text size="sm">Выбрано {draft.choices.length}</Text>
+            ) : null}
+          </Group>
           <Text fz="lg">{item.prompt}</Text>
           {item.code ? <TestingCode code={item.code} lang={item.lang} /> : null}
           {item.kind === "single" || item.kind === "code" ? (
@@ -119,6 +141,7 @@ export const TestingQuestion = ({
                   <TestingChoice
                     key={`${index}-${choice}`}
                     index={index}
+                    mode="radio"
                     label={choice}
                     selected={draft.choices[0] === index}
                     onSelect={() => {
@@ -130,13 +153,14 @@ export const TestingQuestion = ({
             </Stack>
           ) : null}
           {item.kind === "multiple" ? (
-            <Stack gap="xs">
+            <Stack gap="xs" role="group" aria-label={kindHints.multiple}>
               {item.choices.map((choice, index) => {
                 const selected = draft.choices.includes(index);
                 return (
                   <TestingChoice
                     key={`${index}-${choice}`}
                     index={index}
+                    mode="check"
                     label={choice}
                     selected={selected}
                     onSelect={() => {

@@ -1,11 +1,22 @@
+import { useEffect, useRef } from "react";
+
 import { notifier } from "@/app/store/notifier";
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
+import { skillsWithDraft } from "@/pages/profile/model/apply-resume-draft";
+import {
+  contactInput,
+  contactsFromProfile,
+} from "@/pages/profile/model/save-contacts";
 import {
   assessedFromProfile,
   saveSkills,
 } from "@/pages/profile/model/save-skills";
-import type { SkillRow, SkillsFormValues } from "@/pages/profile/model/types";
+import type {
+  ResumeDraftHit,
+  SkillRow,
+  SkillsFormValues,
+} from "@/pages/profile/model/types";
 import { AssessedSkill } from "@/pages/profile/ui/AssessedSkill";
 import { SkillSearch } from "@/pages/profile/ui/SkillSearch";
 import { Accordion, Button, Paper, Stack, Text, Title } from "@mantine/core";
@@ -13,8 +24,15 @@ import { schemaResolver, useForm } from "@mantine/form";
 
 import { type CandidateProfile, saveSkillsSchema } from "@hh/contracts";
 
-export const SkillsPanel = ({ profile }: { profile: CandidateProfile }) => {
+export const SkillsPanel = ({
+  profile,
+  draft,
+}: {
+  profile: CandidateProfile;
+  draft: ResumeDraftHit | null;
+}) => {
   const profiles = useStore(StoreKey.Profile);
+  const seenDraft = useRef<number | null>(null);
   const form = useForm<SkillsFormValues>({
     initialValues: {
       skills: assessedFromProfile(profile.skills),
@@ -35,20 +53,10 @@ export const SkillsPanel = ({ profile }: { profile: CandidateProfile }) => {
       notifier.showError("Сначала сохраните контакты");
       return;
     }
+    const contacts = profiles.readContacts?.() ?? contactsFromProfile(profile);
     void profiles.save(
       {
-        displayName: profile.displayName,
-        specialization: profile.specialization,
-        claimedGrade: profile.claimedGrade,
-        fspId: profile.fspId ?? "",
-        telegram: profile.telegram ?? "",
-        github: profile.github ?? "",
-        linkedin: profile.linkedin ?? "",
-        website: profile.website ?? "",
-        // Ожидания сохраняет форма контактов, здесь отдаём их как есть.
-        desiredSalaryFrom: profile.desiredSalaryFrom,
-        workFormats: profile.workFormats,
-        searchStatus: profile.searchStatus,
+        ...contactInput(contacts),
         skills: saveSkills(values.skills),
       },
       {
@@ -58,6 +66,26 @@ export const SkillsPanel = ({ profile }: { profile: CandidateProfile }) => {
       },
     );
   });
+
+  useEffect(() => {
+    profiles.bindSkills(() => {
+      return form.getValues().skills;
+    });
+    return () => {
+      profiles.bindSkills(null);
+    };
+  }, [form, profiles]);
+
+  useEffect(() => {
+    if (!draft || seenDraft.current === draft.at) {
+      return;
+    }
+    seenDraft.current = draft.at;
+    form.setFieldValue(
+      "skills",
+      skillsWithDraft(form.getValues().skills, profile.skills, draft),
+    );
+  }, [draft, form, profile.skills]);
 
   return (
     <Paper
@@ -89,6 +117,7 @@ export const SkillsPanel = ({ profile }: { profile: CandidateProfile }) => {
                       title: draft.title,
                       level: draft.level,
                       verification: null,
+                      verifiedAt: null,
                     } satisfies SkillRow,
                     0,
                   );
@@ -108,7 +137,13 @@ export const SkillsPanel = ({ profile }: { profile: CandidateProfile }) => {
               <AssessedSkill
                 key={skill.skillId ?? skill.title}
                 skill={
-                  saved ? { ...skill, verification: saved.verification } : skill
+                  saved
+                    ? {
+                        ...skill,
+                        verification: saved.verification,
+                        verifiedAt: saved.verifiedAt,
+                      }
+                    : skill
                 }
                 levelProps={form.getInputProps(`skills.${index}.level`)}
                 onRemove={() => {

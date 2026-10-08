@@ -45,6 +45,7 @@ export enum InvitationStatus {
   Viewed = "viewed",
   Accepted = "accepted",
   Declined = "declined",
+  Withdrawn = "withdrawn",
 }
 
 export enum SearchStatus {

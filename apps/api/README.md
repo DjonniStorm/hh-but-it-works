@@ -61,7 +61,7 @@ src/
 4. Ответ мапится в контракт `@hh/contracts`: шкала 0..1 → 0..100, заполняются `qualification`, `opportunityFit`, `risks`, `breakdown`, `modelVersion`.
 5. `categories` — рекомендованные категории: грейды потребности (`exact`) и по ступени вокруг (`adjacent`) с числом кандидатов без отклонённых. Список грейдов — `categoriesOf` в `candidate-pool.service.ts`, по нему же отбирает `eligible`.
 
-Потребность удаляется мягко (`deletedAt`): отправленные по ней приглашения остаются в силе и с названием, отметки «Не подходит» удаляются.
+Потребность удаляется мягко (`deletedAt`): отправленные по ней приглашения остаются в силе и с названием, отметки «Не подходит» и избранное удаляются.
 
 Ответы ranking **не** отдаются вебу как есть: контракт и схема ранжирователя расходятся по именам полей (`gradeFrom/gradeTo`, `salaryFrom/To`, `workFormat`, `skills[].id`), шкале (0..1 против 0..100) и набору полей. Поэтому весь маппинг живёт в одном файле — `src/modules/employers/ranking.client.ts`. Форматы и таблица соответствия: [`apps/ranking/INTEGRATION.md`](../ranking/INTEGRATION.md), текущее состояние: [`apps/ranking/HANDOFF.md`](../ranking/HANDOFF.md).
 
