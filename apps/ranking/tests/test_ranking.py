@@ -1,57 +1,13 @@
 from fastapi.testclient import TestClient
 
+from factories import candidate, need
 from main import app
-from schemas import CandidateSnapshot, HiringNeedSnapshot, RankingContext
+from schemas import RankingContext
 from scoring import rank_candidates
 from taxonomy import canonical_skill
 
 
 client = TestClient(app)
-
-
-def candidate(**overrides):
-    base = {
-        "id": "c1",
-        "specialization": "backend",
-        "claimedGrade": "junior",
-        "verifiedGrade": "junior",
-        "gradeConfidence": 0.9,
-        "experienceYears": 1.0,
-        "skills": [
-            {"id": "Python", "verified": True, "level": 0.9, "confidence": 0.9},
-            {"id": "FastAPI", "verified": True, "level": 0.85, "confidence": 0.9},
-            {"id": "Postgres", "verified": True, "level": 0.75, "confidence": 0.85},
-        ],
-        "competencies": {"databases": 0.75, "testing": 0.7},
-        "assessmentScore": 0.8,
-        "preferences": {
-            "salaryMin": 120000,
-            "workModes": ["remote"],
-            "targetSpecializations": ["backend"],
-        },
-        "availability": "actively_looking",
-        "profileFreshness": 0.95,
-    }
-    base.update(overrides)
-    return CandidateSnapshot.model_validate(base)
-
-
-def need(**overrides):
-    base = {
-        "id": "n1",
-        "specialization": "backend",
-        "gradeMin": "junior",
-        "gradeMax": "middle",
-        "mustSkills": ["python", "fastapi", "postgresql"],
-        "niceSkills": ["docker"],
-        "competencyWeights": {"databases": 0.6, "testing": 0.4},
-        "experienceMin": 0.5,
-        "salaryMin": 130000,
-        "salaryMax": 180000,
-        "workModes": ["remote"],
-    }
-    base.update(overrides)
-    return HiringNeedSnapshot.model_validate(base)
 
 
 def test_aliases_are_canonical_and_java_is_not_javascript():
