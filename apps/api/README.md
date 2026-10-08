@@ -30,7 +30,7 @@ src/
   common/mail/             MailService: пишет ссылку в лог, SMTP нет
   modules/
     users/                 User entity
-    auth/                  register, confirm, login, refresh, logout, me + session store в Redis
+    auth/                  register, confirm, confirm/resend, login, refresh, logout, me + session store в Redis
     profiles/              профиль кандидата, навыки, каталог, сид кандидатов
     assessments/           попытки (store в Redis), attempts в Postgres, план из assessment-engine
     employers/             компания, вакансии, подборка, приглашения, интеграции с FSP и ranking
@@ -43,7 +43,7 @@ src/
 | Префикс                 | Ручки                                                                                                                                                  |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `GET /health`           | `GET`                                                                                                                                                  |
-| `auth`                  | `POST register`, `confirm`, `login`, `refresh`, `logout`, `GET me`                                                                                     |
+| `auth`                  | `POST register`, `confirm`, `confirm/resend` (раз в минуту на адрес, ответ не выдаёт, есть ли пользователь), `login`, `refresh`, `logout`, `GET me`    |
 | `profile`               | `GET`, `PUT`                                                                                                                                           |
 | `assessment`            | `POST attempts`, `GET attempts/current`, `POST attempts/answer`, `POST attempts/events`, `POST attempts/finish`, `GET attempts/history`                |
 | `employer`              | `GET/PUT company`, `GET/POST needs`, `GET needs/:id`, `GET needs/:id/shortlist`, `PUT/DELETE needs/:id/dismissed/:candidateId`, `GET/POST invitations` |
