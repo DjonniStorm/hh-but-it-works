@@ -5,6 +5,11 @@ export const skillCatalog = [
   { slug: "typescript", title: "TypeScript" },
   { slug: "docker", title: "Docker" },
   { slug: "testing", title: "Тестирование" },
+  { slug: "python", title: "Python" },
+  { slug: "csharp", title: "C#" },
+  { slug: "react", title: "React" },
+  { slug: "go", title: "Go" },
+  { slug: "java", title: "Java" },
 ] as const;
 
 export function slugFromTitle(title: string): string {

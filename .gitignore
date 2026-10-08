@@ -24,3 +24,5 @@ coverage
 ignore
 .coverage
 .hypothesis
+skills-lock.json
+.agents/

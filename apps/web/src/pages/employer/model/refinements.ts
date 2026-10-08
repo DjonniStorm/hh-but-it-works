@@ -1,12 +1,13 @@
 import type { Match } from "@hh/contracts";
 import { SkillVerification } from "@hh/types";
 
-export type Refinement = "verified" | "fsp" | "assessment";
+export type Refinement = "verified" | "fsp" | "assessment" | "favorites";
 
 export const refinementLabel: Record<Refinement, string> = {
   verified: "Только подтверждённый грейд",
   fsp: "Есть достижения ФСП",
   assessment: "Тест от 80 баллов",
+  favorites: "Только избранные",
 };
 
 export const refinementKeys = Object.keys(refinementLabel) as Refinement[];
@@ -26,6 +27,9 @@ const refinementCheck: Record<Refinement, (match: Match) => boolean> = {
   },
   assessment: (match) => {
     return (match.candidate.assessmentScore ?? 0) >= 80;
+  },
+  favorites: (match) => {
+    return match.favorite;
   },
 };
 
