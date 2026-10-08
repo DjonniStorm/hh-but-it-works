@@ -4,6 +4,29 @@
 
 Что уже сделано, чем это покрыто тестами и что осталось: **[HANDOFF.md](HANDOFF.md)**. Форматы интеграции с Nest: **[INTEGRATION.md](INTEGRATION.md)**.
 
+## Готовый запуск без обучения
+
+Версионированные `model.txt`, metadata, calibrator и held-out report лежат в
+[`evaluation/artifacts/ltr-v1.1.0`](evaluation/artifacts/ltr-v1.1.0). Обычная
+Docker-сборка только устанавливает runtime и копирует готовую модель — LightGBM
+training и scikit-learn при сборке/запуске не выполняются.
+
+После публикации workflow `Publish pre-trained ranking image` команда запускает
+готовый multi-arch образ:
+
+```bash
+docker pull ghcr.io/djonnistorm/hh-but-it-works-ranking:dev
+docker run --rm -p 8000:8000 \
+  ghcr.io/djonnistorm/hh-but-it-works-ranking:dev
+curl -s localhost:8000/health
+```
+
+Или весь dev stack из клона: `docker compose --env-file infra/dev/.env.example
+-f infra/dev/docker-compose.yml up`. Compose использует готовый GHCR-образ, а
+локальная сборка всё равно копирует committed artifacts без обучения. Для
+private GHCR один раз нужен `docker login ghcr.io`; package можно сделать public
+в GitHub Packages.
+
 ## Контекст продукта
 
 Кандидат регистрируется и выбирает заявленный грейд. Backend/assessment слой может:
@@ -31,6 +54,11 @@ hard eligibility
 → deterministic reasons/warnings
 ```
 
+В живом employer flow Nest допускает в candidate pool только профили с
+`verifiedGrade` в диапазоне потребности ±1. Поддержка `claimedGrade` в `/rank`
+остаётся для совместимости, диагностики и других потенциальных сценариев, но
+не открывает доступ в verified shortlist.
+
 ### Hard filters
 
 - hidden candidate;
@@ -54,8 +82,8 @@ Related technologies могут давать мягкий relevance, но **не
 - competency scores;
 - assessment;
 - experience;
-- optional semantic similarity;
-- небольшой FSP evidence bonus;
+- precomputed semantic similarity или объяснимый lexical fallback по текстам;
+- профильный FSP evidence bonus с силой и количеством достижений;
 - session personalization.
 
 ### OpportunityFit
@@ -106,9 +134,9 @@ Reason/warning codes детерминированы, поэтому frontend/API
 
 ## FSP
 
-FSP — supporting evidence, а не gate. Отсутствие истории ФСП не снижает кандидата до нуля.
+FSP — supporting evidence с весом `0.06`, а не gate. Отсутствие истории ФСП не снижает кандидата до нуля.
 
-`fspEvidence` поддерживает простую mock-модель: язык/название достижения/год/score. При наличии списка из него выводится небольшой `fspEvidenceScore`.
+`fspEvidence` поддерживает язык/название достижения/год/score. Компонент учитывает лучший результат, небольшой бонус за дополнительные достижения и lexical-профильность дисциплины относительно потребности. Непрофильное достижение сохраняет коэффициент `0.70`, потому что всё равно является подтверждённым сигналом.
 
 ## Career GPS
 
@@ -137,7 +165,7 @@ LLM **не находится в hot path**.
 
 ## Semantic retrieval
 
-Этот сервис принимает `semanticSimilarity` как precomputed feature. Сам embeddings/vector storage не хранит.
+Если передан `semanticSimilarity`, сервис использует его как precomputed feature. Если embedding отсутствует, Nest передаёт описание потребности и обезличенный текст из специализации/навыков кандидата, а ranking считает детерминированный lexical coverage/Jaccard fallback и возвращает совпавшие термы в reason codes. Без обоих текстов остаётся нейтральный `0.65`.
 
 Рекомендованная интеграция позже:
 
@@ -148,21 +176,70 @@ LLM **не находится в hot path**.
 
 ## V1 Learning-to-Rank
 
-`evaluation/train_ltr.py` теперь умеет обучать optional LightGBM LambdaRank на gold JSONL dataset.
+LTR-контур работает как production-safe shadow/hybrid:
 
-Production dependency на LightGBM специально не добавлена. Устанавливать:
+- `evaluation/gold.py` воспроизводимо строит controlled-synthetic набор вокруг обезличенных публичных вакансий и делит его по `need.id`/source entity на train/calibration/test;
+- relevance-метки задаются явными сценариями qualification/intent, независимо от rules-score; `labelConfidence` используется как sample weight;
+- `evaluation/open_data.py` нормализует локальные JSON-выгрузки, отбрасывая работодателя, адреса и контакты; `data_quality.py` ставит PII/leakage gate;
+- `evaluation/human_labels.py` экспортирует blind CSV и принимает только согласованные двойные оценки, отправляя конфликты на adjudication;
+- `evaluation/train_ltr.py` учит LightGBM LambdaRank только на train и fit-ит `IsotonicRegression` только на calibration;
+- `evaluation/evaluate_ltr.py` сравнивает rules, pure LTR и hybrid на untouched test по NDCG/Precision/MRR и диагностике калибровки;
+- runtime загружает `model.txt`, `model.meta.json` и безопасный `calibrator.json`, проверяет schema, feature order, SHA-256 кода признаков и артефактов;
+- любая ошибка загрузки/предикта безопасно возвращает `rules-v1.1.0`; hard filters LTR не переопределяет.
+- `scripts/promote_ml.sh` атомарно публикует локальные артефакты только после entity/group-disjoint quality gate;
+- Docker runtime build копирует проверенный versioned artifact bundle и никогда не обучает модель.
+
+`evaluation/data/gold*.jsonl` — **controlled-synthetic benchmark**, а не человеческий gold. Потребности основаны на небольшой атрибутированной выборке открытых вакансий, кандидаты вымышлены, метки независимы от rules. Набор проверяет pipeline и ловит регрессии, но не доказывает production uplift. Карточка и provenance: [`evaluation/data/README.md`](evaluation/data/README.md), [`evaluation/data/SOURCES.json`](evaluation/data/SOURCES.json).
+
+Training metadata содержит `productionApproved=false`. Обычный runtime не даст такому артефакту влиять на выдачу: запрос `hybrid`/`ltr` будет понижен до `shadow`. Готовый demo-образ намеренно задаёт `RANKING_ALLOW_UNAPPROVED_MODEL=true`, поэтому сразу показывает hybrid; `/health` честно сохраняет `productionApproved=false` и `unapprovedOverride=true`. Флаг `--production-approved` принимается только для `human_double_annotation_v1`.
+
+Режимы `RANKING_MODE`:
+
+| Режим    | Поведение                                                                  |
+| -------- | -------------------------------------------------------------------------- |
+| `rules`  | Только детерминированный baseline                                          |
+| `shadow` | Rules в ответе, LTR agreement/score delta/drift только в monitoring        |
+| `hybrid` | `0.75·rules + 0.25·calibrated LTR`; human-approved или явный demo override |
+| `ltr`    | Pure LTR для offline evaluation и будущего rollout на human-labeled data   |
+
+Вес hybrid задаётся `RANKING_LTR_WEIGHT` и валидируется в `[0,1]`. Без валидных или human-approved артефактов активный ответ fail-closed остаётся rules/shadow. Единственное исключение — явный `RANKING_ALLOW_UNAPPROVED_MODEL=true`, включённый в готовом demo-образе.
+
+Scikit-learn нужен только при обучении. Serving использует LightGBM и собственный JSON isotonic runtime без pickle/joblib. Локально:
 
 ```bash
 pip install -r requirements-ml.txt
-python evaluation/train_ltr.py data/gold.jsonl --output model.txt
+sh scripts/check_ml.sh
+sh scripts/promote_ml.sh                 # строит и атомарно проверяет локальные артефакты
+
+python evaluation/train_ltr.py evaluation/data/gold_train.jsonl \
+  --calibration-dataset evaluation/data/gold_calibration.jsonl \
+  --output model.txt \
+  --metadata model.meta.json \
+  --calibrator calibrator.json
+python evaluation/evaluate_ltr.py evaluation/data/gold_test.jsonl \
+  --model model.txt \
+  --metadata model.meta.json \
+  --calibrator calibrator.json \
+  --min-ndcg-uplift 0.0 \
+  --min-hybrid-ndcg-uplift 0.0 \
+  --max-calibration-rmse-ratio 0.5
 ```
 
-Модель нельзя включать в production, пока held-out benchmark не показывает стабильный uplift над `rules-v1.0.0`.
+Пути можно переопределить через `RANKING_MODEL_PATH`, `RANKING_MODEL_METADATA_PATH`, `RANKING_CALIBRATOR_PATH`. Pure LTR и hybrid нельзя включать в production до независимой двойной human-разметки. На committed controlled-synthetic holdout LTR обязан не уступать rules по NDCG@5 и как минимум вдвое улучшать calibration RMSE. Rules отдельно обязан обгонять naïve baseline; это regression criteria, не заявление о рыночном качестве.
+
+### Данные и лицензии
+
+Практический sourcing-план находится в [`evaluation/DATA_SOURCING.md`](evaluation/DATA_SOURCING.md). Коротко: вакансии можно брать из официальных открытых данных «Работы России» с атрибуцией; навыки и связи профессия↔навык — из ESCO/O*NET по их открытым лицензиям. Реальные резюме, отклики и outcome-данные берутся только по договору/consent и после удаления PII. Scraping/перепубликация HH в этот pipeline не заложены.
+
+## Monitoring
+
+Каждый `/rank` пишет в logger `ranking.metrics` одну JSON-строку: версия/режим модели, latency, размеры eligible/rejected пула, min/mean/max score, pairwise agreement rules↔LTR, top-5 overlap, score delta и feature drift относительно train distribution. Идентификаторы кандидатов и содержимое профиля в лог не попадают. `/health` показывает режим, readiness, версии и ошибки валидации артефактов.
 
 ## Benchmark
 
 ```bash
-python evaluation/benchmark.py data/gold.jsonl
+python evaluation/benchmark.py evaluation/data/sanity_gold.jsonl
+python evaluation/benchmark.py evaluation/data/gold_test.jsonl --compare-naive
 ```
 
 Метрики:
@@ -172,6 +249,10 @@ python evaluation/benchmark.py data/gold.jsonl
 - Precision@5;
 - MRR.
 
+На текущем entity-disjoint holdout rules v1.1 обгоняет naïve baseline
+`категория + assessment + candidate id` на `+0.235 NDCG@5`, `+0.20 P@5` и
+`+0.333 MRR`.
+
 ## Dev
 
 Python 3.12 (системный 3.9 не подходит). Венв — **вне** каталога `apps/ranking`, иначе `scripts/check.sh` начнёт компилировать его содержимое.
@@ -179,9 +260,11 @@ Python 3.12 (системный 3.9 не подходит). Венв — **вн�
 ```bash
 python3.12 -m venv ../rank-venv && source ../rank-venv/bin/activate
 pip install -r requirements-dev.txt      # + requirements-ml.txt для LTR (нужен libomp)
+sh scripts/promote_ml.sh                 # обучить, проверить и атомарно сохранить артефакты
 uvicorn main:app --reload --port 8000
 
 sh scripts/check.sh                     # compileall + pytest + gold + benchmark + perf
+sh scripts/check_ml.sh                  # reproducibility + LightGBM + isotonic + held-out eval
 ```
 
 Все проверки одной командой, именно её гонять перед коммитом:
@@ -192,6 +275,13 @@ pytest -q
 python evaluation/validate_gold.py evaluation/data/sanity_gold.jsonl
 python evaluation/benchmark.py evaluation/data/sanity_gold.jsonl
 python evaluation/performance.py --candidates 1000 --runs 2
+python evaluation/validate_gold.py evaluation/data/gold_test.jsonl
 ```
 
-Docker: `docker build -t hh-ranking . && docker run -p 8000:8000 hh-ranking`.
+Docker использует уже обученный versioned bundle и сразу запускает готовый demo hybrid:
+
+```bash
+docker build -t hh-ranking .
+docker run --rm -p 8000:8000 hh-ranking
+curl -s localhost:8000/health
+```

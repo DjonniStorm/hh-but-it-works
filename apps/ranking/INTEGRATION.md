@@ -48,7 +48,7 @@ Mock ФСП может вернуть, например:
 
 Backend преобразует это в `fspEvidence`.
 
-Ranking использует FSP как небольшой tie-break/evidence bonus. Это важно: олимпиадный программист может иметь подтверждение алгоритмической/языковой базы, но грамота не доказывает автоматически FastAPI, Docker или production architecture.
+Ranking использует FSP как supporting evidence: сила лучшего результата, дополнительные достижения и профильность названия/дисциплины относительно потребности. Это важно: олимпиадный программист получает карьерный плюс, но грамота не доказывает автоматически FastAPI, Docker или production architecture.
 
 ## 4. Employer flow
 
@@ -56,8 +56,8 @@ Nest API:
 
 1. получает HiringNeed;
 2. применяет privacy/ACL;
-3. делает structured/filter/retrieval candidate pool;
-4. при наличии semantic search добавляет `semanticSimilarity`;
+3. делает structured/filter/retrieval candidate pool только из профилей с `verifiedGrade` в диапазоне потребности ±1;
+4. передаёт описание потребности, competency sections, freshness и обезличенный профильный текст; при наличии semantic search может переопределить fallback через `semanticSimilarity`;
 5. вызывает `POST /rank`;
 6. возвращает результат работодателю;
 7. reason codes локализует/передаёт frontend;

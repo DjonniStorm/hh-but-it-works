@@ -307,6 +307,7 @@ export type ShortlistDtoOutput = {
                 score: number | null;
             }>;
             assessmentScore: number | null;
+            profileFreshness: number;
             fspAchievements: Array<{
                 title: string;
                 year: number;

@@ -92,6 +92,7 @@ function mapMatch(match: ShortlistDtoOutput["items"][number]): Match {
         };
       }),
       assessmentScore: candidate.assessmentScore,
+      profileFreshness: candidate.profileFreshness,
       fspAchievements: candidate.fspAchievements,
       preferences: {
         desiredSalaryFrom: candidate.preferences.desiredSalaryFrom,

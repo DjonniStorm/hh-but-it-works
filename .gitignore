@@ -8,6 +8,12 @@ __pycache__
 # Артефакты offline-обучения LTR (см. apps/ranking/README.md)
 apps/ranking/model.txt
 apps/ranking/model.meta.json
+apps/ranking/calibrator.json
+apps/ranking/promotion-report.json
+# Не коммитим исходные выгрузки/ручную разметку с потенциальным PII.
+apps/ranking/evaluation/data/raw/
+apps/ranking/evaluation/data/private/
+apps/ranking/evaluation/data/annotations/
 .env
 *.pyc
 .DS_Store

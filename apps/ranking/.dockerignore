@@ -2,3 +2,10 @@ __pycache__
 *.pyc
 .pytest_cache
 .venv
+model.txt
+model.meta.json
+calibrator.json
+promotion-report.json
+evaluation/data/raw
+evaluation/data/private
+evaluation/data/annotations

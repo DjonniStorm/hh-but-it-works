@@ -12,5 +12,14 @@ pytest -q -m "not slow" \
   --cov-fail-under=90
 
 python evaluation/validate_gold.py evaluation/data/sanity_gold.jsonl
-python evaluation/benchmark.py evaluation/data/sanity_gold.jsonl
+python evaluation/validate_gold.py evaluation/data/gold_train.jsonl \
+  --disjoint-with evaluation/data/gold_calibration.jsonl \
+  --disjoint-with evaluation/data/gold_test.jsonl
+python evaluation/validate_gold.py evaluation/data/gold_calibration.jsonl \
+  --disjoint-with evaluation/data/gold_test.jsonl
+python evaluation/validate_gold.py evaluation/data/gold_test.jsonl
+python evaluation/benchmark.py evaluation/data/sanity_gold.jsonl \
+  --min-ndcg 0.90 \
+  --min-mrr 0.90 \
+  --min-precision 0.40
 python evaluation/performance.py
