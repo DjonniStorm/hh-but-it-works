@@ -15,6 +15,8 @@ apps/ranking/evaluation/data/raw/
 apps/ranking/evaluation/data/private/
 apps/ranking/evaluation/data/annotations/
 .env
+.env.*
+!.env.example
 *.pyc
 .DS_Store
 coverage

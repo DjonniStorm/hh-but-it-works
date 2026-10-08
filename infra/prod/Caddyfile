@@ -1,0 +1,56 @@
+{
+	# Для Let's Encrypt: туда приходят предупреждения об истечении сертификата.
+	email {$ACME_EMAIL}
+	# rate_limit — директива плагина caddy-ratelimit, порядка по умолчанию у неё нет.
+	order rate_limit before basic_auth
+}
+
+# DOMAIN=hh.example.ru — HTTPS с сертификатом Let's Encrypt, HTTP уводит на HTTPS.
+# DOMAIN=http://localhost — только HTTP, для проверки на своей машине.
+{$DOMAIN} {
+	encode zstd gzip
+
+	# Подбор пароля и рассылка писем: лимит на IP до того, как запрос дойдёт до api.
+	# Сверх лимита — 429 с Retry-After.
+	rate_limit {
+		zone auth {
+			match {
+				method POST
+				path /api/auth/login /api/auth/register /api/auth/confirm /api/auth/confirm/resend
+			}
+			key {remote_host}
+			events {$AUTH_RATE_EVENTS:10}
+			window {$AUTH_RATE_WINDOW:1m}
+		}
+	}
+
+	# Веб ходит в API на тот же домен (VITE_API_URL=/api), поэтому CORS не нужен.
+	handle_path /api/* {
+		reverse_proxy api:3000
+	}
+
+	handle {
+		root * /srv
+		# В /assets имена с хешем, их можно кешировать навсегда. Остальное —
+		# index.html под любым путём SPA, его браузер перепроверяет каждый раз.
+		@hashed path /assets/*
+		@page not path /assets/*
+		header @hashed Cache-Control "public, max-age=31536000, immutable"
+		header @page Cache-Control "no-cache"
+		# SPA: неизвестный путь отдаёт index.html, дальше маршрут разбирает react-router.
+		try_files {path} /index.html
+		file_server
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

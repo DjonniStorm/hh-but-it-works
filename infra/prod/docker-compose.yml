@@ -1,0 +1,132 @@
+# Весь стенд одной командой, из корня репозитория:
+#   docker compose --env-file infra/prod/.env -f infra/prod/docker-compose.yml up -d --build
+# Наружу смотрит только Caddy (80/443), остальное — во внутренней сети compose.
+name: hh-prod
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Refresh-токены и попытки тестов: AOF, чтобы рестарт не разлогинил всех.
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    logging: *logging
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mock:
+    build: ../../apps/mock
+    restart: unless-stopped
+    logging: *logging
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bun",
+          "-e",
+          "const r = await fetch('http://127.0.0.1:3001/health'); process.exit(r.ok ? 0 : 1)",
+        ]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+
+  # Готовый образ из GHCR (ranking-image.yml), без него — сборка из apps/ranking.
+  # Healthcheck описан в самом образе.
+  ranking:
+    image: ${RANKING_IMAGE:-ghcr.io/djonnistorm/hh-but-it-works-ranking:dev}
+    build: ../../apps/ranking
+    pull_policy: missing
+    restart: unless-stopped
+    logging: *logging
+
+  api:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: "3000"
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379
+      FSP_URL: http://mock:3001
+      RANKING_URL: http://ranking:8000
+      # Ссылка из письма подтверждения ведёт сюда.
+      WEB_URL: ${WEB_URL:-https://${DOMAIN}}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET}
+      SMTP_HOST: ${SMTP_HOST:?SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      SEED_CANDIDATE_PASSWORD: ${SEED_CANDIDATE_PASSWORD:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mock:
+        condition: service_healthy
+      ranking:
+        condition: service_healthy
+
+  # Caddy со статикой веба (apps/web/Dockerfile): HTTPS, SPA и прокси /api.
+  web:
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_URL: /api
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      DOMAIN: ${DOMAIN:?DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL}
+      AUTH_RATE_EVENTS: ${AUTH_RATE_EVENTS:-10}
+      AUTH_RATE_WINDOW: ${AUTH_RATE_WINDOW:-1m}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+      - "${HTTPS_PORT:-443}:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Сертификаты и ключи ACME: без тома каждый рестарт заново просит Let's Encrypt.
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  redisdata:
+  caddy_data:
+  caddy_config:
