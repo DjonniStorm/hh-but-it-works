@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
+import { MailModule } from "../../common/mail/mail.module";
 import { CandidateProfile } from "../profiles/candidate-profile.entity";
 import { CandidateSkill } from "../profiles/candidate-skill.entity";
 import { Skill } from "../profiles/skill.entity";
@@ -30,6 +31,7 @@ import { RankingClient } from "./ranking.client";
       Skill,
       User,
     ]),
+    MailModule,
   ],
   // Ответ кандидата живёт рядом с приглашениями: те же сущности и правила статусов.
   controllers: [EmployersController, CandidateInvitationsController],

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
-import { formatDate, formatSalary } from "@/shared/lib/format";
+import { formatDate } from "@/shared/lib/format";
 import { invitationStatusLabel } from "@/shared/lib/labels";
 import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
@@ -23,6 +23,7 @@ import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Link } from "react-router";
 
+import { formatSalary } from "@hh/contracts";
 import { InvitationStatus } from "@hh/types";
 
 type Filter = "all" | InvitationStatus;
