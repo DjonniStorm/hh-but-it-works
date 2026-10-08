@@ -6,13 +6,21 @@ import {
   employersControllerListNeeds,
   employersControllerRestore,
   employersControllerSaveCompany,
+  employersControllerSearchCandidates,
   employersControllerShortlist,
   employersControllerUpdateNeed,
 } from "@/shared/api/generated/sdk.gen";
-import { mapCompany, mapNeed, mapShortlist } from "@/shared/api/map-employer";
+import {
+  mapCandidateSearch,
+  mapCompany,
+  mapNeed,
+  mapShortlist,
+} from "@/shared/api/map-employer";
 import { makeAutoObservable, observable, runInAction } from "mobx";
 
 import type {
+  CandidateSearch,
+  CandidateSearchResult,
   CompanyProfile,
   HiringNeed,
   HiringNeedInput,
@@ -165,6 +173,23 @@ export class EmployerStore {
         return shortlist;
       },
       // Экран подборки пуст, пока она не пришла.
+      { loader: true, retry: loadRetry, ...options },
+    );
+  }
+
+  // Выдачу держит экран поиска: она зависит от фильтров в адресе, а не от кабинета.
+  searchCandidates(
+    filter: CandidateSearch,
+    options?: CallOptions<CandidateSearchResult>,
+  ) {
+    return request(
+      this.root,
+      async () => {
+        const result = await employersControllerSearchCandidates({
+          body: filter,
+        });
+        return mapCandidateSearch(readData(result));
+      },
       { loader: true, retry: loadRetry, ...options },
     );
   }

@@ -8,6 +8,7 @@ import { NeedEditPage } from "@/pages/employer/ui/NeedEditPage";
 import { NeedNewPage } from "@/pages/employer/ui/NeedNewPage";
 import { NeedPage } from "@/pages/employer/ui/NeedPage";
 import { NeedsPage } from "@/pages/employer/ui/NeedsPage";
+import { SearchPage } from "@/pages/employer/ui/SearchPage";
 import { HomePage } from "@/pages/home/HomePage";
 import { CandidateInvitationsPage } from "@/pages/invitations/ui/CandidateInvitationsPage";
 import { ProfilePage } from "@/pages/profile/ui/ProfilePage";
@@ -59,6 +60,7 @@ export const router = createBrowserRouter([
                     path: ROUTES.EMPLOYER.NEED_EDIT,
                     element: <NeedEditPage />,
                   },
+                  { path: ROUTES.EMPLOYER.SEARCH, element: <SearchPage /> },
                   {
                     path: ROUTES.EMPLOYER.INVITATIONS,
                     element: <InvitationsPage />,

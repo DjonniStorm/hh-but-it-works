@@ -2,15 +2,18 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { In, Repository } from "typeorm";
 
-import type {
-  CompanyProfile as CompanyProfileView,
-  CompanyResponse,
-  HiringNeedInput,
-  HiringNeedList,
-  HiringNeed as HiringNeedView,
-  Match,
-  Shortlist,
-  ShortlistCategory,
+import {
+  type CandidateSearch,
+  type CandidateSearchResult,
+  type CompanyProfile as CompanyProfileView,
+  type CompanyResponse,
+  type HiringNeedInput,
+  type HiringNeedList,
+  type HiringNeed as HiringNeedView,
+  type Match,
+  type Shortlist,
+  type ShortlistCategory,
+  candidateSearchLimit,
 } from "@hh/contracts";
 
 import { CandidateProfile } from "../profiles/candidate-profile.entity";
@@ -158,6 +161,20 @@ export class EmployersService {
       modelVersion: ranked.modelVersion,
       categories: countCategories(need, items),
       items,
+    };
+  }
+
+  // Без потребности ранжировать не по чему: сначала сильный результат теста.
+  async searchCandidates(
+    filter: CandidateSearch,
+  ): Promise<CandidateSearchResult> {
+    const found = await this.pool.search(filter);
+    found.sort((left, right) => {
+      return (right.assessmentScore ?? 0) - (left.assessmentScore ?? 0);
+    });
+    return {
+      items: found.slice(0, candidateSearchLimit),
+      total: found.length,
     };
   }
 

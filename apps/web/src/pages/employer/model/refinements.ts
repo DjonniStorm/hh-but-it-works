@@ -1,5 +1,4 @@
-import type { Match } from "@hh/contracts";
-import { SkillVerification } from "@hh/types";
+import { type Match, hasFspEvidence } from "@hh/contracts";
 
 export type Refinement = "verified" | "fsp" | "assessment";
 
@@ -17,12 +16,7 @@ const refinementCheck: Record<Refinement, (match: Match) => boolean> = {
     return match.candidate.verifiedGrade !== null;
   },
   fsp: (match) => {
-    return (
-      match.candidate.fspAchievements.length > 0 ||
-      match.candidate.skills.some((skill) => {
-        return skill.verification === SkillVerification.VerifiedExternal;
-      })
-    );
+    return hasFspEvidence(match.candidate);
   },
   assessment: (match) => {
     return (match.candidate.assessmentScore ?? 0) >= 80;

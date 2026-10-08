@@ -2,18 +2,13 @@ import { useState } from "react";
 
 import { candidateMeta } from "@/pages/employer/model/candidate-meta";
 import { inviteLabel } from "@/pages/employer/model/invite-label";
+import { CandidateBadges } from "@/pages/employer/ui/CandidateBadges";
+import { InvitationBadge } from "@/pages/employer/ui/InvitationBadge";
 import { ReasonList } from "@/pages/employer/ui/ReasonList";
 import { ScoreBar } from "@/pages/employer/ui/ScoreBar";
 import { ScoreRing } from "@/pages/employer/ui/ScoreRing";
 import { WhyMatch } from "@/pages/employer/ui/WhyMatch";
 import {
-  gradeLabel,
-  invitationStatusLabel,
-  specializationLabel,
-} from "@/shared/lib/labels";
-import { gradeBadge, invitationStatusColor } from "@/shared/theme";
-import {
-  Badge,
   Button,
   Collapse,
   Group,
@@ -46,9 +41,6 @@ export const MatchCard = ({
 }: Props) => {
   const [expanded, setExpanded] = useState(false);
   const { candidate } = match;
-  const verified = candidate.verifiedGrade;
-  const grade = verified ?? candidate.claimedGrade;
-  const gradeStyle = verified ? gradeBadge.verified : gradeBadge.unverified;
 
   return (
     <Paper withBorder radius="md" p="lg">
@@ -62,34 +54,9 @@ export const MatchCard = ({
               <Text fw={700} size="lg">
                 {candidate.alias}
               </Text>
-              {invitation ? (
-                <Badge
-                  variant="light"
-                  color={invitationStatusColor[invitation.status]}
-                  tt="none"
-                >
-                  Приглашение: {invitationStatusLabel[invitation.status]}
-                </Badge>
-              ) : null}
+              <InvitationBadge invitation={invitation} />
             </Group>
-            <Group gap={6}>
-              <Badge variant="outline" color="dark" tt="none">
-                {specializationLabel[candidate.specialization]}
-              </Badge>
-              <Badge
-                variant={gradeStyle.variant}
-                color={gradeStyle.color}
-                tt="none"
-              >
-                {gradeLabel[grade]} ·{" "}
-                {verified ? "подтверждён" : "не подтверждён"}
-              </Badge>
-              {verified && verified !== candidate.claimedGrade ? (
-                <Text size="xs" c="dimmed">
-                  заявлял {gradeLabel[candidate.claimedGrade]}
-                </Text>
-              ) : null}
-            </Group>
+            <CandidateBadges candidate={candidate} />
             <Text size="sm" c="dimmed">
               {candidateMeta(candidate)}
             </Text>

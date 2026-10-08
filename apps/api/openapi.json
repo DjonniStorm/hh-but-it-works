@@ -770,6 +770,40 @@
         "tags": ["Employers"]
       }
     },
+    "/employer/candidates/search": {
+      "post": {
+        "operationId": "EmployersController_searchCandidates",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CandidateSearchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateSearchResultDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      }
+    },
     "/employer/invitations": {
       "get": {
         "operationId": "EmployersController_listInvitations",
@@ -2605,6 +2639,192 @@
           }
         },
         "required": ["needId", "modelVersion", "categories", "items"],
+        "additionalProperties": false
+      },
+      "CandidateSearchDto": {
+        "type": "object",
+        "properties": {
+          "specialization": {
+            "type": "string",
+            "enum": ["backend", "frontend", "data", "security", null],
+            "nullable": true
+          },
+          "grades": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["junior", "middle", "senior"]
+            }
+          },
+          "skills": {
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "fspOnly": {
+            "type": "boolean"
+          }
+        },
+        "required": ["specialization", "grades", "skills", "fspOnly"]
+      },
+      "CandidateSearchResultDto_Output": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "alias": {
+                  "type": "string"
+                },
+                "specialization": {
+                  "type": "string",
+                  "enum": ["backend", "frontend", "data", "security"]
+                },
+                "claimedGrade": {
+                  "type": "string",
+                  "enum": ["junior", "middle", "senior"]
+                },
+                "verifiedGrade": {
+                  "type": "string",
+                  "enum": ["junior", "middle", "senior", null],
+                  "nullable": true
+                },
+                "gradeConfidence": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "nullable": true
+                },
+                "experienceYears": {
+                  "type": "number",
+                  "minimum": 0,
+                  "nullable": true
+                },
+                "skills": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "level": {
+                        "type": "string",
+                        "enum": ["basic", "confident", "strong", null],
+                        "nullable": true
+                      },
+                      "verification": {
+                        "type": "string",
+                        "enum": ["unverified", "verified", "verified_external"]
+                      },
+                      "score": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "nullable": true
+                      }
+                    },
+                    "required": ["title", "level", "verification", "score"],
+                    "additionalProperties": false
+                  }
+                },
+                "assessmentScore": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100,
+                  "nullable": true
+                },
+                "profileFreshness": {
+                  "default": 1,
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "fspAchievements": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "year": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "place": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991,
+                        "nullable": true
+                      }
+                    },
+                    "required": ["title", "year", "place"],
+                    "additionalProperties": false
+                  }
+                },
+                "preferences": {
+                  "type": "object",
+                  "properties": {
+                    "desiredSalaryFrom": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "nullable": true
+                    },
+                    "workFormats": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": ["office", "hybrid", "remote"]
+                      }
+                    },
+                    "searchStatus": {
+                      "type": "string",
+                      "enum": ["actively-looking", "open-to-offers", "hidden"]
+                    }
+                  },
+                  "required": [
+                    "desiredSalaryFrom",
+                    "workFormats",
+                    "searchStatus"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "id",
+                "alias",
+                "specialization",
+                "claimedGrade",
+                "verifiedGrade",
+                "gradeConfidence",
+                "experienceYears",
+                "skills",
+                "assessmentScore",
+                "profileFreshness",
+                "fspAchievements",
+                "preferences"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": ["items", "total"],
         "additionalProperties": false
       },
       "InvitationListDto_Output": {

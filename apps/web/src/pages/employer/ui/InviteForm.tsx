@@ -1,6 +1,7 @@
 import { notifier } from "@/app/store/notifier";
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
+import { inviteMessage } from "@/pages/employer/model/invite-message";
 import { SalaryFields } from "@/pages/employer/ui/SalaryFields";
 import { focusFirstError } from "@/shared/lib/focus-first-error";
 import {
@@ -25,7 +26,7 @@ import {
 
 type Props = {
   candidate: CandidateSnapshot;
-  need: HiringNeed;
+  need: HiringNeed | null;
   company: CompanyProfile;
   onDone: () => void;
 };
@@ -37,16 +38,12 @@ export const InviteForm = observer(
     const form = useForm({
       initialValues: {
         candidateId: candidate.id,
-        needId: need.id as string | null,
-        message: [
-          `Здравствуйте! ${company.name} ищет специалиста: ${need.title}.`,
-          need.description,
-        ]
-          .filter(Boolean)
-          .join("\n\n"),
+        needId: need?.id ?? null,
+        message: inviteMessage(company, need),
         contact: company.contactTelegram || company.contactEmail,
-        salaryFrom: need.salaryFrom as number | "",
-        salaryTo: need.salaryTo as number | "",
+        // Без потребности вилки нет: работодатель указывает её сам.
+        salaryFrom: (need?.salaryFrom ?? "") as number | "",
+        salaryTo: (need?.salaryTo ?? "") as number | "",
       },
       validate: schemaResolver(invitationInputSchema, { sync: true }),
     });

@@ -21,6 +21,8 @@ import { Roles } from "../../common/auth/roles.decorator";
 import { RolesGuard } from "../../common/auth/roles.guard";
 import { User } from "../users/user.entity";
 import {
+  CandidateSearchDto,
+  CandidateSearchResultDto,
   CompanyProfileDto,
   CompanyResponseDto,
   HiringNeedDto,
@@ -125,6 +127,14 @@ export class EmployersController {
     @Param("candidateId", new ParseUUIDPipe()) candidateId: string,
   ) {
     return this.employers.setDismissed(user.id, id, candidateId, false);
+  }
+
+  // Фильтры в теле, а не в query: массивы грейдов и навыков без разбора строк.
+  @Post("candidates/search")
+  @HttpCode(200)
+  @ZodResponse({ status: 200, type: CandidateSearchResultDto })
+  searchCandidates(@Body() body: CandidateSearchDto) {
+    return this.employers.searchCandidates(body);
   }
 
   @Get("invitations")
