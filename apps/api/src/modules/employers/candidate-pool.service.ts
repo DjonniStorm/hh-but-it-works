@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { In, Not, Repository } from "typeorm";
+import { type FindOptionsWhere, In, IsNull, Not, Repository } from "typeorm";
 
 import type { CandidateSnapshot, HiringNeedInput } from "@hh/contracts";
 import { Grade, SearchStatus, gradeIndex, gradeOrder } from "@hh/types";
@@ -9,6 +9,14 @@ import { CandidateProfile } from "../profiles/candidate-profile.entity";
 import { CandidateSkill } from "../profiles/candidate-skill.entity";
 import { Skill } from "../profiles/skill.entity";
 import { FspClient } from "./fsp.client";
+
+// Кого работодатель видит на бирже: тест сдан (listed), грейд подтверждён, кандидат
+// не скрылся. Подборка, счётчик и приглашение проверяют одно и то же условие.
+export const onExchange = {
+  listed: true,
+  verifiedGrade: Not(IsNull()),
+  searchStatus: Not(SearchStatus.Hidden),
+} satisfies FindOptionsWhere<CandidateProfile>;
 
 type NeedFilter = Pick<
   HiringNeedInput,
@@ -29,15 +37,12 @@ export class CandidatePoolService {
     private readonly fsp: FspClient,
   ) {}
 
-  // На бирже только подтверждённые (listed) и не скрывшиеся кандидаты.
   listed(): Promise<CandidateProfile[]> {
-    return this.profiles.find({
-      where: { listed: true, searchStatus: Not(SearchStatus.Hidden) },
-    });
+    return this.profiles.find({ where: onExchange });
   }
 
-  // Своя специализация и грейд в диапазоне потребности ±1 ступень.
-  // Грейд берём подтверждённый, если тест уже был, иначе заявленный.
+  // Своя специализация и подтверждённый грейд в диапазоне потребности ±1 ступень.
+  // Заявленный грейд в выдачу не идёт (ТЗ 2.1: категория — по итогам тестирования).
   // pool — результат listed(): подборка и счётчик в списке потребностей отбирают одинаково.
   eligible(need: NeedFilter, pool: CandidateProfile[]): CandidateProfile[] {
     const grades = gradesAround(need);
@@ -45,7 +50,9 @@ export class CandidatePoolService {
       if (profile.specialization !== need.specialization) {
         return false;
       }
-      return grades.includes(profile.verifiedGrade ?? profile.claimedGrade);
+      return (
+        profile.verifiedGrade !== null && grades.includes(profile.verifiedGrade)
+      );
     });
   }
 

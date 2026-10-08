@@ -14,11 +14,11 @@ import type {
   InvitationList,
   Invitation as InvitationView,
 } from "@hh/contracts";
-import { InvitationStatus, SearchStatus } from "@hh/types";
+import { InvitationStatus } from "@hh/types";
 
 import { CandidateProfile } from "../profiles/candidate-profile.entity";
 import { User } from "../users/user.entity";
-import { aliasOf } from "./candidate-pool.service";
+import { aliasOf, onExchange } from "./candidate-pool.service";
 import { CompanyProfile } from "./company-profile.entity";
 import { EmployersService } from "./employers.service";
 import { HiringNeed } from "./hiring-need.entity";
@@ -67,13 +67,10 @@ export class InvitationsService {
       throw new BadRequestException("Сначала заполните профиль компании");
     }
     const candidate = await this.profiles.findOne({
-      where: {
-        id: input.candidateId,
-        listed: true,
-        searchStatus: Not(SearchStatus.Hidden),
-      },
+      where: { id: input.candidateId, ...onExchange },
     });
-    // Скрывшийся кандидат для работодателя не существует, как и в подборке.
+    // Кандидат вне биржи (скрылся, нет подтверждённого грейда) для работодателя
+    // не существует, как и в подборке.
     if (!candidate) {
       throw new NotFoundException("Кандидат не найден");
     }
