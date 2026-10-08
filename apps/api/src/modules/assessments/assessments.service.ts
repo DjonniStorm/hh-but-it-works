@@ -35,6 +35,7 @@ import { AttemptStore, type StoredAttempt } from "./attempt.store";
 const answerGraceMs = 5000;
 // Короткое переключение фокуса (клик по системной панели) не считаем уходом.
 const minBlurMs = 1000;
+const attemptGone = "Попытка не найдена или уже завершена";
 
 export type ClientMeta = {
   ip: string;
@@ -60,7 +61,8 @@ export class AssessmentsService {
       throw new ConflictException("Сначала завершите текущую попытку");
     }
     await this.profiles.assertGradeChangeAllowed(userId, grade);
-    const skills = await this.profiles.assessmentSkills(userId);
+    const { specialization, skills } =
+      await this.profiles.assessmentSkills(userId);
 
     let built: ReturnType<typeof buildAttempt>;
     try {
@@ -80,6 +82,7 @@ export class AssessmentsService {
     const attempt: StoredAttempt = {
       id: randomUUID(),
       grade,
+      specialization,
       sections: built.sections.map((section) => {
         return {
           skillId: section.skillId,
@@ -110,7 +113,9 @@ export class AssessmentsService {
     const now = Date.now();
     if (attempt.cursor < attempt.items.length && attempt.servedAt === null) {
       attempt.servedAt = now;
-      await this.attempts.update(userId, attempt);
+      if (!(await this.attempts.update(userId, attempt))) {
+        return { attempt: null };
+      }
     }
     return { attempt: view(attempt, now) };
   }
@@ -153,7 +158,9 @@ export class AssessmentsService {
 
     attempt.cursor += 1;
     attempt.servedAt = attempt.cursor < attempt.items.length ? now : null;
-    await this.attempts.update(userId, attempt);
+    if (!(await this.attempts.update(userId, attempt))) {
+      throw new BadRequestException(attemptGone);
+    }
     return view(attempt, now);
   }
 
@@ -171,14 +178,21 @@ export class AssessmentsService {
       }
       return [event.type];
     });
-    const accepted = await this.attempts.pushEvents(userId, flags);
+    const accepted = await this.attempts.pushEvents(
+      userId,
+      input.attemptId,
+      flags,
+    );
     return { accepted };
   }
 
   async finish(userId: string, attemptId: string): Promise<AssessmentResult> {
-    const attempt = await this.requireAttempt(userId, attemptId);
-    await this.attempts.remove(userId);
-    const clientFlags = await this.attempts.takeEvents(userId);
+    // Берём и удаляем одним шагом: второй параллельный finish получит 400, а не вторую оценку.
+    const taken = await this.attempts.take(userId, attemptId);
+    if (!taken) {
+      throw new BadRequestException(attemptGone);
+    }
+    const { attempt, events: clientFlags } = taken;
 
     // Неотвеченные вопросы засчитываются как неверные.
     const graded = gradeAttempt(
@@ -194,6 +208,7 @@ export class AssessmentsService {
         : AttemptStatus.Failed;
     const { gradeChanged } = await this.profiles.applyAssessment(userId, {
       grade: attempt.grade,
+      specialization: attempt.specialization,
       status,
       score: graded.score,
       sections: graded.sections,
@@ -239,7 +254,7 @@ export class AssessmentsService {
   ): Promise<StoredAttempt> {
     const attempt = await this.attempts.get(userId);
     if (!attempt || attempt.id !== attemptId) {
-      throw new BadRequestException("Попытка не найдена или уже завершена");
+      throw new BadRequestException(attemptGone);
     }
     return attempt;
   }
