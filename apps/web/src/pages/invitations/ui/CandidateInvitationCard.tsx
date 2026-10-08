@@ -5,21 +5,17 @@ import {
   candidateStatusLabel,
 } from "@/pages/invitations/model/answer";
 import { DeclineButton } from "@/pages/invitations/ui/DeclineButton";
-import { formatDate, formatSalary } from "@/shared/lib/format";
+import { formatDate } from "@/shared/lib/format";
 import { candidateInvitationColor } from "@/shared/theme";
 import { Badge, Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
-import type { CandidateInvitation } from "@hh/contracts";
+import { type CandidateInvitation, formatSalary } from "@hh/contracts";
 import { InvitationStatus } from "@hh/types";
 
 export const CandidateInvitationCard = observer(
   ({ invitation }: { invitation: CandidateInvitation }) => {
     const invitations = useStore(StoreKey.CandidateInvitations);
-    // Отрасль и позиция одной строкой: позиции может не быть, тогда без лишней точки.
-    const subtitle = [invitation.companyIndustry, invitation.needTitle]
-      .filter(Boolean)
-      .join(" · ");
 
     return (
       <Paper withBorder radius="md" p="lg">
@@ -27,9 +23,16 @@ export const CandidateInvitationCard = observer(
           <Group justify="space-between" align="flex-start" wrap="nowrap">
             <Stack gap={2} style={{ minWidth: 0 }}>
               <Title order={3}>{invitation.companyName}</Title>
-              <Text c="dimmed" size="sm">
-                {subtitle}
-              </Text>
+              {invitation.companyIndustry ? (
+                <Text c="dimmed" size="sm">
+                  {invitation.companyIndustry}
+                </Text>
+              ) : null}
+              {invitation.needTitle ? (
+                <Text c="dimmed" size="sm">
+                  {invitation.needTitle}
+                </Text>
+              ) : null}
             </Stack>
             {/* Статус читается целиком: сжимается название компании, не бейдж. */}
             <Badge
@@ -76,7 +79,9 @@ export const CandidateInvitationCard = observer(
               <Text c="dimmed" size="sm">
                 {invitation.status === InvitationStatus.Accepted
                   ? "Компания видит ваш контакт и свяжется с вами"
-                  : "Вы отказались от этого предложения"}
+                  : invitation.status === InvitationStatus.Withdrawn
+                    ? "Компания отозвала приглашение"
+                    : "Вы отказались от этого предложения"}
               </Text>
             )}
           </Group>

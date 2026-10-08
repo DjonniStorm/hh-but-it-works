@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
+import { MailModule } from "../../common/mail/mail.module";
 import { CandidateProfile } from "../profiles/candidate-profile.entity";
 import { CandidateSkill } from "../profiles/candidate-skill.entity";
 import { Skill } from "../profiles/skill.entity";
@@ -15,6 +16,7 @@ import { HiringNeed } from "./hiring-need.entity";
 import { Invitation } from "./invitation.entity";
 import { InvitationsService } from "./invitations.service";
 import { NeedDismissal } from "./need-dismissal.entity";
+import { NeedFavorite } from "./need-favorite.entity";
 import { RankingClient } from "./ranking.client";
 
 @Module({
@@ -23,6 +25,7 @@ import { RankingClient } from "./ranking.client";
       CompanyProfile,
       HiringNeed,
       NeedDismissal,
+      NeedFavorite,
       Invitation,
       // Кандидатов подборка читает из модуля профилей, только на чтение.
       CandidateProfile,
@@ -30,6 +33,7 @@ import { RankingClient } from "./ranking.client";
       Skill,
       User,
     ]),
+    MailModule,
   ],
   // Ответ кандидата живёт рядом с приглашениями: те же сущности и правила статусов.
   controllers: [EmployersController, CandidateInvitationsController],

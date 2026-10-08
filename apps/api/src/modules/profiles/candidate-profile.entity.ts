@@ -60,6 +60,19 @@ export class CandidateProfile {
   })
   searchStatus!: SearchStatus;
 
+  /** Что работодатель видит в подборке до принятия приглашения. Контакты и имя тут не живут. */
+  @Column({ default: true })
+  showExperience!: boolean;
+
+  @Column({ default: true })
+  showSalary!: boolean;
+
+  @Column({ default: true })
+  showFsp!: boolean;
+
+  @Column({ default: true })
+  showUnverifiedSkills!: boolean;
+
   /**
    * Итоги тестирования для карточки в подборке. Пишет их будущий модуль теста,
    * пока заполнены только у сид-кандидатов. Из формы профиля не приходят.

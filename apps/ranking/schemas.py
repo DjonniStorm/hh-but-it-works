@@ -99,6 +99,7 @@ class CandidateSnapshot(BaseModel):
     availability: Availability = Availability.open_to_offers
     profileFreshness: float = Field(default=1, ge=0, le=1)
     semanticSimilarity: float | None = Field(default=None, ge=-1, le=1)
+    profileText: str | None = Field(default=None, max_length=4000)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="after")
@@ -168,7 +169,7 @@ class RankingContext(BaseModel):
 class RankRequest(BaseModel):
     hiringNeed: HiringNeedSnapshot | None = None
     vacancy: HiringNeedSnapshot | None = None
-    candidates: list[CandidateSnapshot]
+    candidates: list[CandidateSnapshot] = Field(max_length=5000)
     context: RankingContext = Field(default_factory=RankingContext)
 
     @model_validator(mode="after")
@@ -242,7 +243,7 @@ class CareerAction(BaseModel):
 
 class CareerAnalyzeRequest(BaseModel):
     candidate: CandidateSnapshot
-    opportunities: list[HiringNeedSnapshot]
+    opportunities: list[HiringNeedSnapshot] = Field(max_length=1000)
     strongMatchThreshold: float = Field(default=0.75, ge=0, le=1)
 
 

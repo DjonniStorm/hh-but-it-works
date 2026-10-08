@@ -32,13 +32,14 @@ export const ProfilePage = observer(() => {
     void profiles.load();
   }, [auth.user?.role, profiles]);
 
+  const testing = tab === "testing";
+
   return (
     <Stack
-      h={`calc(100dvh - ${headerHeight}px - 2rem)`}
+      h={testing ? `calc(100dvh - ${headerHeight}px - 2rem)` : undefined}
       gap="md"
-      style={{ minHeight: 0 }}
+      style={testing ? { minHeight: 0 } : undefined}
     >
-      <BackHome />
       <Title order={2}>Профиль</Title>
       {profiles.profile ? (
         <Tabs
@@ -49,24 +50,29 @@ export const ProfilePage = observer(() => {
             }
             void setTab(value);
           }}
-          style={{
-            flex: 1,
-            minHeight: 0,
-            display: "flex",
-            flexDirection: "column",
-          }}
+          style={
+            testing
+              ? {
+                  flex: 1,
+                  minHeight: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                }
+              : undefined
+          }
         >
           <Tabs.List>
             <Tabs.Tab value="form">Анкета</Tabs.Tab>
             <Tabs.Tab value="testing">Тестирование</Tabs.Tab>
           </Tabs.List>
-          <Tabs.Panel value="form" style={{ flex: 1, minHeight: 0 }}>
+          <Tabs.Panel value="form" pt="md">
             <ProfilePanels
               profile={profiles.profile}
               email={auth.user?.email ?? ""}
+              draft={profiles.resumeDraft}
             />
           </Tabs.Panel>
-          <Tabs.Panel value="testing" style={{ flex: 1, minHeight: 0 }}>
+          <Tabs.Panel value="testing" pt="md" style={{ flex: 1, minHeight: 0 }}>
             <TestingTab profile={profiles.profile} />
           </Tabs.Panel>
         </Tabs>

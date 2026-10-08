@@ -9,15 +9,16 @@ import {
 
 import { InvitationStatus } from "@hh/types";
 
-export const oneActiveIndex = "invitations_one_active";
+export const oneActiveIndex = "invitations_one_open";
 
-// Приглашение работодателя кандидату. Статус меняет кандидат (принять, отклонить).
-// Одно активное приглашение от компании кандидату держит база: параллельные запросы
-// не создадут второе. После отказа строка выпадает из индекса, можно пригласить снова.
+// Приглашение работодателя кандидату. Статус меняет кандидат (принять, отклонить)
+// или работодатель (отозвать, пока нет ответа).
+// Одно открытое приглашение от компании кандидату держит база.
+// Отказ и отзыв выпадают из индекса, можно пригласить снова.
 // synchronize не сравнивает where у индекса: новое условие — только под новым именем.
 @Index(oneActiveIndex, ["userId", "candidateProfileId"], {
   unique: true,
-  where: `"status" <> 'declined'`,
+  where: `"status" IN ('sent'::"invitation_status", 'viewed'::"invitation_status", 'accepted'::"invitation_status")`,
 })
 @Entity("invitations")
 export class Invitation {

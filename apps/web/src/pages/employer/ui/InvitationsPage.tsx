@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
-import { formatDate, formatSalary } from "@/shared/lib/format";
+import { formatDate } from "@/shared/lib/format";
 import { invitationStatusLabel } from "@/shared/lib/labels";
 import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
@@ -23,6 +23,7 @@ import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Link } from "react-router";
 
+import { formatSalary } from "@hh/contracts";
 import { InvitationStatus } from "@hh/types";
 
 type Filter = "all" | InvitationStatus;
@@ -32,6 +33,7 @@ const statuses = [
   InvitationStatus.Viewed,
   InvitationStatus.Accepted,
   InvitationStatus.Declined,
+  InvitationStatus.Withdrawn,
 ];
 
 export const InvitationsPage = observer(() => {
@@ -85,7 +87,7 @@ export const InvitationsPage = observer(() => {
             };
           }),
         ]}
-        // Пять статусов в строку не влезают в телефон: страница уезжала вбок.
+        // Шесть статусов в строку не влезают в телефон: страница уезжала вбок.
         orientation={narrow ? "vertical" : "horizontal"}
         fullWidth={narrow}
         style={{ alignSelf: narrow ? "stretch" : "flex-start" }}
@@ -116,6 +118,7 @@ export const InvitationsPage = observer(() => {
                   <Table.Th>Отправлено</Table.Th>
                   <Table.Th miw={150}>Статус</Table.Th>
                   <Table.Th>Контакт</Table.Th>
+                  <Table.Th>Действие</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -150,9 +153,25 @@ export const InvitationsPage = observer(() => {
                           <Text span c="dimmed" size="xs">
                             {item.status === InvitationStatus.Declined
                               ? "Кандидат отказался"
-                              : "Откроется после принятия"}
+                              : item.status === InvitationStatus.Withdrawn
+                                ? "Вы отозвали приглашение"
+                                : "Откроется после принятия"}
                           </Text>
                         )}
+                      </Table.Td>
+                      <Table.Td>
+                        {item.status === InvitationStatus.Sent ||
+                        item.status === InvitationStatus.Viewed ? (
+                          <Button
+                            size="xs"
+                            variant="default"
+                            onClick={() => {
+                              void invitations.withdraw(item.id);
+                            }}
+                          >
+                            Отозвать
+                          </Button>
+                        ) : null}
                       </Table.Td>
                     </Table.Tr>
                   );

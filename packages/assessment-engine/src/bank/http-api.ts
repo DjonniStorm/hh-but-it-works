@@ -2,6 +2,7 @@ import { Grade } from "@hh/types";
 
 import { between, pick, sample } from "../random";
 import type { Template } from "../types";
+import { httpMore } from "./more";
 
 const { Junior, Middle, Senior } = Grade;
 
@@ -216,4 +217,5 @@ export const httpApi: Template[] = [
       };
     },
   },
+  ...httpMore,
 ];

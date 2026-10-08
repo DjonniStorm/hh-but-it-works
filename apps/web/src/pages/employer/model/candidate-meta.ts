@@ -1,7 +1,7 @@
-import { formatSalaryFrom, formatYears } from "@/shared/lib/format";
+import { formatYears } from "@/shared/lib/format";
 import { workFormatLabel } from "@/shared/lib/labels";
 
-import type { CandidateSnapshot } from "@hh/contracts";
+import { type CandidateSnapshot, formatSalaryFrom } from "@hh/contracts";
 
 // «3,5 года опыта · от 220 000 ₽ · Удалённо». Пустое кандидат мог не заполнить — пропускаем.
 export function candidateMeta(candidate: CandidateSnapshot): string {

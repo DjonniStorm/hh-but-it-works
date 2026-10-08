@@ -26,6 +26,10 @@ export type ConfirmEmailDto = {
     token: string;
 };
 
+export type ResendConfirmationDto = {
+    email: string;
+};
+
 export type LoginDto = {
     email: string;
     password: string;
@@ -56,8 +60,13 @@ export type CandidateProfileDtoOutput = {
     linkedin: string | null;
     website: string | null;
     desiredSalaryFrom: number | null;
+    experienceYears: number | null;
     workFormats: Array<'office' | 'hybrid' | 'remote'>;
     searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden';
+    showExperience: boolean;
+    showSalary: boolean;
+    showFsp: boolean;
+    showUnverifiedSkills: boolean;
     listed: boolean;
     verifiedGrade: 'junior' | 'middle' | 'senior' | null;
     verifiedAt: string | null;
@@ -69,6 +78,19 @@ export type CandidateProfileDtoOutput = {
         title: string;
         level: 'basic' | 'confident' | 'strong' | null;
         verification: 'unverified' | 'verified' | 'verified_external' | null;
+        verifiedAt: string | null;
+    }>;
+};
+
+export type ResumeDraftDtoOutput = {
+    displayName: string | null;
+    experienceYears: number | null;
+    claimedGrade: 'junior' | 'middle' | 'senior' | null;
+    telegram: string | null;
+    github: string | null;
+    skills: Array<{
+        slug: string;
+        title: string;
     }>;
 };
 
@@ -82,8 +104,13 @@ export type SaveProfileDto = {
     linkedin: string;
     website: string;
     desiredSalaryFrom: '' | number | null;
+    experienceYears: '' | number | null;
     workFormats: Array<'office' | 'hybrid' | 'remote'>;
     searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden';
+    showExperience: boolean;
+    showSalary: boolean;
+    showFsp: boolean;
+    showUnverifiedSkills: boolean;
     skills: Array<{
         skillId: string;
         level: 'basic' | 'confident' | 'strong' | null;
@@ -113,7 +140,7 @@ export type ActiveAttemptDtoOutput = {
         kind: 'single' | 'multiple' | 'numeric' | 'code' | 'order';
         prompt: string;
         code: string | null;
-        lang: 'typescript' | 'dockerfile' | 'sql' | null;
+        lang: 'typescript' | 'dockerfile' | 'sql' | 'python' | 'csharp' | 'go' | 'java' | 'tsx' | null;
         choices: Array<string>;
         seconds: number;
     } | null;
@@ -137,7 +164,7 @@ export type CurrentAttemptDtoOutput = {
             kind: 'single' | 'multiple' | 'numeric' | 'code' | 'order';
             prompt: string;
             code: string | null;
-            lang: 'typescript' | 'dockerfile' | 'sql' | null;
+            lang: 'typescript' | 'dockerfile' | 'sql' | 'python' | 'csharp' | 'go' | 'java' | 'tsx' | null;
             choices: Array<string>;
             seconds: number;
         } | null;
@@ -305,8 +332,10 @@ export type ShortlistDtoOutput = {
                 level: 'basic' | 'confident' | 'strong' | null;
                 verification: 'unverified' | 'verified' | 'verified_external';
                 score: number | null;
+                verifiedAt: string | null;
             }>;
             assessmentScore: number | null;
+            profileFreshness: number;
             fspAchievements: Array<{
                 title: string;
                 year: number;
@@ -330,6 +359,7 @@ export type ShortlistDtoOutput = {
             details: Array<string>;
         }>;
         dismissed: boolean;
+        favorite: boolean;
     }>;
 };
 
@@ -342,7 +372,7 @@ export type InvitationListDtoOutput = {
         salaryFrom: number;
         salaryTo: number;
         id: string;
-        status: 'sent' | 'viewed' | 'accepted' | 'declined';
+        status: 'sent' | 'viewed' | 'accepted' | 'declined' | 'withdrawn';
         createdAt: string;
         updatedAt: string;
         companyName: string;
@@ -350,15 +380,6 @@ export type InvitationListDtoOutput = {
         needTitle: string | null;
         candidateContact: string | null;
     }>;
-};
-
-export type InvitationInputDto = {
-    candidateId: string;
-    needId: string | null;
-    message: string;
-    contact: string;
-    salaryFrom: number;
-    salaryTo: number;
 };
 
 export type InvitationDtoOutput = {
@@ -369,13 +390,22 @@ export type InvitationDtoOutput = {
     salaryFrom: number;
     salaryTo: number;
     id: string;
-    status: 'sent' | 'viewed' | 'accepted' | 'declined';
+    status: 'sent' | 'viewed' | 'accepted' | 'declined' | 'withdrawn';
     createdAt: string;
     updatedAt: string;
     companyName: string;
     candidateAlias: string;
     needTitle: string | null;
     candidateContact: string | null;
+};
+
+export type InvitationInputDto = {
+    candidateId: string;
+    needId: string | null;
+    message: string;
+    contact: string;
+    salaryFrom: number;
+    salaryTo: number;
 };
 
 export type CandidateInvitationListDtoOutput = {
@@ -388,7 +418,7 @@ export type CandidateInvitationListDtoOutput = {
         contact: string;
         salaryFrom: number;
         salaryTo: number;
-        status: 'sent' | 'viewed' | 'accepted' | 'declined';
+        status: 'sent' | 'viewed' | 'accepted' | 'declined' | 'withdrawn';
         createdAt: string;
         updatedAt: string;
     }>;
@@ -407,7 +437,7 @@ export type CandidateInvitationDtoOutput = {
     contact: string;
     salaryFrom: number;
     salaryTo: number;
-    status: 'sent' | 'viewed' | 'accepted' | 'declined';
+    status: 'sent' | 'viewed' | 'accepted' | 'declined' | 'withdrawn';
     createdAt: string;
     updatedAt: string;
 };
@@ -450,6 +480,26 @@ export type AuthControllerConfirmResponses = {
 };
 
 export type AuthControllerConfirmResponse = AuthControllerConfirmResponses[keyof AuthControllerConfirmResponses];
+
+export type AuthControllerResendConfirmationData = {
+    body: ResendConfirmationDto;
+    path?: never;
+    query?: never;
+    url: '/auth/confirm/resend';
+};
+
+export type AuthControllerResendConfirmationErrors = {
+    /**
+     * Письмо уже отправлено
+     */
+    429: unknown;
+};
+
+export type AuthControllerResendConfirmationResponses = {
+    204: void;
+};
+
+export type AuthControllerResendConfirmationResponse = AuthControllerResendConfirmationResponses[keyof AuthControllerResendConfirmationResponses];
 
 export type AuthControllerLoginData = {
     body: LoginDto;
@@ -528,6 +578,34 @@ export type ProfilesControllerSaveResponses = {
 };
 
 export type ProfilesControllerSaveResponse = ProfilesControllerSaveResponses[keyof ProfilesControllerSaveResponses];
+
+export type ProfilesControllerResumeDraftData = {
+    body: {
+        file: Blob | File;
+    };
+    path?: never;
+    query?: never;
+    url: '/profile/resume-draft';
+};
+
+export type ProfilesControllerResumeDraftResponses = {
+    200: ResumeDraftDtoOutput;
+};
+
+export type ProfilesControllerResumeDraftResponse = ProfilesControllerResumeDraftResponses[keyof ProfilesControllerResumeDraftResponses];
+
+export type ProfilesControllerExportPdfData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/profile/export.pdf';
+};
+
+export type ProfilesControllerExportPdfResponses = {
+    200: Blob | File;
+};
+
+export type ProfilesControllerExportPdfResponse = ProfilesControllerExportPdfResponses[keyof ProfilesControllerExportPdfResponses];
 
 export type AssessmentsControllerStartData = {
     body: StartAssessmentDto;
@@ -721,6 +799,38 @@ export type EmployersControllerDismissResponses = {
 
 export type EmployersControllerDismissResponse = EmployersControllerDismissResponses[keyof EmployersControllerDismissResponses];
 
+export type EmployersControllerUnfavoriteData = {
+    body?: never;
+    path: {
+        id: string;
+        candidateId: string;
+    };
+    query?: never;
+    url: '/employer/needs/{id}/favorites/{candidateId}';
+};
+
+export type EmployersControllerUnfavoriteResponses = {
+    200: ShortlistDtoOutput;
+};
+
+export type EmployersControllerUnfavoriteResponse = EmployersControllerUnfavoriteResponses[keyof EmployersControllerUnfavoriteResponses];
+
+export type EmployersControllerFavoriteData = {
+    body?: never;
+    path: {
+        id: string;
+        candidateId: string;
+    };
+    query?: never;
+    url: '/employer/needs/{id}/favorites/{candidateId}';
+};
+
+export type EmployersControllerFavoriteResponses = {
+    200: ShortlistDtoOutput;
+};
+
+export type EmployersControllerFavoriteResponse = EmployersControllerFavoriteResponses[keyof EmployersControllerFavoriteResponses];
+
 export type EmployersControllerListInvitationsData = {
     body?: never;
     path?: never;
@@ -746,6 +856,21 @@ export type EmployersControllerCreateInvitationResponses = {
 };
 
 export type EmployersControllerCreateInvitationResponse = EmployersControllerCreateInvitationResponses[keyof EmployersControllerCreateInvitationResponses];
+
+export type EmployersControllerWithdrawData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/employer/invitations/{id}/withdraw';
+};
+
+export type EmployersControllerWithdrawResponses = {
+    200: InvitationDtoOutput;
+};
+
+export type EmployersControllerWithdrawResponse = EmployersControllerWithdrawResponses[keyof EmployersControllerWithdrawResponses];
 
 export type CandidateInvitationsControllerListData = {
     body?: never;

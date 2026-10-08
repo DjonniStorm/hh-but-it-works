@@ -12,9 +12,10 @@ from schemas import (
     ScoreBreakdown,
 )
 from taxonomy import canonical_skill, skill_match
+from text_similarity import lexical_similarity, overlap_terms
 
 
-MODEL_VERSION = "rules-v1.0.0"
+MODEL_VERSION = "rules-v1.1.0"
 GRADE_VALUE = {Grade.intern: 0, Grade.junior: 1, Grade.middle: 2, Grade.senior: 3}
 AVAILABILITY_SCORE = {
     Availability.actively_looking: 1.0,
@@ -106,10 +107,15 @@ def _competency_fit(candidate: CandidateSnapshot, need: HiringNeedSnapshot, cont
         return candidate.assessmentScore if candidate.assessmentScore is not None else 0.68
     weighted = 0.0
     total_weight = 0.0
+    candidate_competencies = {
+        canonical_skill(name): value
+        for name, value in candidate.competencies.items()
+    }
     for name, weight in need.competencyWeights.items():
+        canonical_name = canonical_skill(name)
         adjusted_weight = max(0.0, weight * (1.0 + 0.35 * context.competencyBoosts.get(name, 0.0)))
         total_weight += adjusted_weight
-        weighted += candidate.competencies.get(name, 0.0) * adjusted_weight
+        weighted += candidate_competencies.get(canonical_name, 0.0) * adjusted_weight
     if total_weight <= 0:
         return 0.68
     return clamp01(weighted / total_weight)
@@ -128,10 +134,38 @@ def _experience_fit(candidate: CandidateSnapshot, need: HiringNeedSnapshot) -> f
     return 1.0
 
 
-def _semantic_fit(candidate: CandidateSnapshot) -> float:
-    if candidate.semanticSimilarity is None:
+def _semantic_fit(
+    candidate: CandidateSnapshot,
+    need: HiringNeedSnapshot | None = None,
+) -> float:
+    if candidate.semanticSimilarity is not None:
+        return clamp01((candidate.semanticSimilarity + 1.0) / 2.0)
+    if need is None or not candidate.profileText or not need.text:
         return 0.65
-    return clamp01((candidate.semanticSimilarity + 1.0) / 2.0)
+    # Lexical relevance is less expressive than an embedding, so it occupies
+    # a conservative [0.20, 1.00] range instead of pretending to be cosine.
+    return clamp01(0.20 + 0.80 * lexical_similarity(candidate.profileText, need.text))
+
+
+def _fsp_fit(candidate: CandidateSnapshot, need: HiringNeedSnapshot) -> float:
+    if not candidate.fspEvidence:
+        return clamp01(candidate.fspEvidenceScore / 0.05) if candidate.fspEvidenceScore > 0 else 0.0
+    ranked = sorted(
+        (item.score for item in candidate.fspEvidence),
+        reverse=True,
+    )
+    strength = ranked[0] + 0.06 * sum(ranked[1:])
+    need_text = " ".join(
+        filter(None, [need.specialization, need.text, *need.mustSkills, *need.niceSkills])
+    )
+    evidence_text = " ".join(
+        " ".join(filter(None, [item.language, item.title]))
+        for item in candidate.fspEvidence
+    )
+    relevance = lexical_similarity(evidence_text, need_text)
+    # Generic FSP participation still proves something; discipline overlap
+    # raises it from a 0.70 cross-profile factor up to 1.00.
+    return clamp01(strength * (0.70 + 0.30 * relevance))
 
 
 def _personalization_fit(candidate: CandidateSnapshot, need: HiringNeedSnapshot, context: RankingContext) -> float:
@@ -240,8 +274,23 @@ def _reasons_and_warnings(candidate: CandidateSnapshot, need: HiringNeedSnapshot
     if components.workMode >= 0.95 and need.workModes:
         reasons.append("work_mode_match")
 
-    if candidate.fspEvidenceScore > 0:
+    if candidate.fspEvidenceScore > 0 or candidate.fspEvidence:
         reasons.append("fsp_evidence_present")
+
+    strong_competencies = sorted(
+        canonical_skill(name)
+        for name, value in candidate.competencies.items()
+        if value >= 0.75 and canonical_skill(name) in {
+            canonical_skill(required) for required in need.competencyWeights
+        }
+    )
+    for name in strong_competencies[:2]:
+        reasons.append(f"strong_competency:{name}")
+
+    if candidate.profileText and need.text:
+        terms = overlap_terms(candidate.profileText, need.text)
+        if terms:
+            reasons.append(f"semantic_overlap:{','.join(terms[:3])}")
 
     if components.freshness < 0.55:
         warnings.append("profile_stale")
@@ -261,8 +310,8 @@ def score_pair(candidate: CandidateSnapshot, need: HiringNeedSnapshot, context: 
     competency = _competency_fit(candidate, need, context)
     assessment = candidate.assessmentScore if candidate.assessmentScore is not None else 0.62
     experience = _experience_fit(candidate, need)
-    semantic = _semantic_fit(candidate)
-    fsp = clamp01(candidate.fspEvidenceScore / 0.05) if candidate.fspEvidenceScore > 0 else 0.0
+    semantic = _semantic_fit(candidate, need)
+    fsp = _fsp_fit(candidate, need)
     salary = _salary_fit(candidate, need)
     work_mode = _set_overlap_fit(candidate.preferences.workModes, need.workModes)
     location = _set_overlap_fit(candidate.preferences.locations, need.locations)
@@ -280,17 +329,17 @@ def score_pair(candidate: CandidateSnapshot, need: HiringNeedSnapshot, context: 
     personalization = _personalization_fit(candidate, need, context)
 
     qualification = (
-        0.10 * specialization
+        0.09 * specialization
         + 0.14 * grade
         + 0.20 * must
         + 0.09 * verified_must
-        + 0.04 * nice
+        + 0.03 * nice
         + 0.12 * competency
-        + 0.09 * assessment
+        + 0.10 * assessment
         + 0.09 * experience
-        + 0.08 * semantic
-        + 0.03 * fsp
-        + 0.02 * personalization
+        + 0.07 * semantic
+        + 0.06 * fsp
+        + 0.01 * personalization
     )
     opportunity = (
         0.35 * salary

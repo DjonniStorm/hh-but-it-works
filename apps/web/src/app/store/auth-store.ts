@@ -6,6 +6,7 @@ import {
   authControllerMe,
   authControllerRefresh,
   authControllerRegister,
+  authControllerResendConfirmation,
 } from "@/shared/api/generated/sdk.gen";
 import { mapPublicUser, mapSession } from "@/shared/api/map-session";
 import { makeAutoObservable } from "mobx";
@@ -15,6 +16,7 @@ import type {
   LoginInput,
   PublicUser,
   RegisterInput,
+  ResendConfirmationInput,
   Session,
 } from "@hh/contracts";
 
@@ -62,6 +64,21 @@ export class AuthStore {
       async () => {
         const result = await authControllerConfirm({ body: input });
         return mapPublicUser(readData(result));
+      },
+      { loader: true, ...options },
+    );
+  }
+
+  resendConfirmation(
+    input: ResendConfirmationInput,
+    options?: CallOptions<void>,
+  ) {
+    return request(
+      this.root,
+      async () => {
+        const result = await authControllerResendConfirmation({ body: input });
+        readData(result);
+        return undefined;
       },
       { loader: true, ...options },
     );
