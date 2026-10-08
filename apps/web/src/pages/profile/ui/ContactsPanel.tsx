@@ -1,6 +1,9 @@
+import { useEffect, useRef } from "react";
+
 import { notifier } from "@/app/store/notifier";
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
+import { applyContactDraft } from "@/pages/profile/model/apply-resume-draft";
 import {
   gradeOptions,
   specializationOptions,
@@ -9,11 +12,15 @@ import {
   assessedFromProfile,
   saveSkills,
 } from "@/pages/profile/model/save-skills";
+import type { ResumeDraftHit } from "@/pages/profile/model/types";
 import type { ContactValues } from "@/pages/profile/model/types";
 import { ContactIcon } from "@/pages/profile/ui/ContactIcon";
 import { ExpectationsFields } from "@/pages/profile/ui/ExpectationsFields";
+import { ProfileDownload } from "@/pages/profile/ui/ProfileDownload";
+import { ResumeUpload } from "@/pages/profile/ui/ResumeUpload";
 import { VisibilityFields } from "@/pages/profile/ui/VisibilityFields";
 import { focusFirstError } from "@/shared/lib/focus-first-error";
+import { mutedTextColor } from "@/shared/theme";
 import {
   Button,
   Paper,
@@ -31,11 +38,14 @@ import { Grade, SearchStatus, Specialization, WorkFormat } from "@hh/types";
 export const ContactsPanel = ({
   profile,
   email,
+  draft,
 }: {
   profile: CandidateProfile;
   email: string;
+  draft: ResumeDraftHit | null;
 }) => {
   const profiles = useStore(StoreKey.Profile);
+  const seenDraft = useRef<number | null>(null);
   const form = useForm<ContactValues>({
     initialValues: {
       displayName: profile.displayName,
@@ -47,6 +57,7 @@ export const ContactsPanel = ({
       linkedin: profile.linkedin ?? "",
       website: profile.website ?? "",
       desiredSalaryFrom: profile.desiredSalaryFrom ?? "",
+      experienceYears: profile.experienceYears ?? "",
       // Обычный массив: у observable klona уходит в символ MobX и зацикливается.
       workFormats: profile.workFormats.slice(),
       searchStatus: profile.searchStatus,
@@ -73,6 +84,8 @@ export const ContactsPanel = ({
           website: values.website,
           desiredSalaryFrom:
             values.desiredSalaryFrom === "" ? null : values.desiredSalaryFrom,
+          experienceYears:
+            values.experienceYears === "" ? null : values.experienceYears,
           workFormats: values.workFormats as WorkFormat[],
           searchStatus: values.searchStatus as SearchStatus,
           showExperience: values.showExperience,
@@ -93,6 +106,14 @@ export const ContactsPanel = ({
     },
   );
 
+  useEffect(() => {
+    if (!draft || seenDraft.current === draft.at) {
+      return;
+    }
+    seenDraft.current = draft.at;
+    applyContactDraft(form, draft.draft, profile.verifiedGrade);
+  }, [draft, form, profile.verifiedGrade]);
+
   return (
     <Paper
       component="form"
@@ -104,6 +125,12 @@ export const ContactsPanel = ({
     >
       <Stack>
         <Title order={3}>Контакты</Title>
+        <ResumeUpload />
+        <ProfileDownload />
+        <Text size="sm" style={{ color: mutedTextColor }}>
+          PDF заполняет форму и ничего не сохраняет. Скачивается уже сохранённая
+          анкета.
+        </Text>
         <TextInput label="Почта" value={email} readOnly />
         <TextInput
           label="Имя"

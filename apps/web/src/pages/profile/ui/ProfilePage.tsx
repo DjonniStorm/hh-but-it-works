@@ -69,6 +69,7 @@ export const ProfilePage = observer(() => {
             <ProfilePanels
               profile={profiles.profile}
               email={auth.user?.email ?? ""}
+              draft={profiles.resumeDraft}
             />
           </Tabs.Panel>
           <Tabs.Panel value="testing" pt="md" style={{ flex: 1, minHeight: 0 }}>

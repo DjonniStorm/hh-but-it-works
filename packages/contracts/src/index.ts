@@ -83,6 +83,7 @@ export const candidateProfileSchema = z.object({
   website: z.string().max(120).nullable(),
   // Ожидания кандидата: по ним подборка сверяет вилку и формат работодателя.
   desiredSalaryFrom: z.number().int().positive().nullable(),
+  experienceYears: z.number().min(0).nullable(),
   workFormats: z.array(workFormatSchema),
   searchStatus: searchStatusSchema,
   showExperience: z.boolean(),
@@ -112,6 +113,20 @@ const optionalSalarySchema = z
     return value === "" ? null : value;
   });
 
+// Пустое поле стажа в форме — "", на сервер уходит null.
+const optionalYearsSchema = z
+  .union([
+    z.literal(""),
+    z
+      .number("Укажите стаж")
+      .min(0, "Стаж не меньше нуля")
+      .max(40, "Стаж не больше 40 лет"),
+  ])
+  .nullable()
+  .transform((value) => {
+    return value === "" ? null : value;
+  });
+
 export const saveContactsSchema = z.object({
   displayName: z.string().trim().min(1, "Укажите имя"),
   specialization: specializationSchema,
@@ -122,6 +137,7 @@ export const saveContactsSchema = z.object({
   linkedin: linkField,
   website: linkField,
   desiredSalaryFrom: optionalSalarySchema,
+  experienceYears: optionalYearsSchema,
   workFormats: z.array(workFormatSchema).max(3),
   searchStatus: searchStatusSchema,
   showExperience: z.boolean(),
@@ -151,6 +167,21 @@ export const saveSkillsSchema = z.object({
 
 export const saveProfileSchema = saveContactsSchema.extend({
   skills: saveSkillsSchema.shape.skills,
+});
+
+// Черновик из текста резюме. В профиль не пишется, пока кандидат не сохранит форму.
+export const resumeDraftSchema = z.object({
+  displayName: z.string().max(80).nullable(),
+  experienceYears: z.number().min(0).max(40).nullable(),
+  claimedGrade: gradeSchema.nullable(),
+  telegram: z.string().max(120).nullable(),
+  github: z.string().max(120).nullable(),
+  skills: z.array(
+    z.object({
+      slug: z.string(),
+      title: z.string(),
+    }),
+  ),
 });
 
 // Модель работодателя: профиль компании, потребности, подборка, приглашения.
@@ -516,6 +547,7 @@ export type Session = z.infer<typeof sessionSchema>;
 export type Health = z.infer<typeof healthSchema>;
 export type CandidateProfile = z.infer<typeof candidateProfileSchema>;
 export type SaveProfileInput = z.infer<typeof saveProfileSchema>;
+export type ResumeDraft = z.infer<typeof resumeDraftSchema>;
 export type CompanyProfile = z.infer<typeof companyProfileSchema>;
 export type HiringNeedInput = z.infer<typeof hiringNeedInputSchema>;
 export type HiringNeed = z.infer<typeof hiringNeedSchema>;

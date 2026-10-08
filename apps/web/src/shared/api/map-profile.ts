@@ -18,6 +18,7 @@ export function mapCandidateProfile(profile: {
   linkedin: string | null;
   website: string | null;
   desiredSalaryFrom: number | null;
+  experienceYears: number | null;
   workFormats: string[];
   searchStatus: string;
   showExperience: boolean;
@@ -48,6 +49,7 @@ export function mapCandidateProfile(profile: {
     linkedin: profile.linkedin,
     website: profile.website,
     desiredSalaryFrom: profile.desiredSalaryFrom,
+    experienceYears: profile.experienceYears,
     workFormats: profile.workFormats.map(mapWorkFormat),
     searchStatus: mapSearchStatus(profile.searchStatus),
     showExperience: profile.showExperience,

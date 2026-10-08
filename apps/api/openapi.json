@@ -238,6 +238,72 @@
         "tags": ["Profiles"]
       }
     },
+    "/profile/resume-draft": {
+      "post": {
+        "operationId": "ProfilesController_resumeDraft",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeDraftDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Profiles"]
+      }
+    },
+    "/profile/export.pdf": {
+      "get": {
+        "operationId": "ProfilesController_exportPdf",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Profiles"]
+      }
+    },
     "/assessment/attempts": {
       "post": {
         "operationId": "AssessmentsController_start",
@@ -1167,6 +1233,11 @@
             "maximum": 9007199254740991,
             "nullable": true
           },
+          "experienceYears": {
+            "type": "number",
+            "minimum": 0,
+            "nullable": true
+          },
           "workFormats": {
             "type": "array",
             "items": {
@@ -1271,6 +1342,7 @@
           "linkedin",
           "website",
           "desiredSalaryFrom",
+          "experienceYears",
           "workFormats",
           "searchStatus",
           "showExperience",
@@ -1282,6 +1354,62 @@
           "verifiedAt",
           "assessmentScore",
           "nextGradeChangeAt",
+          "skills"
+        ],
+        "additionalProperties": false
+      },
+      "ResumeDraftDto_Output": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "maxLength": 80,
+            "nullable": true
+          },
+          "experienceYears": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 40,
+            "nullable": true
+          },
+          "claimedGrade": {
+            "type": "string",
+            "enum": ["junior", "middle", "senior", null],
+            "nullable": true
+          },
+          "telegram": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "github": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "slug": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                }
+              },
+              "required": ["slug", "title"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "displayName",
+          "experienceYears",
+          "claimedGrade",
+          "telegram",
+          "github",
           "skills"
         ],
         "additionalProperties": false
@@ -1332,6 +1460,20 @@
                 "exclusiveMinimum": true,
                 "maximum": 9007199254740991,
                 "minimum": 0
+              }
+            ],
+            "nullable": true
+          },
+          "experienceYears": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [""]
+              },
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 40
               }
             ],
             "nullable": true
@@ -1410,6 +1552,7 @@
           "linkedin",
           "website",
           "desiredSalaryFrom",
+          "experienceYears",
           "workFormats",
           "searchStatus",
           "showExperience",

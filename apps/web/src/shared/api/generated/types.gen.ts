@@ -56,6 +56,7 @@ export type CandidateProfileDtoOutput = {
     linkedin: string | null;
     website: string | null;
     desiredSalaryFrom: number | null;
+    experienceYears: number | null;
     workFormats: Array<'office' | 'hybrid' | 'remote'>;
     searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden';
     showExperience: boolean;
@@ -77,6 +78,18 @@ export type CandidateProfileDtoOutput = {
     }>;
 };
 
+export type ResumeDraftDtoOutput = {
+    displayName: string | null;
+    experienceYears: number | null;
+    claimedGrade: 'junior' | 'middle' | 'senior' | null;
+    telegram: string | null;
+    github: string | null;
+    skills: Array<{
+        slug: string;
+        title: string;
+    }>;
+};
+
 export type SaveProfileDto = {
     displayName: string;
     specialization: 'backend' | 'frontend' | 'data' | 'security';
@@ -87,6 +100,7 @@ export type SaveProfileDto = {
     linkedin: string;
     website: string;
     desiredSalaryFrom: '' | number | null;
+    experienceYears: '' | number | null;
     workFormats: Array<'office' | 'hybrid' | 'remote'>;
     searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden';
     showExperience: boolean;
@@ -539,6 +553,34 @@ export type ProfilesControllerSaveResponses = {
 };
 
 export type ProfilesControllerSaveResponse = ProfilesControllerSaveResponses[keyof ProfilesControllerSaveResponses];
+
+export type ProfilesControllerResumeDraftData = {
+    body: {
+        file: Blob | File;
+    };
+    path?: never;
+    query?: never;
+    url: '/profile/resume-draft';
+};
+
+export type ProfilesControllerResumeDraftResponses = {
+    200: ResumeDraftDtoOutput;
+};
+
+export type ProfilesControllerResumeDraftResponse = ProfilesControllerResumeDraftResponses[keyof ProfilesControllerResumeDraftResponses];
+
+export type ProfilesControllerExportPdfData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/profile/export.pdf';
+};
+
+export type ProfilesControllerExportPdfResponses = {
+    200: Blob | File;
+};
+
+export type ProfilesControllerExportPdfResponse = ProfilesControllerExportPdfResponses[keyof ProfilesControllerExportPdfResponses];
 
 export type AssessmentsControllerStartData = {
     body: StartAssessmentDto;

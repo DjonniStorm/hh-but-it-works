@@ -484,6 +484,7 @@ export class ProfilesService implements OnModuleInit {
       linkedin: profile?.linkedin ?? null,
       website: profile?.website ?? null,
       desiredSalaryFrom: profile?.desiredSalaryFrom ?? null,
+      experienceYears: profile?.experienceYears ?? null,
       workFormats: profile?.workFormats ?? [],
       searchStatus: profile?.searchStatus ?? SearchStatus.OpenToOffers,
       showExperience: profile?.showExperience ?? true,
@@ -533,6 +534,7 @@ function expectations(
 ): Pick<
   CandidateProfile,
   | "desiredSalaryFrom"
+  | "experienceYears"
   | "workFormats"
   | "searchStatus"
   | "showExperience"
@@ -542,6 +544,7 @@ function expectations(
 > {
   return {
     desiredSalaryFrom: input.desiredSalaryFrom,
+    experienceYears: input.experienceYears,
     workFormats: input.workFormats,
     searchStatus: input.searchStatus,
     showExperience: input.showExperience,

@@ -5,8 +5,10 @@ import { UsersModule } from "../users/users.module";
 import { CandidateProfile } from "./candidate-profile.entity";
 import { CandidateSeedService } from "./candidate-seed.service";
 import { CandidateSkill } from "./candidate-skill.entity";
+import { ProfilePdfService } from "./profile-pdf";
 import { ProfilesController } from "./profiles.controller";
 import { ProfilesService } from "./profiles.service";
+import { ResumeDraftService } from "./resume-draft.service";
 import { Skill } from "./skill.entity";
 
 @Module({
@@ -15,7 +17,12 @@ import { Skill } from "./skill.entity";
     UsersModule,
   ],
   controllers: [ProfilesController],
-  providers: [ProfilesService, CandidateSeedService],
+  providers: [
+    ProfilesService,
+    CandidateSeedService,
+    ResumeDraftService,
+    ProfilePdfService,
+  ],
   exports: [ProfilesService],
 })
 export class ProfilesModule {}
