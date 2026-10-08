@@ -20,6 +20,7 @@ export const AssessedSkill = ({
         <SkillStatusBadge
           level={skill.level}
           verification={skill.verification}
+          verifiedAt={skill.verifiedAt}
         />
       </Group>
       <Group align="flex-end" wrap="nowrap">

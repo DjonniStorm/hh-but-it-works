@@ -27,6 +27,7 @@ import { Skill } from "./skill.entity";
 type SkillSignal = {
   level: SkillLevel;
   verification: SkillVerification;
+  verifiedAt: Date | null;
 };
 
 type AssessmentOutcome = {
@@ -159,30 +160,34 @@ export class ProfilesService implements OnModuleInit {
       return { gradeChanged: false };
     }
 
-    for (const section of result.sections) {
-      const row = await this.candidateSkills.findOne({
-        where: { profileId: profile.id, skillId: section.skillId },
-      });
-      if (!row && section.passed) {
-        await this.candidateSkills.save(
-          this.candidateSkills.create({
-            profileId: profile.id,
-            skillId: section.skillId,
-            level: levelByGrade[result.grade],
-            verification: SkillVerification.Verified,
-            score: section.score,
-          }),
-        );
-        continue;
+    // Провал и несданная секция не снимают уже подтверждённый навык и не ставят новый.
+    if (result.status === AttemptStatus.Passed) {
+      const confirmedAt = new Date();
+      for (const section of result.sections) {
+        if (!section.passed) {
+          continue;
+        }
+        const row = await this.candidateSkills.findOne({
+          where: { profileId: profile.id, skillId: section.skillId },
+        });
+        if (!row) {
+          await this.candidateSkills.save(
+            this.candidateSkills.create({
+              profileId: profile.id,
+              skillId: section.skillId,
+              level: levelByGrade[result.grade],
+              verification: SkillVerification.Verified,
+              score: section.score,
+              verifiedAt: confirmedAt,
+            }),
+          );
+          continue;
+        }
+        row.verification = SkillVerification.Verified;
+        row.score = section.score;
+        row.verifiedAt = confirmedAt;
+        await this.candidateSkills.save(row);
       }
-      if (!row) {
-        continue;
-      }
-      row.verification = section.passed
-        ? SkillVerification.Verified
-        : SkillVerification.Unverified;
-      row.score = section.passed ? section.score : null;
-      await this.candidateSkills.save(row);
     }
 
     if (result.status !== AttemptStatus.Passed) {
@@ -282,6 +287,7 @@ export class ProfilesService implements OnModuleInit {
       signals.set(row.skillId, {
         level: row.level,
         verification: row.verification,
+        verifiedAt: row.verifiedAt,
       });
     }
     return signals;
@@ -458,6 +464,7 @@ export class ProfilesService implements OnModuleInit {
             ? prior.verification
             : SkillVerification.Unverified,
           score: sameLevel ? prior.score : null,
+          verifiedAt: sameLevel ? prior.verifiedAt : null,
         });
       }),
     );
@@ -495,6 +502,7 @@ export class ProfilesService implements OnModuleInit {
           title: skill.title,
           level: signal?.level ?? null,
           verification: signal?.verification ?? null,
+          verifiedAt: signal?.verifiedAt?.toISOString() ?? null,
         };
       }),
     };

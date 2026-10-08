@@ -69,6 +69,7 @@ export type CandidateProfileDtoOutput = {
         title: string;
         level: 'basic' | 'confident' | 'strong' | null;
         verification: 'unverified' | 'verified' | 'verified_external' | null;
+        verifiedAt: string | null;
     }>;
 };
 
@@ -305,6 +306,7 @@ export type ShortlistDtoOutput = {
                 level: 'basic' | 'confident' | 'strong' | null;
                 verification: 'unverified' | 'verified' | 'verified_external';
                 score: number | null;
+                verifiedAt: string | null;
             }>;
             assessmentScore: number | null;
             fspAchievements: Array<{

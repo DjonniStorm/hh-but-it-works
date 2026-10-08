@@ -5,6 +5,7 @@ export type SkillRow = {
   title: string;
   level: SkillLevel | null;
   verification: SkillVerification | null;
+  verifiedAt: string | null;
 };
 
 export type ContactValues = {

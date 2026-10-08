@@ -42,6 +42,33 @@ export const verificationLabel: Record<SkillVerification, string> = {
   [SkillVerification.VerifiedExternal]: "ФСП",
 };
 
+const passportSource: Partial<Record<SkillVerification, string>> = {
+  [SkillVerification.Verified]: "Тест",
+  [SkillVerification.VerifiedExternal]: "ФСП",
+};
+
+// Источник и дата подтверждения. Неподтверждённый навык подписи не получает.
+export function skillPassport(
+  verification: SkillVerification | null,
+  verifiedAt: string | null,
+): string | null {
+  if (!verification) {
+    return null;
+  }
+  const source = passportSource[verification];
+  if (!source) {
+    return null;
+  }
+  if (!verifiedAt) {
+    return source;
+  }
+  const date = new Date(verifiedAt);
+  if (Number.isNaN(date.getTime())) {
+    return source;
+  }
+  return `${source}, ${date.toLocaleDateString("ru-RU")}`;
+}
+
 export const searchStatusLabel: Record<SearchStatus, string> = {
   [SearchStatus.ActivelyLooking]: "Активно ищет",
   [SearchStatus.OpenToOffers]: "Открыт к предложениям",

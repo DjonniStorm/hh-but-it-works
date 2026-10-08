@@ -102,6 +102,7 @@ export class CandidatePoolService {
             level: row.level,
             verification: row.verification,
             score: row.score,
+            verifiedAt: row.verifiedAt?.toISOString() ?? null,
           };
         }),
         assessmentScore: profile.assessmentScore,

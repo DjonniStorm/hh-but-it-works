@@ -67,6 +67,7 @@ export const profileSkillSchema = z.object({
   title: z.string(),
   level: skillLevelSchema.nullable(),
   verification: skillVerificationSchema.nullable(),
+  verifiedAt: z.iso.datetime().nullable(),
 });
 
 const linkField = z.string().trim().max(120, "Слишком длинная ссылка");
@@ -252,6 +253,7 @@ export const candidateSkillSchema = z.object({
   level: skillLevelSchema.nullable(),
   verification: skillVerificationSchema,
   score: z.number().min(0).max(100).nullable(),
+  verifiedAt: z.iso.datetime().nullable(),
 });
 
 export const fspAchievementSchema = z.object({

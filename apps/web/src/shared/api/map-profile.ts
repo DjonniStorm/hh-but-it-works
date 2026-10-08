@@ -31,6 +31,7 @@ export function mapCandidateProfile(profile: {
     title: string;
     level: string | null;
     verification: string | null;
+    verifiedAt: string | null;
   }[];
 }): CandidateProfile {
   return {
@@ -57,6 +58,7 @@ export function mapCandidateProfile(profile: {
         title: skill.title,
         level: mapSkillLevel(skill.level),
         verification: mapVerification(skill.verification),
+        verifiedAt: skill.verifiedAt,
       };
     }),
   };

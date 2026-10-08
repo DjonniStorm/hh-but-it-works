@@ -89,6 +89,7 @@ export const SkillsPanel = ({ profile }: { profile: CandidateProfile }) => {
                       title: draft.title,
                       level: draft.level,
                       verification: null,
+                      verifiedAt: null,
                     } satisfies SkillRow,
                     0,
                   );
@@ -108,7 +109,13 @@ export const SkillsPanel = ({ profile }: { profile: CandidateProfile }) => {
               <AssessedSkill
                 key={skill.skillId ?? skill.title}
                 skill={
-                  saved ? { ...skill, verification: saved.verification } : skill
+                  saved
+                    ? {
+                        ...skill,
+                        verification: saved.verification,
+                        verifiedAt: saved.verifiedAt,
+                      }
+                    : skill
                 }
                 levelProps={form.getInputProps(`skills.${index}.level`)}
                 onRemove={() => {
