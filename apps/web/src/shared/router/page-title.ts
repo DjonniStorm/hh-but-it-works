@@ -1,6 +1,5 @@
-import { useEffect } from "react";
-
-const appName = "ЛЦТ";
+// Шаблон заголовка вкладки: страница задаёт только свою часть через useHead({ title }).
+export const titleTemplate = "%s — ЛЦТ";
 
 // Заголовки вкладок. Без них все вкладки называются «ЛЦТ» и их не отличить.
 export const pageTitle = {
@@ -16,12 +15,3 @@ export const pageTitle = {
   company: "Компания",
   error: "Ошибка",
 } as const;
-
-export function usePageTitle(title: string): void {
-  useEffect(() => {
-    document.title = `${title} — ${appName}`;
-    return () => {
-      document.title = appName;
-    };
-  }, [title]);
-}

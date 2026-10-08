@@ -1,8 +1,8 @@
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { NeedCard } from "@/pages/employer/ui/NeedCard";
+import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
-import { pageTitle, usePageTitle } from "@/shared/router/use-page-title";
 import {
   Button,
   EmptyState,
@@ -13,11 +13,12 @@ import {
   Text,
   Title,
 } from "@mantine/core";
+import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Link } from "react-router";
 
 export const NeedsPage = observer(() => {
-  usePageTitle(pageTitle.needs);
+  useHead({ title: pageTitle.needs });
   const employer = useStore(StoreKey.Employer);
 
   // Главный вход кабинета: сначала вопрос «кого ищете», а не дашборд.

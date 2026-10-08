@@ -12,9 +12,10 @@ import { MatchCard } from "@/pages/employer/ui/MatchCard";
 import { NeedSummary } from "@/pages/employer/ui/NeedSummary";
 import { RefinementBar } from "@/pages/employer/ui/RefinementBar";
 import { ErrorScreen } from "@/shared/error/ui/ErrorScreen";
+import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
-import { pageTitle, usePageTitle } from "@/shared/router/use-page-title";
 import { EmptyState, Paper, Stack, Text, Title } from "@mantine/core";
+import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Navigate, useParams } from "react-router";
 
@@ -31,7 +32,7 @@ export const NeedPage = observer(() => {
 
   const need = employer.needById(needId);
   const needExists = need !== null;
-  usePageTitle(need?.title ?? pageTitle.needs);
+  useHead({ title: need?.title ?? pageTitle.needs });
   const shortlist = employer.shortlists.get(needId);
 
   const loadShortlist = useCallback(() => {

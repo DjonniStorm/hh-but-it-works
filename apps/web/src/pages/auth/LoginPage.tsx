@@ -2,8 +2,8 @@ import { notifier } from "@/app/store/notifier";
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { focusFirstError } from "@/shared/lib/focus-first-error";
+import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
-import { pageTitle, usePageTitle } from "@/shared/router/use-page-title";
 import { useReturnPath } from "@/shared/router/use-return-path";
 import {
   Anchor,
@@ -16,13 +16,14 @@ import {
   Title,
 } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
+import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Link, Navigate, useNavigate } from "react-router";
 
 import { loginSchema } from "@hh/contracts";
 
 export const LoginPage = observer(() => {
-  usePageTitle(pageTitle.login);
+  useHead({ title: pageTitle.login });
   const auth = useStore(StoreKey.Auth);
   const navigate = useNavigate();
   const returnPath = useReturnPath();

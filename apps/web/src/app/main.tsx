@@ -7,7 +7,7 @@ import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import { createRoot } from "react-dom/client";
 
-import { Router, Theme } from "./providers";
+import { HeadProvider, Router, Theme } from "./providers";
 
 const element = document.getElementById("root");
 if (!element) {
@@ -29,9 +29,11 @@ const root = createRoot(element, {
 root.render(
   <StrictMode>
     <StoreProvider>
-      <Theme>
-        <Router />
-      </Theme>
+      <HeadProvider>
+        <Theme>
+          <Router />
+        </Theme>
+      </HeadProvider>
     </StoreProvider>
   </StrictMode>,
 );

@@ -4,8 +4,8 @@ import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { formatDate, formatSalary } from "@/shared/lib/format";
 import { invitationStatusLabel } from "@/shared/lib/labels";
+import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
-import { pageTitle, usePageTitle } from "@/shared/router/use-page-title";
 import { invitationStatusColor } from "@/shared/theme";
 import {
   Badge,
@@ -19,6 +19,7 @@ import {
   Title,
   useMatches,
 } from "@mantine/core";
+import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Link } from "react-router";
 
@@ -34,7 +35,7 @@ const statuses = [
 ];
 
 export const InvitationsPage = observer(() => {
-  usePageTitle(pageTitle.employerInvitations);
+  useHead({ title: pageTitle.employerInvitations });
   const invitations = useStore(StoreKey.Invitations);
   const [filter, setFilter] = useState<Filter>("all");
   const narrow = useMatches({ base: true, sm: false });

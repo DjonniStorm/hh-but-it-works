@@ -2,8 +2,8 @@ import { notifier } from "@/app/store/notifier";
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { focusFirstError } from "@/shared/lib/focus-first-error";
+import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
-import { pageTitle, usePageTitle } from "@/shared/router/use-page-title";
 import {
   Anchor,
   Button,
@@ -17,6 +17,7 @@ import {
   Title,
 } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
+import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Link, Navigate, useNavigate } from "react-router";
 
@@ -24,7 +25,7 @@ import { registerSchema } from "@hh/contracts";
 import { Role } from "@hh/types";
 
 export const RegisterPage = observer(() => {
-  usePageTitle(pageTitle.register);
+  useHead({ title: pageTitle.register });
   const auth = useStore(StoreKey.Auth);
   const navigate = useNavigate();
   const form = useForm({

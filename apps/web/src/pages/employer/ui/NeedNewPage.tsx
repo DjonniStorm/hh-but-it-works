@@ -9,8 +9,8 @@ import {
   specializationOptions,
   workFormatOptions,
 } from "@/shared/lib/labels";
+import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES, needPath } from "@/shared/router/routes";
-import { pageTitle, usePageTitle } from "@/shared/router/use-page-title";
 import {
   Button,
   Group,
@@ -25,6 +25,7 @@ import {
   Title,
 } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
+import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Link, useNavigate } from "react-router";
 
@@ -32,7 +33,7 @@ import { type HiringNeedInput, hiringNeedInputSchema } from "@hh/contracts";
 import { Grade, type Specialization, WorkFormat } from "@hh/types";
 
 export const NeedNewPage = observer(() => {
-  usePageTitle(pageTitle.needNew);
+  useHead({ title: pageTitle.needNew });
   const employer = useStore(StoreKey.Employer);
   const navigate = useNavigate();
   const form = useForm({
