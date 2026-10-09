@@ -29,6 +29,15 @@ export const workFormatLabel: Record<WorkFormat, string> = {
   [WorkFormat.Remote]: "Удалённо",
 };
 
+// «Гибрид, Удалённо»: список форматов в порядке выбора.
+export function formatWorkFormats(formats: WorkFormat[]): string {
+  return formats
+    .map((format) => {
+      return workFormatLabel[format];
+    })
+    .join(", ");
+}
+
 export const invitationStatusLabel: Record<InvitationStatus, string> = {
   [InvitationStatus.Sent]: "Отправлено",
   [InvitationStatus.Viewed]: "Просмотрено",

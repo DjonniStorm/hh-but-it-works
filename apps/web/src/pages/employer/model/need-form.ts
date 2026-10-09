@@ -9,7 +9,7 @@ export type NeedFormValues = {
   gradeTo: Grade | null;
   mustSkills: string[];
   niceSkills: string[];
-  workFormat: WorkFormat | null;
+  workFormats: WorkFormat[];
   salaryFrom: number | "";
   salaryTo: number | "";
   description: string;
@@ -22,7 +22,7 @@ export const emptyNeedForm: NeedFormValues = {
   gradeTo: Grade.Middle,
   mustSkills: [],
   niceSkills: [],
-  workFormat: WorkFormat.Remote,
+  workFormats: [WorkFormat.Remote],
   salaryFrom: "",
   salaryTo: "",
   description: "",
@@ -38,7 +38,7 @@ export function needFormValues(need: HiringNeed): NeedFormValues {
     gradeTo: need.gradeTo,
     mustSkills: [...need.mustSkills],
     niceSkills: [...need.niceSkills],
-    workFormat: need.workFormat,
+    workFormats: [...need.workFormats],
     salaryFrom: need.salaryFrom,
     salaryTo: need.salaryTo,
     description: need.description,

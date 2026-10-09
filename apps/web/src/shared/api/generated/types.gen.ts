@@ -314,7 +314,7 @@ export type HiringNeedListDtoOutput = {
         gradeTo: 'junior' | 'middle' | 'senior';
         mustSkills: Array<string>;
         niceSkills: Array<string>;
-        workFormat: 'office' | 'hybrid' | 'remote';
+        workFormats: Array<'office' | 'hybrid' | 'remote'>;
         salaryFrom: number;
         salaryTo: number;
         description: string;
@@ -331,7 +331,7 @@ export type HiringNeedInputDto = {
     gradeTo: 'junior' | 'middle' | 'senior';
     mustSkills: Array<string>;
     niceSkills: Array<string>;
-    workFormat: 'office' | 'hybrid' | 'remote';
+    workFormats: Array<'office' | 'hybrid' | 'remote'>;
     salaryFrom: number;
     salaryTo: number;
     description: string;
@@ -344,7 +344,7 @@ export type HiringNeedDtoOutput = {
     gradeTo: 'junior' | 'middle' | 'senior';
     mustSkills: Array<string>;
     niceSkills: Array<string>;
-    workFormat: 'office' | 'hybrid' | 'remote';
+    workFormats: Array<'office' | 'hybrid' | 'remote'>;
     salaryFrom: number;
     salaryTo: number;
     description: string;

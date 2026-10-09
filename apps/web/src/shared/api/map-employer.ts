@@ -62,7 +62,9 @@ export function mapNeed(need: HiringNeedDtoOutput): HiringNeed {
     gradeTo: oneOf(Grade, need.gradeTo),
     mustSkills: need.mustSkills,
     niceSkills: need.niceSkills,
-    workFormat: oneOf(WorkFormat, need.workFormat),
+    workFormats: need.workFormats.map((format) => {
+      return oneOf(WorkFormat, format);
+    }),
     salaryFrom: need.salaryFrom,
     salaryTo: need.salaryTo,
     description: need.description,

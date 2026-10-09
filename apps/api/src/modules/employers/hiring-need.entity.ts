@@ -42,8 +42,21 @@ export class HiringNeed {
   @Column({ type: "text", array: true, default: "{}" })
   niceSkills!: string[];
 
-  @Column({ type: "enum", enum: WorkFormat, enumName: "work_format" })
-  workFormat!: WorkFormat;
+  @Column({ type: "text", array: true, default: "{}" })
+  workFormats!: WorkFormat[];
+
+  /**
+   * Устарело: раньше формат был один. Колонку оставляем (без поля synchronize её удалит
+   * вместе с данными) и один раз переносим из неё в workFormats, см. EmployersService.onModuleInit.
+   */
+  @Column({
+    name: "workFormat",
+    type: "enum",
+    enum: WorkFormat,
+    enumName: "work_format",
+    nullable: true,
+  })
+  legacyWorkFormat?: WorkFormat | null;
 
   @Column({ type: "int" })
   salaryFrom!: number;

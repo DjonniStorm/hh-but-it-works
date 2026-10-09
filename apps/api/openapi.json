@@ -3888,9 +3888,14 @@
                     "minLength": 1
                   }
                 },
-                "workFormat": {
-                  "type": "string",
-                  "enum": ["office", "hybrid", "remote"]
+                "workFormats": {
+                  "minItems": 1,
+                  "maxItems": 3,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": ["office", "hybrid", "remote"]
+                  }
                 },
                 "salaryFrom": {
                   "type": "integer",
@@ -3931,7 +3936,7 @@
                 "gradeTo",
                 "mustSkills",
                 "niceSkills",
-                "workFormat",
+                "workFormats",
                 "salaryFrom",
                 "salaryTo",
                 "description",
@@ -3982,9 +3987,14 @@
               "minLength": 1
             }
           },
-          "workFormat": {
-            "type": "string",
-            "enum": ["office", "hybrid", "remote"]
+          "workFormats": {
+            "minItems": 1,
+            "maxItems": 3,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["office", "hybrid", "remote"]
+            }
           },
           "salaryFrom": {
             "type": "integer",
@@ -4010,7 +4020,7 @@
           "gradeTo",
           "mustSkills",
           "niceSkills",
-          "workFormat",
+          "workFormats",
           "salaryFrom",
           "salaryTo",
           "description"
@@ -4052,9 +4062,14 @@
               "minLength": 1
             }
           },
-          "workFormat": {
-            "type": "string",
-            "enum": ["office", "hybrid", "remote"]
+          "workFormats": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 3,
+            "items": {
+              "type": "string",
+              "enum": ["office", "hybrid", "remote"]
+            }
           },
           "salaryFrom": {
             "type": "integer",
@@ -4095,7 +4110,7 @@
           "gradeTo",
           "mustSkills",
           "niceSkills",
-          "workFormat",
+          "workFormats",
           "salaryFrom",
           "salaryTo",
           "description",

@@ -3,7 +3,10 @@ import { useState } from "react";
 import { notifier } from "@/app/store/notifier";
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
-import { emptyCompany } from "@/pages/employer/model/company";
+import {
+  companyFormValues,
+  emptyCompany,
+} from "@/pages/employer/model/company";
 import { CompanyCard } from "@/pages/employer/ui/CompanyCard";
 import { CompanyForm } from "@/pages/employer/ui/CompanyForm";
 import { pageTitle } from "@/shared/router/page-title";
@@ -68,7 +71,7 @@ export const CompanyPage = observer(() => {
 
       {company && editing ? (
         <CompanyForm
-          initial={company}
+          initial={companyFormValues(company)}
           submitLabel="Сохранить"
           onSaved={() => {
             notifier.showSuccess("Изменения сохранены");
