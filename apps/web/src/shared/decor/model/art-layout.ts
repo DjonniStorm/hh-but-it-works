@@ -18,8 +18,8 @@ export type BackdropLayout<T> = {
   style: CSSProperties;
 };
 
-// Слоты — углы и бока видимой области, форма остаётся по центру.
-const slots: ArtSlot[] = [
+// Слоты auth-страницы — углы и бока вокруг формы по центру.
+const authSlots: ArtSlot[] = [
   { top: 7, left: 5, cornerOnly: false },
   { bottom: 9, left: 8, cornerOnly: false },
   { top: 9, right: 7, cornerOnly: false },
@@ -27,6 +27,21 @@ const slots: ArtSlot[] = [
   { top: 44, left: 2, cornerOnly: true },
   { top: 42, right: 2, cornerOnly: true },
 ];
+
+// Слоты фона основного приложения: только углы и реже — контента на экране больше.
+export const appSlots: ArtSlot[] = [
+  { top: 12, left: 7, cornerOnly: false },
+  { top: 10, right: 8, cornerOnly: false },
+  { bottom: 9, left: 8, cornerOnly: false },
+  { bottom: 12, right: 7, cornerOnly: false },
+];
+
+export type ArtLayoutsOptions = {
+  // Слоты под сцену: у приложения их меньше — фон разреженнее.
+  slots?: readonly ArtSlot[];
+  // Диапазон прозрачности: больше прозрачность — ненавязчивее картинки.
+  opacity?: readonly [number, number];
+};
 
 // FNV-1a: короткий детерминированный хеш строки.
 export function hashSeed(value: string): number {
@@ -75,7 +90,10 @@ const slotOffset = (slot: ArtSlot, random: () => number): CSSProperties => {
 export function artLayouts<T>(
   seed: string,
   arts: readonly T[],
+  options: ArtLayoutsOptions = {},
 ): BackdropLayout<T>[] {
+  const { slots = authSlots, opacity = [0.45, 0.67] } = options;
+  const [opacityMin, opacityMax] = opacity;
   const random = createRandom(hashSeed(seed));
   const chosen = arts
     .map((art) => {
@@ -103,7 +121,9 @@ export function artLayouts<T>(
         ...slotOffset(slot, random),
         width: `clamp(110px, ${vw}vw, ${Math.round(vw * 13)}px)`,
         transform: `rotate(${Math.round(random() * 20 - 10)}deg)`,
-        opacity: Number((0.45 + random() * 0.22).toFixed(2)),
+        opacity: Number(
+          (opacityMin + random() * (opacityMax - opacityMin)).toFixed(2),
+        ),
       },
     });
   }

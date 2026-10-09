@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { artLayouts } from "@/shared/decor/model/art-layout";
+import { appSlots, artLayouts } from "@/shared/decor/model/art-layout";
 import { BoxArt } from "@/shared/decor/ui/BoxArt";
 import { BugArt } from "@/shared/decor/ui/BugArt";
 import { CatArt } from "@/shared/decor/ui/CatArt";
@@ -23,12 +23,24 @@ const arts = [
   PrinterArt,
 ];
 
+type ArtBackdropProps = {
+  seed: string;
+  // auth — плотно вокруг формы; app — реже и прозрачнее, чтобы не спорить с контентом.
+  variant?: "auth" | "app";
+};
+
 // Фон за контентом: фиксированный слой не участвует в потоке документа, не ловит клики
 // и лежит под уведомлениями, модалками и лоадерами (у них zIndex выше).
-export const ArtBackdrop = ({ seed }: { seed: string }) => {
+export const ArtBackdrop = ({ seed, variant = "auth" }: ArtBackdropProps) => {
   const pieces = useMemo(() => {
+    if (variant === "app") {
+      return artLayouts(seed, arts, {
+        slots: appSlots,
+        opacity: [0.15, 0.25],
+      });
+    }
     return artLayouts(seed, arts);
-  }, [seed]);
+  }, [seed, variant]);
 
   return (
     <Box

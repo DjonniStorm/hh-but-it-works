@@ -39,8 +39,10 @@ src/
     test/               TestPage — служебная страница, в приложение не идёт
   shared/
     api/                сгенерированный клиент (generated/), map-*.ts мапперы в доменные типы
-    decor/              контурные арты по теме ИТ (8 шт.) и ArtBackdrop — фон auth-страниц,
-                        набор и позиции собираются по хешу почты/токена (model/art-layout.ts)
+    decor/              контурные арты по теме ИТ (8 шт.) и ArtBackdrop — фон auth-страниц
+                        (variant="auth") и основного приложения (variant="app": реже и
+                        прозрачнее), набор и позиции собираются по хешу почты/токена
+                        (model/art-layout.ts)
     router/             routes, router, ProtectedRoute, CandidateRoute, EmployerRoute, RouteError
     error/              ErrorStore -> notifier
     loader/             LoadingStore -> RequestOverlay
