@@ -18,8 +18,12 @@ export const RequestOverlay = observer(
       <div
         style={{
           position: "relative",
-          minHeight: fullScreen ? "100vh" : "100%",
-          height: fullScreen ? undefined : "100%",
+          // При пустой странице (профиль ещё грузится) контента нет, оверлей схлопывался
+          // в полоску под шапкой и лоадер резался. Рисуем область на весь видимый
+          // экран под шапкой AppShell — её отступы лежат в CSS-переменных шелла.
+          minHeight: fullScreen
+            ? "100dvh"
+            : "calc(100dvh - var(--app-shell-header-offset, 0rem) - var(--app-shell-padding, 0rem) * 2)",
         }}
       >
         <LoadingOverlay

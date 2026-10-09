@@ -39,8 +39,14 @@ src/
     test/               TestPage — служебная страница, в приложение не идёт
   shared/
     api/                сгенерированный клиент (generated/), map-*.ts мапперы в доменные типы
+    decor/              контурные арты по теме ИТ (8 шт.) и ArtBackdrop — фон auth-страниц
+                        (variant="auth") и основного приложения (variant="app": реже и
+                        прозрачнее), набор и позиции собираются по хешу почты/токена
+                        (model/art-layout.ts)
     router/             routes, router, ProtectedRoute, CandidateRoute, EmployerRoute, RouteError
-    error/              ErrorStore -> notifier
+    error/              ErrorStore -> notifier; ErrorScreen — экран ошибки загрузки с одним
+                        случайным артом из пула 5 шт. (ErrorArt), отдельный TypeErrorArt
+                        лежит в RouteError — всё inline-SVG, без lazy
     loader/             LoadingStore -> RequestOverlay
     lib/                labels.ts (локализация reason/warning/rejectedBy кодов), format.ts
     theme/              feedbackColor и тосты
