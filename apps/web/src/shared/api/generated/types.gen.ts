@@ -368,6 +368,45 @@ export type ShortlistDtoOutput = {
     }>;
 };
 
+export type CandidateSearchDto = {
+    specialization: 'backend' | 'frontend' | 'data' | 'security' | null;
+    grades: Array<'junior' | 'middle' | 'senior'>;
+    skills: Array<string>;
+    fspOnly: boolean;
+};
+
+export type CandidateSearchResultDtoOutput = {
+    items: Array<{
+        id: string;
+        alias: string;
+        specialization: 'backend' | 'frontend' | 'data' | 'security';
+        claimedGrade: 'junior' | 'middle' | 'senior';
+        verifiedGrade: 'junior' | 'middle' | 'senior' | null;
+        gradeConfidence: number | null;
+        experienceYears: number | null;
+        skills: Array<{
+            title: string;
+            level: 'basic' | 'confident' | 'strong' | null;
+            verification: 'unverified' | 'verified' | 'verified_external';
+            score: number | null;
+            verifiedAt: string | null;
+        }>;
+        assessmentScore: number | null;
+        profileFreshness: number;
+        fspAchievements: Array<{
+            title: string;
+            year: number;
+            place: number | null;
+        }>;
+        preferences: {
+            desiredSalaryFrom: number | null;
+            workFormats: Array<'office' | 'hybrid' | 'remote'>;
+            searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden';
+        };
+    }>;
+    total: number;
+};
+
 export type InvitationListDtoOutput = {
     items: Array<{
         candidateId: string;
@@ -865,6 +904,19 @@ export type EmployersControllerFavoriteResponses = {
 };
 
 export type EmployersControllerFavoriteResponse = EmployersControllerFavoriteResponses[keyof EmployersControllerFavoriteResponses];
+
+export type EmployersControllerSearchCandidatesData = {
+    body: CandidateSearchDto;
+    path?: never;
+    query?: never;
+    url: '/employer/candidates/search';
+};
+
+export type EmployersControllerSearchCandidatesResponses = {
+    200: CandidateSearchResultDtoOutput;
+};
+
+export type EmployersControllerSearchCandidatesResponse = EmployersControllerSearchCandidatesResponses[keyof EmployersControllerSearchCandidatesResponses];
 
 export type EmployersControllerListInvitationsData = {
     body?: never;

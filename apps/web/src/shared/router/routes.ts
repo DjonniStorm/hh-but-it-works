@@ -14,6 +14,7 @@ export const ROUTES = {
     NEED_NEW: "/employer/needs/new",
     NEED: "/employer/needs/:needId",
     NEED_EDIT: "/employer/needs/:needId/edit",
+    SEARCH: "/employer/search",
     INVITATIONS: "/employer/invitations",
     COMPANY: "/employer/company",
   },

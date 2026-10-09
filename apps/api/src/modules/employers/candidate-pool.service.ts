@@ -2,10 +2,12 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { type FindOptionsWhere, In, IsNull, Not, Repository } from "typeorm";
 
-import type {
-  CandidateSnapshot,
-  CategoryMatch,
-  HiringNeedInput,
+import {
+  type CandidateSearch,
+  type CandidateSnapshot,
+  type CategoryMatch,
+  type HiringNeedInput,
+  hasFspEvidence,
 } from "@hh/contracts";
 import {
   Grade,
@@ -49,6 +51,37 @@ export class CandidatePoolService {
 
   listed(): Promise<CandidateProfile[]> {
     return this.profiles.find({ where: onExchange });
+  }
+
+  // Банк кандидатов: те же правила биржи и видимости, что у подборки, плюс фильтры работодателя.
+  // Специализация и грейд — в запросе к базе, навыки и ФСП — по готовым снимкам.
+  async search(filter: CandidateSearch): Promise<CandidateSnapshot[]> {
+    const profiles = await this.profiles.find({
+      where: {
+        ...onExchange,
+        ...(filter.specialization
+          ? { specialization: filter.specialization }
+          : {}),
+        ...(filter.grades.length > 0
+          ? { verifiedGrade: In(filter.grades) }
+          : {}),
+      },
+    });
+    const wanted = filter.skills.map((skill) => {
+      return skill.toLowerCase();
+    });
+    const snapshots = await this.snapshots(profiles);
+    return snapshots.filter((candidate) => {
+      const titles = new Set(
+        candidate.skills.map((skill) => {
+          return skill.title.toLowerCase();
+        }),
+      );
+      const hasSkills = wanted.every((skill) => {
+        return titles.has(skill);
+      });
+      return hasSkills && (!filter.fspOnly || hasFspEvidence(candidate));
+    });
   }
 
   // Своя специализация и подтверждённый грейд в диапазоне потребности ±1 ступень.

@@ -329,6 +329,37 @@ export const candidateSnapshotSchema = z.object({
   preferences: candidatePreferencesSchema,
 });
 
+// Подтверждение от ФСП: история в реестре или навык, подтверждённый ФСП.
+// Одно правило для фильтра поиска на сервере и уточнения подборки в вебе.
+export function hasFspEvidence(candidate: {
+  fspAchievements: unknown[];
+  skills: { verification: SkillVerification }[];
+}): boolean {
+  return (
+    candidate.fspAchievements.length > 0 ||
+    candidate.skills.some((skill) => {
+      return skill.verification === SkillVerification.VerifiedExternal;
+    })
+  );
+}
+
+// Поиск по банку кандидатов без потребности. Пустой фильтр не ограничивает.
+// Навыки нужны все сразу, регистр не важен.
+export const candidateSearchSchema = z.object({
+  specialization: specializationSchema.nullable(),
+  grades: z.array(gradeSchema),
+  skills: skillListSchema,
+  fspOnly: z.boolean(),
+});
+
+// Выдача ограничена: total — сколько подошло всего, items — первые candidateSearchLimit.
+export const candidateSearchLimit = 50;
+
+export const candidateSearchResultSchema = z.object({
+  items: z.array(candidateSnapshotSchema),
+  total: z.number().int().min(0),
+});
+
 export const matchGroupSchema = z.enum([
   "category",
   "skills",
@@ -577,6 +608,8 @@ export type CandidateSkill = z.infer<typeof candidateSkillSchema>;
 export type FspAchievement = z.infer<typeof fspAchievementSchema>;
 export type CandidatePreferences = z.infer<typeof candidatePreferencesSchema>;
 export type CandidateSnapshot = z.infer<typeof candidateSnapshotSchema>;
+export type CandidateSearch = z.infer<typeof candidateSearchSchema>;
+export type CandidateSearchResult = z.infer<typeof candidateSearchResultSchema>;
 export type MatchGroup = z.infer<typeof matchGroupSchema>;
 export type MatchBreakdown = z.infer<typeof matchBreakdownSchema>;
 export type Match = z.infer<typeof matchSchema>;
