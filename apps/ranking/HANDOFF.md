@@ -10,22 +10,22 @@
 
 ## 1. Статус на 2026-10-08
 
-| Блок                      | Состояние                                                               |
-| ------------------------- | ----------------------------------------------------------------------- |
-| Сервис `POST /rank`       | Rules/shadow/hybrid/LTR; ready image запускает demo hybrid              |
-| `POST /career/analyze`    | Counterfactual-действия на том же активном ранкере                      |
-| `GET /health`             | Работает, отдаёт `modelVersion`                                         |
-| Интеграция с Nest         | Работает, маппинг в `apps/api/src/modules/employers/ranking.client.ts`  |
-| UI-объяснения             | Работают: `breakdown`, `reasons`, `risks` → «Почему подходит»           |
-| Тесты Python              | 233 pytest (226 основной контур + 6 ML smoke + 1 slow), покрытие 91 %   |
-| Docker-образ              | Pre-trained bundle `ltr-v1.2.0`, GHCR multi-arch publish, без обучения  |
-| LTR (lightgbm)            | Demo hybrid готов; production lock остаётся видимым в metadata/health   |
-| Мониторинг                | Latency/pool/score/agreement/drift без PII на каждый `/rank`            |
-| Semantic/competency/fresh | Живые fallback/sections/freshness передаются из Nest                    |
-| Опыт кандидата            | Живой: `experienceMin/Max` разворачиваются из грейда вакансии           |
-| Мёртвые слагаемые         | Выведены из формулы в `rules-v1.2.0` (локация/занятость/стек/персонал.) |
-| Тесты Nest/веб            | ML-граница: 5 API contract tests + 3 web mapping/label tests            |
-| CI                        | Ranking image: test + bundle verify + multi-arch GHCR publish           |
+| Блок                      | Состояние                                                                  |
+| ------------------------- | -------------------------------------------------------------------------- |
+| Сервис `POST /rank`       | Rules/shadow/hybrid/LTR; ready image запускает demo hybrid                 |
+| `POST /career/analyze`    | Counterfactual-действия на том же активном ранкере                         |
+| `GET /health`             | Работает, отдаёт `modelVersion`                                            |
+| Интеграция с Nest         | Работает, маппинг в `apps/api/src/modules/employers/ranking.client.ts`     |
+| UI-объяснения             | Работают: `breakdown`, `reasons`, `risks` → «Почему подходит»              |
+| Тесты Python              | 233 pytest (226 основной контур + 6 ML smoke + 1 slow), покрытие 91 %      |
+| Docker-образ              | Pre-trained bundle `ltr-v1.2.0`, GHCR multi-arch publish, без обучения     |
+| LTR (lightgbm)            | Demo hybrid готов; production lock остаётся видимым в metadata/health      |
+| Мониторинг                | Latency/pool/score/agreement/drift без PII на каждый `/rank`               |
+| Semantic/competency/fresh | Живые fallback/sections/freshness передаются из Nest                       |
+| Опыт кандидата            | Живой: `experienceMin/Max` разворачиваются из грейда вакансии              |
+| Мёртвые слагаемые         | Выведены из формулы в `rules-v1.2.0` (локация/занятость/стек/персонал.)    |
+| Тесты Nest/веб            | ML-граница: 5 API contract tests + 3 web mapping/label tests               |
+| CI                        | Workflow есть, но Actions выключен — раны не выполняются, проверки вручную |
 
 **Ни один сервис, БД или Nest-модуль не добавлялся.** `ranking` остаётся stateless: ни хранилища, ни очередей, ни LLM в горячем пути.
 
@@ -219,7 +219,7 @@ dismiss/invite) и кандидатский верхний порог зарпл
 2. **Demo hybrid активирован явным override.** На entity-disjoint holdout гейт пройден: LTR +0.019 NDCG@5 к rules, hybrid +0.011, calibration RMSE ltr/rules ≈ 0 против 0.30 у rules. Metadata и `/health` честно показывают `productionApproved=false`, `unapprovedOverride=true`.
 3. **Параметры LTR подобраны под синтетический holdout.** Простая модель (200 деревьев, 3 листа, seed 42) выбрана после того, как глубокая конфигурация перестала бить rules после перенормировки `rules-v1.2.0`. Это честно задокументировано, но переобучение на синтетику возможно: на human-labeled judgments параметры надо подбирать заново.
 4. **Lexical semantic — fallback, не embedding.** Он объясним и живой, но не понимает глубокую семантику; внешний embedding может переопределить его без изменения контракта.
-5. **CI есть для ranking image.** Workflow проверяет код и bundle, затем публикует multi-arch GHCR image; остальной monorepo всё ещё не имеет полного общего CI.
+5. **CI выключен на аккаунте.** Файл `ranking-image.yml` остался в репо (push в `dev`/`main` + tags), но Actions отключён: раны вечно в `queued`, отсюда отказ от PR-тегов и smoke-run в облаке. Проверки только локально (`check.sh`/`check_ml.sh`/`pnpm test`), GHCR-тег `:dev` может отставать от репозитория; общий CI monorepo так и не появился.
 6. **Nest покрыт только на ML-границе.** Пять contract tests фиксируют live-сигналы (включая experienceMin/Max из грейда), отсутствие PII, verified-only pool, UI-веса, freshness-границы и порядок/версию `shortlist`; остальная бизнес-логика Nest пока без unit tests.
 7. **Web покрыт только на ML-границе.** Три unit tests фиксируют динамические reason-коды, группу ФСП и передачу freshness; React-компоненты карточки отдельно не тестируются.
 8. **Fallback при недоступности — `503`.** Подборка не отдаётся вообще. Альтернатива (показать список без оценок) не реализована — это продуктовое решение, не ошибка.
@@ -281,10 +281,10 @@ E2E последняя сессия (2026-10-09): `docker build` → `/health` �
 `hybrid-v1.2.0-ltr0.25`, `modelLoaded: true`; `/rank` по `examples/rank-request.json`
 ранжирует middle-4y > junior-1.1y > junior-0.4y (порядок по опыту виден);
 `/career/analyze` и 422 на мусорном теле — работают; compose-путь
-`infra/dev` поднимает ranking с той же моделью. CI на PR: полный
-`check.sh` + `verify_artifacts` + smoke-run собранного образа
-(`/health` + `/rank` внутри контейнера) + публикация тега `pr-<номер>`
-для PR из этого репо (fork PR — только тесты).
+`infra/dev` поднимает ranking с той же моделью. CI: Actions на аккаунте
+выключен, поэтому от PR-тегов `pr-<номер>` и облачного smoke-run отказались
+(`ranking-image.yml` откачен к состоянию на `dev`); проверка PR — вручную:
+`check.sh` + `check_ml.sh` + `pnpm test` + локальный compose.
 
 Из известного «не доделано» осознанно:
 

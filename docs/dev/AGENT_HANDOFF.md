@@ -84,7 +84,7 @@ sh apps/ranking/scripts/check.sh            # ML-часть (нужен Python 3
 ## 5. Известные пробелы (не багать, но знать)
 
 1. В Nest есть contract tests для `ranking.client.ts` и `shortlist`, в web — тесты reason labels; остальная бизнес-логика и React-компоненты не покрыты.
-2. CI покрывает ranking image и artifact verification; общего monorepo CI пока нет.
+2. Workflow CI для ranking image есть (`.github/workflows/ranking-image.yml`), но Actions на аккаунте выключен — раны не выполняются, проверки только локальные; общего monorepo CI пока нет.
 3. `apps/ranking` — полное описание состояния в [`apps/ranking/HANDOFF.md`](../../apps/ranking/HANDOFF.md): что сделано, какие сигналы подключены к контракту, а что выведено из формулы (`rules-v1.2.0`), что дальше.
 4. Ranking поддерживает rules/shadow/hybrid/LTR. Готовый versioned artifact хранится в репозитории; Docker не обучает, а копирует его и запускает demo hybrid с явным unapproved override. `ranking-image.yml` публикует multi-arch GHCR image, `scripts/promote_ml.sh` создаёт новую версию, `verify_artifacts.sh` проверяет checksum/held-out gate. Настоящий production artifact требует двойную human-разметку.
 5. `infra/prod` пуст.

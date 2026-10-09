@@ -11,8 +11,10 @@
 Docker-сборка только устанавливает runtime и копирует готовую модель — LightGBM
 training и scikit-learn при сборке/запуске не выполняются.
 
-После публикации workflow `Publish pre-trained ranking image` команда запускает
-готовый multi-arch образ:
+Workflow `Publish pre-trained ranking image` публикует готовый multi-arch
+образ по push в `dev`, **но сейчас Actions на аккаунте выключен** — раны не
+выполняются, GHCR-тег `:dev` может отставать от репозитория. Всегда сверяй
+`modelVersion` в `/health` (должен быть `hybrid-v1.2.0-ltr0.25`):
 
 ```bash
 docker pull ghcr.io/djonnistorm/hh-but-it-works-ranking:dev
@@ -23,30 +25,33 @@ curl -s -X POST localhost:8000/rank -H 'content-type: application/json' \
   --data @apps/ranking/examples/rank-request.json
 ```
 
-Или весь dev stack из клона: `docker compose --env-file infra/dev/.env.example
--f infra/dev/docker-compose.yml up`. Compose использует готовый GHCR-образ, а
-локальная сборка всё равно копирует committed artifacts без обучения. Для
-private GHCR один раз нужен `docker login ghcr.io`; package можно сделать public
-в GitHub Packages.
-
-### Ревью PR: проверка за минуту
-
-Workflow гоняет на каждом PR полный `check.sh` + `verify_artifacts`, собирает
-образ, **запускает его и бьёт в `/health` и `/rank`**, и для PR из этого же
-репозитория публикует тег `pr-<номер PR>`:
+Надёжный путь без CI — собрать локально из клона; сборка только копирует
+committed artifacts, ничего не обучает:
 
 ```bash
-docker pull ghcr.io/djonnistorm/hh-but-it-works-ranking:pr-42
-docker run --rm -p 8000:8000 ghcr.io/djonnistorm/hh-but-it-works-ranking:pr-42
-curl -s localhost:8000/health
-curl -s -X POST localhost:8000/rank -H 'content-type: application/json' \
-  --data @apps/ranking/examples/rank-request.json
+docker compose --env-file infra/dev/.env.example \
+  -f infra/dev/docker-compose.yml up -d --build ranking
 ```
 
-Демо-запрос содержит трёх кандидатов: middle с 4 годами опыта должен идти
-первым, junior с 1.1 года — вторым, junior ниже `experienceMin` — третьим с
-пониженным компонентом `experience`. PR из форка тег не публикует (токен
-read-only), но тесты и smoke-run образа всё равно проходят.
+Для private GHCR один раз нужен `docker login ghcr.io`; package можно сделать public
+в GitHub Packages.
+
+### Проверка PR: CI выключен, всё вручную
+
+Воркфлоу `ranking-image.yml` есть, но Actions отключён — раны не выполняются
+и PR-теги не публикуются. Ревьюер проверяет локально:
+
+```bash
+cd apps/ranking && sh scripts/check.sh && sh scripts/check_ml.sh  # тесты + ML-гейты
+pnpm test                                                          # api + web контракт
+docker compose --env-file infra/dev/.env.example \
+  -f infra/dev/docker-compose.yml up -d --build ranking            # образ с моделью
+curl -s localhost:8000/health
+```
+
+Демо-запрос (`examples/rank-request.json`) содержит трёх кандидатов: middle с
+4 годами опыта идёт первым, junior с 1.1 года — вторым, junior ниже
+`experienceMin` — третьим с пониженным компонентом `experience`.
 
 ### Локальный запуск без Docker
 
