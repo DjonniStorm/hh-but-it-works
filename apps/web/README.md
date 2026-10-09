@@ -14,6 +14,10 @@ pnpm openapi                   # перегенерировать клиент �
 
 Адрес API — `VITE_API_URL`, иначе `http://localhost:3000` (`apps/web/src/shared/api/hey-api.ts`).
 
+```bash
+node apps/web/scripts/build-schools.mjs --refresh  # обновить список учебных заведений
+```
+
 ## Структура `src`
 
 ```text
@@ -26,7 +30,9 @@ src/
   pages/
     auth/               LoginPage, RegisterPage, ConfirmPage
     home/               HomePage
-    profile/            кабинет кандидата: навыки, ожидания, тесты (TestingLobby/Run/Result)
+    profile/            кабинет кандидата: анкета плитками (контакты, образование, опыт,
+                        поиск работы — разделы добавляются кнопкой), навыки,
+                        тесты (TestingLobby/Run/Result)
     invitations/        приглашения для кандидата
     employer/           компания, вакансии, подборка (MatchCard, WhyMatch, BreakdownGroup,
                         ReasonList, ScoreBar, ScoreRing), приглашения кандидатам
@@ -39,6 +45,17 @@ src/
     lib/                labels.ts (локализация reason/warning/rejectedBy кодов), format.ts
     theme/              feedbackColor и тосты
 ```
+
+## Подсказка учебных заведений
+
+В поле «Учебное заведение» анкеты — автодополнение по списку вузов и колледжей РФ (~1000 названий). Свободный ввод сохраняется, контракт не меняется.
+
+- `pages/profile/model/schools.ts` — сам список, сгенерирован скриптом, править руками не нужно;
+- `pages/profile/model/use-schools.ts` — подтягивает список отдельным чанком, когда открыт раздел «Образование»;
+- `pages/profile/ui/EducationFields.tsx` — `Autocomplete` с лимитом подсказок;
+- `apps/web/scripts/build-schools.mjs` — сборка списка, сырые выгрузки падают в `ignore/schools-raw/`.
+
+Источник сейчас — Wikidata (лицензия CC0), потому что официальный реестр Минобрнауки/ЕГАС из окружения сборки не скачивается. Когда появится выгрузка реестра, её разбор добавляется в тот же скрипт — выход и место данных в коде не меняются.
 
 ## Роуты
 
