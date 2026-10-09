@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useRootStore } from "@/app/store/store-context";
 import {
@@ -31,29 +31,32 @@ export const SearchPage = observer(() => {
   // Выдача и её статус — состояние экрана: зависят только от фильтров в адресе.
   const [result, setResult] = useState<CandidateSearchResult | null>(null);
   const [failed, setFailed] = useState(false);
-  const [attempt, setAttempt] = useState(0);
   const [inviting, setInviting] = useState<CandidateSnapshot | null>(null);
   const [inviteOpened, setInviteOpened] = useState(false);
 
-  useEffect(() => {
-    // Ответ на старые фильтры, пришедший позже нового, не должен перетереть выдачу.
-    let current = true;
+  // Номер последнего запроса: ответ на старые фильтры, пришедший позже нового, не перетрёт выдачу.
+  const latest = useRef(0);
+
+  const search = useCallback(() => {
+    const id = ++latest.current;
     void employer.searchCandidates(filter, {
       onSuccess: (found) => {
-        if (current) {
+        if (id === latest.current) {
           setResult(found);
         }
       },
       onError: () => {
-        if (current) {
+        if (id === latest.current) {
           setFailed(true);
         }
       },
     });
-    return () => {
-      current = false;
-    };
-  }, [employer, filter, attempt]);
+  }, [employer, filter]);
+
+  // Фильтры в адресе поменялись — ищем заново.
+  useEffect(() => {
+    search();
+  }, [search]);
 
   return (
     <Stack gap="lg" maw={1100}>
@@ -80,7 +83,7 @@ export const SearchPage = observer(() => {
           title="Поиск не ответил"
           onReload={() => {
             setFailed(false);
-            setAttempt(attempt + 1);
+            search();
           }}
         />
       ) : null}
