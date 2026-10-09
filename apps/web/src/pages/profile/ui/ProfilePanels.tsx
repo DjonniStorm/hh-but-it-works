@@ -13,6 +13,7 @@ import {
   type SectionKey,
   initialSections,
   sectionOrder,
+  sectionsWithDraft,
 } from "@/pages/profile/model/sections";
 import type { ResumeDraftHit } from "@/pages/profile/model/types";
 import { useProfileForm } from "@/pages/profile/model/use-profile-form";
@@ -105,6 +106,9 @@ export const ProfilePanels = memo(
       if (!draft) {
         return;
       }
+      setSections((current) => {
+        return sectionsWithDraft(current, draft.draft);
+      });
       profiles.clearResumeDraft();
     }, [draft, profiles]);
 

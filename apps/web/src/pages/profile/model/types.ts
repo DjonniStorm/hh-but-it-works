@@ -17,7 +17,8 @@ export type SkillRow = {
 export type EducationFormRow = {
   school: string;
   program: string;
-  fromYear: number;
+  // Пустой «с» — "": в резюме hh.ru есть только год выпуска.
+  fromYear: number | "";
   toYear: number | "";
 };
 

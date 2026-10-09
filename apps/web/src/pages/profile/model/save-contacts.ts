@@ -55,7 +55,8 @@ export function contactInput(
       return {
         school: item.school,
         program: item.program,
-        fromYear: item.fromYear,
+        // Резолвер уже не пропустил пустой год. В типе формы он шире.
+        fromYear: item.fromYear as number,
         toYear: item.toYear === "" ? null : item.toYear,
       };
     }),

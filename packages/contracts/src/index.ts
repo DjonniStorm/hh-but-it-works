@@ -307,6 +307,13 @@ export const resumeDraftSchema = z.object({
     }),
   ),
   softSkills: z.array(z.string()),
+  // Год начала учёбы hh.ru не пишет, только год выпуска: тогда fromYear — null.
+  education: z.array(
+    educationEntrySchema.extend({
+      fromYear: educationEntrySchema.shape.fromYear.nullable(),
+    }),
+  ),
+  experience: z.array(experienceEntrySchema),
 });
 
 // Модель работодателя: профиль компании, потребности, подборка, приглашения.

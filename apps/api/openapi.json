@@ -2923,6 +2923,69 @@
             "items": {
               "type": "string"
             }
+          },
+          "education": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "school": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "program": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "fromYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035,
+                  "nullable": true
+                },
+                "toYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035,
+                  "nullable": true
+                }
+              },
+              "required": ["school", "program", "fromYear", "toYear"],
+              "additionalProperties": false
+            }
+          },
+          "experience": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "company": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "role": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "fromYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035
+                },
+                "toYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035,
+                  "nullable": true
+                },
+                "summary": {
+                  "type": "string",
+                  "maxLength": 280
+                }
+              },
+              "required": ["company", "role", "fromYear", "toYear", "summary"],
+              "additionalProperties": false
+            }
           }
         },
         "required": [
@@ -2939,7 +3002,9 @@
           "workFormats",
           "searchStatus",
           "skills",
-          "softSkills"
+          "softSkills",
+          "education",
+          "experience"
         ],
         "additionalProperties": false
       },

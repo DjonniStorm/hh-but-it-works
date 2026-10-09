@@ -2,6 +2,7 @@ import type { ResumeDraft } from "@hh/contracts";
 import { Grade, SearchStatus, Specialization, WorkFormat } from "@hh/types";
 
 import { experienceYears } from "./resume-experience";
+import { educationFrom, experienceFrom } from "./resume-history";
 import {
   type ResumeLine,
   Section,
@@ -87,6 +88,8 @@ export function draftFromText(
       : null,
     skills: findSkills(skillText(lines, whole), catalog),
     softSkills: softSkillsFrom(lines, whole),
+    education: educationFrom(lines),
+    experience: experienceFrom(lines),
   };
 }
 

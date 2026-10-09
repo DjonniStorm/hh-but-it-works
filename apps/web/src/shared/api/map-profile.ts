@@ -112,6 +112,19 @@ export function mapResumeDraft(draft: {
   searchStatus: string | null;
   skills: { slug: string; title: string }[];
   softSkills: string[];
+  education: {
+    school: string;
+    program: string;
+    fromYear: number | null;
+    toYear: number | null;
+  }[];
+  experience: {
+    company: string;
+    role: string;
+    fromYear: number;
+    toYear: number | null;
+    summary: string;
+  }[];
 }): ResumeDraft {
   return {
     ...draft,

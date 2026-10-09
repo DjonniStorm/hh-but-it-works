@@ -1,11 +1,18 @@
-import type { ResumeDraftHit, SkillRow } from "@/pages/profile/model/types";
+import type {
+  ContactValues,
+  ResumeDraftHit,
+  SkillRow,
+} from "@/pages/profile/model/types";
 
 import type { CandidateProfile, ResumeDraft } from "@hh/contracts";
 import { Grade, SkillLevel, SkillVerification } from "@hh/types";
 
 type ContactForm = {
   setFieldValue: (path: string, value: unknown) => void;
-  getValues: () => { softSkills: string[] };
+  getValues: () => Pick<
+    ContactValues,
+    "softSkills" | "education" | "experience"
+  >;
 };
 
 export function draftHasFields(draft: ResumeDraft): boolean {
@@ -22,7 +29,9 @@ export function draftHasFields(draft: ResumeDraft): boolean {
     draft.desiredSalaryFrom !== null ||
     draft.workFormats.length > 0 ||
     draft.skills.length > 0 ||
-    draft.softSkills.length > 0
+    draft.softSkills.length > 0 ||
+    draft.education.length > 0 ||
+    draft.experience.length > 0
   );
 }
 
@@ -69,8 +78,59 @@ export function applyContactDraft(
       }),
     ]);
   }
+  applyHistoryDraft(form, draft);
   if (!verifiedGrade && draft.claimedGrade) {
     form.setFieldValue("claimedGrade", draft.claimedGrade);
+  }
+}
+
+// Лимиты плиток: схема сохранения больше записей не примет.
+const maxEducation = 8;
+const maxExperience = 12;
+
+// Записи из резюме дописываются к введённым. Ту же учёбу или работу второй раз не добавляем.
+function applyHistoryDraft(form: ContactForm, draft: ResumeDraft): void {
+  const { education, experience } = form.getValues();
+  const newEducation = draft.education
+    .filter((item) => {
+      return !education.some((row) => {
+        return row.school === item.school && row.program === item.program;
+      });
+    })
+    .map((item) => {
+      return {
+        school: item.school,
+        program: item.program,
+        fromYear: item.fromYear ?? "",
+        toYear: item.toYear ?? "",
+      };
+    });
+  if (newEducation.length > 0) {
+    form.setFieldValue(
+      "education",
+      [...education, ...newEducation].slice(0, maxEducation),
+    );
+  }
+  const newExperience = draft.experience
+    .filter((item) => {
+      return !experience.some((row) => {
+        return row.company === item.company && row.fromYear === item.fromYear;
+      });
+    })
+    .map((item) => {
+      return {
+        company: item.company,
+        role: item.role,
+        fromYear: item.fromYear,
+        toYear: item.toYear ?? "",
+        summary: item.summary,
+      };
+    });
+  if (newExperience.length > 0) {
+    form.setFieldValue(
+      "experience",
+      [...experience, ...newExperience].slice(0, maxExperience),
+    );
   }
 }
 

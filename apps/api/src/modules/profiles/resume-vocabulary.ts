@@ -99,6 +99,46 @@ export const roleLine = words(
   "тимлид",
 );
 
+// Должность в записи опыта. Шире roleLine: преподаватель или менеджер тоже должность, но не грейд.
+export const jobWords = new RegExp(
+  `${roleLine.source}|${
+    words(
+      "преподавател\\p{L}*",
+      "учител\\p{L}*",
+      "teacher",
+      "менеджер",
+      "manager",
+      "руководител\\p{L}*",
+      "head of",
+      "директор",
+      "director",
+      "консультант",
+      "consultant",
+      "дизайнер",
+      "designer",
+      "администратор",
+      "administrator",
+      "стаж[её]р\\p{L}*",
+      "intern",
+      "qa",
+      "support",
+    ).source
+  }`,
+  "iu",
+);
+
+// Степень перед программой: «Bachelor's degree, Applied Mathematics».
+export const degreeWords = words(
+  "бакалавр",
+  "магистр",
+  "специалитет",
+  "аспирант",
+  "bachelor",
+  "master",
+  "phd",
+  "degree",
+);
+
 export const workFormatWords: [RegExp, WorkFormat][] = [
   [words("удал[её]нн?\\p{L}*", "remote", "дистанц\\p{L}*"), WorkFormat.Remote],
   [words("гибрид\\p{L}*", "hybrid"), WorkFormat.Hybrid],

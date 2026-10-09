@@ -53,24 +53,44 @@ export function experienceYears(
   return null;
 }
 
-// Сумма периодов работы. Совместительство в одни и те же месяцы считается один раз.
-export function monthsOfRanges(text: string, now: Date): number {
+// Период работы в тексте: from и to — месяцы, to = null — по настоящее время.
+export type WorkPeriod = {
+  index: number;
+  length: number;
+  from: number;
+  to: number | null;
+};
+
+export function workPeriods(text: string, now: Date): WorkPeriod[] {
   const current = now.getFullYear() * 12 + now.getMonth();
-  const spans: [number, number][] = [];
+  const periods: WorkPeriod[] = [];
   for (const match of text.matchAll(range)) {
-    const start = monthOf(match[1] ?? "", false);
-    const end = new RegExp(`^${ongoing}$`, "iu").test(match[2] ?? "")
-      ? current
-      : monthOf(match[2] ?? "", true);
-    if (start === null || end === null || end < start || end > current + 1) {
+    const from = monthOf(match[1] ?? "", false);
+    const isOngoing = new RegExp(`^${ongoing}$`, "iu").test(match[2] ?? "");
+    const to = isOngoing ? current : monthOf(match[2] ?? "", true);
+    if (from === null || to === null || to < from || to > current + 1) {
       continue;
     }
     // Нижняя граница: даты в резюме раньше 1970 года — это не стаж.
-    if (start < 1970 * 12) {
+    if (from < 1970 * 12) {
       continue;
     }
-    spans.push([start, Math.min(end, current)]);
+    periods.push({
+      index: match.index ?? 0,
+      length: match[0].length,
+      from,
+      to: isOngoing ? null : Math.min(to, current),
+    });
   }
+  return periods;
+}
+
+// Сумма периодов работы. Совместительство в одни и те же месяцы считается один раз.
+export function monthsOfRanges(text: string, now: Date): number {
+  const current = now.getFullYear() * 12 + now.getMonth();
+  const spans: [number, number][] = workPeriods(text, now).map((period) => {
+    return [period.from, period.to ?? current];
+  });
   spans.sort((left, right) => {
     return left[0] - right[0];
   });

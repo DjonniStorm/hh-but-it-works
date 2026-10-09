@@ -127,6 +127,19 @@ export type ResumeDraftDtoOutput = {
         title: string;
     }>;
     softSkills: Array<string>;
+    education: Array<{
+        school: string;
+        program: string;
+        fromYear: number | null;
+        toYear: number | null;
+    }>;
+    experience: Array<{
+        company: string;
+        role: string;
+        fromYear: number;
+        toYear: number | null;
+        summary: string;
+    }>;
 };
 
 export type SaveProfileDto = {

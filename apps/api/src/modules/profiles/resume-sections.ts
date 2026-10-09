@@ -3,6 +3,7 @@ export enum Section {
   Desired = "desired",
   Experience = "experience",
   Education = "education",
+  Courses = "courses",
   Skills = "skills",
   About = "about",
   Contacts = "contacts",
@@ -32,14 +33,14 @@ const headings: Record<Exclude<Section, Section.Header>, string[]> = {
     "professional experience",
     "employment history",
   ],
-  [Section.Education]: [
-    "образование",
+  [Section.Education]: ["образование", "education"],
+  // Курсы и сертификаты не попадают в плитку «Образование».
+  [Section.Courses]: [
     "повышение квалификации, курсы",
     "курсы",
     "сертификаты",
     "электронные сертификаты",
     "тесты, экзамены",
-    "education",
     "courses",
     "certifications",
     "licenses & certifications",
