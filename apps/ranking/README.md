@@ -230,7 +230,7 @@ LTR-контур работает как production-safe shadow/hybrid:
 
 `evaluation/data/gold*.jsonl` — **controlled-synthetic benchmark**, а не человеческий gold. Потребности основаны на небольшой атрибутированной выборке открытых вакансий, кандидаты вымышлены, метки независимы от rules. Набор проверяет pipeline и ловит регрессии, но не доказывает production uplift. Карточка и provenance: [`evaluation/data/README.md`](evaluation/data/README.md), [`evaluation/data/SOURCES.json`](evaluation/data/SOURCES.json).
 
-Training metadata содержит `productionApproved=false`. Обычный runtime не даст такому артефакту влиять на выдачу: запрос `hybrid`/`ltr` будет понижен до `shadow`. Готовый demo-образ намеренно задаёт `RANKING_ALLOW_UNAPPROVED_MODEL=true`, поэтому сразу показывает hybrid; `/health` честно сохраняет `productionApproved=false` и `unapprovedOverride=true`. Флаг `--production-approved` принимается только для `human_double_annotation_v1`; отдельный, более слабый флаг `--llm-approved` принимает только `llm_judge_v1` (явный llm-тир, `approvalSource` в metadata) — см. `evaluation/annotation/README.md` и `evaluation/artifacts/ltr-v1.3.0-llm/`.
+Training metadata содержит `productionApproved` и `approvalSource`. Обычный runtime не даёт неутверждённому артефакту влиять на выдачу: запрос `hybrid`/`ltr` будет понижен до `shadow`. Готовый образ по умолчанию собирается с llm-approved бандлом `ltr-v1.3.0-llm` (`approvalSource: llm_judge_v1`), поэтому `/health` честно показывает `productionApproved=true`, `unapprovedOverride=false` без каких-либо override-переменных. Флаг `--production-approved` принимается только для `human_double_annotation_v1`; отдельный, более слабый флаг `--llm-approved` принимает только `llm_judge_v1` — см. `evaluation/annotation/README.md` и `evaluation/artifacts/`.
 
 Режимы `RANKING_MODE`:
 
@@ -241,7 +241,7 @@ Training metadata содержит `productionApproved=false`. Обычный ru
 | `hybrid` | `0.75·rules + 0.25·calibrated LTR`; human-approved или явный demo override |
 | `ltr`    | Pure LTR для offline evaluation и будущего rollout на human-labeled data   |
 
-Вес hybrid задаётся `RANKING_LTR_WEIGHT` и валидируется в `[0,1]`. Без валидных или human-approved артефактов активный ответ fail-closed остаётся rules/shadow. Единственное исключение — явный `RANKING_ALLOW_UNAPPROVED_MODEL=true`, включённый в готовом demo-образе.
+Вес hybrid задаётся `RANKING_LTR_WEIGHT` и валидируется в `[0,1]`. Без валидных или approved (human/llm) артефактов активный ответ fail-closed остаётся rules/shadow; явный `RANKING_ALLOW_UNAPPROVED_MODEL=true` остаётся только как debugging-инструмент и в дефолтный образ не входит.
 
 Scikit-learn нужен только при обучении. Serving использует LightGBM и собственный JSON isotonic runtime без pickle/joblib. Локально:
 

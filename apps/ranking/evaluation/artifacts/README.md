@@ -11,14 +11,14 @@ It contains:
 `ltr-v1.3.0-llm/` is the first bundle approved through the explicit **llm
 tier**: it was trained on `llm_gold_*` labels (`labelSource: llm_judge_v1`,
 single-blind LLM judge) with `train_ltr.py --llm-approved`, so its metadata
-carries `productionApproved: true` and `approvalSource: llm_judge_v1`. Runtime
-activates it without `RANKING_ALLOW_UNAPPROVED_MODEL`. It is **not** a human
-approval: the serving default stays `ltr-v1.2.0`, and the llm bundle must be
-wired explicitly (`RANKING_MODEL_PATH` etc. or `RANKING_ARTIFACT_DIR`).
-Known limitation: llm labels were shown to reproduce the synthetic scenario
-ordering exactly (mean Kendall tau = 1.0 vs `gold.jsonl`), so this bundle
-validates the activation path more than market uplift —
-see `evaluation/data/llm_gold_provenance.json`.
+carries `productionApproved: true` and `approvalSource: llm_judge_v1`. Since
+2026-10-10 it is also the **serving default** (`RANKING_ARTIFACT_DIR` in
+`Dockerfile`): runtime activates it without `RANKING_ALLOW_UNAPPROVED_MODEL`.
+It is **not** a human approval — the human tier (`--production-approved`) is
+unlocked only by double human annotation. Known limitation: llm labels were
+shown to reproduce the synthetic scenario ordering exactly (mean Kendall
+tau = 1.0 vs `gold.jsonl`), so this bundle validates the activation path more
+than market uplift — see `evaluation/data/llm_gold_provenance.json`.
 
 The bundles contain no raw vacancies, resumes or candidate identifiers. Runtime
 validates its SHA-256 and feature-code fingerprint before loading it.

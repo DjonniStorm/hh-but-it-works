@@ -82,5 +82,5 @@ def test_runtime_dockerfile_never_trains_the_model():
     dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
     assert "train_ltr.py" not in dockerfile
     assert "requirements-train.txt" not in dockerfile
-    assert "evaluation/artifacts/ltr-v1.2.0" in dockerfile
-    assert "RANKING_ALLOW_UNAPPROVED_MODEL=true" in dockerfile
+    assert "evaluation/artifacts/ltr-v1.3.0-llm" in dockerfile
+    assert "RANKING_ALLOW_UNAPPROVED_MODEL" not in dockerfile

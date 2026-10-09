@@ -19,7 +19,7 @@
 | UI-объяснения             | Работают: `breakdown`, `reasons`, `risks` → «Почему подходит»              |
 | Тесты Python              | 233 pytest (226 основной контур + 6 ML smoke + 1 slow), покрытие 91 %      |
 | Docker-образ              | Pre-trained bundle `ltr-v1.2.0`, GHCR multi-arch publish, без обучения     |
-| LTR (lightgbm)            | Demo hybrid готов; production lock остаётся видимым в metadata/health      |
+| LTR (lightgbm)            | Дефолт — llm-approved `ltr-v1.3.0-llm`; human tier ждёт разметки           |
 | Мониторинг                | Latency/pool/score/agreement/drift без PII на каждый `/rank`               |
 | Semantic/competency/fresh | Живые fallback/sections/freshness передаются из Nest                       |
 | Опыт кандидата            | Живой: `experienceMin/Max` разворачиваются из грейда вакансии              |
@@ -216,7 +216,7 @@ dismiss/invite) и кандидатский верхний порог зарпл
 ## 6. Ограничения и риски
 
 1. **Gold-набор — regression, а не рыночный.** Основной набор содержит 168 controlled-synthetic пар вокруг 21 реальной публичной вакансии; кандидаты и labels всё ещё синтетические.
-2. **Demo hybrid активирован явным override.** На entity-disjoint holdout гейт пройден: LTR +0.019 NDCG@5 к rules, hybrid +0.011, calibration RMSE ltr/rules ≈ 0 против 0.30 у rules. Metadata и `/health` честно показывают `productionApproved=false`, `unapprovedOverride=true`.
+2. **Demo hybrid активирован llm-approved дефолтом (без override).** На entity-disjoint holdout гейт пройден: LTR +0.019 NDCG@5 к rules, hybrid +0.011, calibration RMSE ltr/rules ≈ 0 против 0.30 у rules (v1.2.0, synthetic). С 2026-10-10 дефолтный артефакт образа — `ltr-v1.3.0-llm` (`approvalSource: llm_judge_v1`): `/health` показывает `productionApproved=true`, `unapprovedOverride=false`; `RANKING_ALLOW_UNAPPROVED_MODEL` из Dockerfile удалён. Это llm-тир, не human: human-approved бандл — следующая ступень после разметки batch-001 экспертами.
 3. **Параметры LTR подобраны под синтетический holdout.** Простая модель (200 деревьев, 3 листа, seed 42) выбрана после того, как глубокая конфигурация перестала бить rules после перенормировки `rules-v1.2.0`. Это честно задокументировано, но переобучение на синтетику возможно: на human-labeled judgments параметры надо подбирать заново.
 4. **Lexical semantic — fallback, не embedding.** Он объясним и живой, но не понимает глубокую семантику; внешний embedding может переопределить его без изменения контракта.
 5. **CI выключен на аккаунте.** Файл `ranking-image.yml` остался в репо (push в `dev`/`main` + tags), но Actions отключён: раны вечно в `queued`, отсюда отказ от PR-тегов и smoke-run в облаке. Проверки только локально (`check.sh`/`check_ml.sh`/`pnpm test`), GHCR-тег `:dev` может отставать от репозитория; общий CI monorepo так и не появился.
@@ -267,7 +267,15 @@ dismiss/invite) и кандидатский верхний порог зарпл
 2. **Мёртвые сигналы закрыты.** Из формулы выкинуты `location` (0.12), `employmentType` (0.08), `desiredSkills` (0.10), `personalization` (0.01); веса перенормированы (`nice` 0.03→0.04; opportunity → 0.50/0.31/0.19). `MODEL_VERSION = rules-v1.2.0`. Удалены `_personalization_fit`, поля `ScoreBreakdown` и `FEATURE_ORDER` под них; `RankingContext` и eligibility-гейты остались (см. §5).
 3. **Артефакты переобучены.** Новый бандл `evaluation/artifacts/ltr-v1.2.0` (простая модель 200×3, seed 42 — глубокая после перенормировки не проходила гейт uplift). Гейт: ltr +0.019 NDCG@5, hybrid +0.011, calibration RMSE ratio ≈ 0. Старый `ltr-v1.1.0` оставлен как история.
 4. **Снапшоты/версии.** `tests/snapshots/rank_response.json` перегенерирован (`UPDATE_SNAPSHOTS=1`); все тестовые assert'ы версий переведены на v1.2.0; `hybrid-`версия выводится из `RULES_MODEL_VERSION` (магии в `ltr.py` больше нет).
-5. **Human-labels этап закрыт инфраструктурно + llm-тир** (ветка `feat/ranking-rules-v1.2.0-experience`). `human_labels.py` принимает adjudication-строки (`adjudicator:<имя>`), считает попарное согласие аннотаторов и валит батч при `--min-agreement` (по умолчанию 0.6), PII в rationale/annotator_id, неполноте разметки и need меньше чем из двух кандидатов; экспорт пишет `pairs.manifest.json` (sha256 датасета). Готов `evaluation/annotation/batch-001` (168 пар из gold) + гайд `evaluation/annotation/README.md`. Дополнительно введён явный llm-тир: импорт с `--label-source llm_judge_v1 --min-annotators 1`, обучение `train_ltr.py --llm-approved` (только llm_judge_v1, независимый calibration, `approvalSource` в metadata) и первый бандл `evaluation/artifacts/ltr-v1.3.0-llm` (gates: ltr/hybrid +0.012 NDCG@5 на llm_gold_test, activation без override). Честная сверка: llm-разметка воспроизвела сценарный порядок (tau 1.0, exact match 87.5 %) — замок открыта на внешнем сигнале НЕТ, дефолтинг образа остался на `ltr-v1.2.0`.
+5. **Human-labels этап закрыт инфраструктурно + llm-тир** (ветка `feat/ranking-rules-v1.2.0-experience`). `human_labels.py` принимает adjudication-строки (`adjudicator:<имя>`), считает попарное согласие аннотаторов и валит батч при `--min-agreement` (по умолчанию 0.6), PII в rationale/annotator_id, неполноте разметки и need меньше чем из двух кандидатов; экспорт пишет `pairs.manifest.json` (sha256 датасета). Готов `evaluation/annotation/batch-001` (168 пар из gold) + гайд `evaluation/annotation/README.md`. Дополнительно введён явный llm-тир: импорт с `--label-source llm_judge_v1 --min-annotators 1`, обучение `train_ltr.py --llm-approved` (только llm_judge_v1, независимый calibration, `approvalSource` в metadata) и первый бандл `evaluation/artifacts/ltr-v1.3.0-llm` (gates: ltr/hybrid +0.012 NDCG@5 на llm_gold_test, activation без override). Честная сверка: llm-разметка воспроизвела сценарный порядок (tau 1.0, exact match 87.5 %) — внешнего сигнала она не добавила, но именно этот бандл теперь является дефолтным артефактом образа (см. §6.2).
+
+6. **Serving default — llm-approved.** Dockerfile указывает на
+   `evaluation/artifacts/ltr-v1.3.0-llm`, `RANKING_ALLOW_UNAPPROVED_MODEL`
+   удалён: `/health` даёт `productionApproved=true`,
+   `unapprovedOverride=false`. `verify_artifacts.sh` параметризован
+   (артефакт + датасет) и проверяет оба бандла; `check_ml.sh` получил смоук
+   без override на коммитированном llm-бандле. Это llm-тир approval
+   (`approvalSource: llm_judge_v1`), а не human.
 
 Как проверять перед следующими правками:
 
@@ -278,9 +286,10 @@ sh scripts/check.sh    # compileall + pytest ≥90% + gold + benchmark + perform
 sh scripts/check_ml.sh # детерминизм gold + bundle + ml-тесты + promote + smoke + held-out гейты
 ```
 
-E2E последняя сессия (2026-10-09): `docker build` → `/health` отдаёт
-`hybrid-v1.2.0-ltr0.25`, `modelLoaded: true`; `/rank` по `examples/rank-request.json`
-ранжирует middle-4y > junior-1.1y > junior-0.4y (порядок по опыту виден);
+E2E последняя сессия (2026-10-10): дефолтный образ собирается с
+`ltr-v1.3.0-llm` — `/health` без override отдаёт `productionApproved=true`
+и `artifactVersion: ltr-v1.3.0-llm-calibrated`, `/rank` отвечает
+`hybrid-v1.2.0-ltr0.25` (версия гибрида складывается из rules-серии);
 `/career/analyze` и 422 на мусорном теле — работают; compose-путь
 `infra/dev` поднимает ranking с той же моделью. CI: Actions на аккаунте
 выключен, поэтому от PR-тегов `pr-<номер>` и облачного smoke-run отказались

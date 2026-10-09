@@ -1,7 +1,7 @@
 FROM python:3.12-slim
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG RANKING_ARTIFACT_DIR=evaluation/artifacts/ltr-v1.2.0
+ARG RANKING_ARTIFACT_DIR=evaluation/artifacts/ltr-v1.3.0-llm
 
 WORKDIR /app
 RUN apt-get update \
@@ -19,13 +19,11 @@ COPY ${RANKING_ARTIFACT_DIR}/model.meta.json ./model.meta.json
 COPY ${RANKING_ARTIFACT_DIR}/calibrator.json ./calibrator.json
 COPY ${RANKING_ARTIFACT_DIR}/promotion-report.json ./promotion-report.json
 
-# The bundled model is controlled-synthetic. This explicit demo override makes
-# the ready-to-run image use hybrid ranking while /health still reports
-# productionApproved=false. A real deployment should replace the artifacts
-# with a human-approved bundle and remove the override.
+# The default bundle is llm-approved (labelSource llm_judge_v1, approvalSource
+# in metadata), so hybrid ranking activates without any unapproved override.
+# A human-approved bundle (--production-approved) is the next tier up.
 ENV RANKING_MODE=hybrid \
     RANKING_LTR_WEIGHT=0.25 \
-    RANKING_ALLOW_UNAPPROVED_MODEL=true \
     PYTHONUNBUFFERED=1
 
 EXPOSE 8000
