@@ -5,6 +5,7 @@ import {
   Grade,
   IntegrityFlag,
   InvitationStatus,
+  ResumeTemplate,
   Role,
   SearchStatus,
   SkillLevel,
@@ -86,6 +87,12 @@ export const skillVerificationSchema = z.enum(SkillVerification);
 export const workFormatSchema = z.enum(WorkFormat, "Выберите формат работы");
 export const invitationStatusSchema = z.enum(InvitationStatus);
 export const searchStatusSchema = z.enum(SearchStatus);
+export const resumeTemplateSchema = z.enum(ResumeTemplate);
+
+// Оформление PDF-профиля выбирают при скачивании. Без параметра — Ditto.
+export const resumePdfQuerySchema = z.object({
+  template: resumeTemplateSchema.default(ResumeTemplate.Ditto),
+});
 
 export const profileSkillSchema = z.object({
   skillId: z.uuid(),
@@ -732,6 +739,7 @@ export type EducationEntry = z.infer<typeof educationEntrySchema>;
 export type ExperienceEntry = z.infer<typeof experienceEntrySchema>;
 export type SaveProfileInput = z.infer<typeof saveProfileSchema>;
 export type ResumeDraft = z.infer<typeof resumeDraftSchema>;
+export type ResumePdfQuery = z.infer<typeof resumePdfQuerySchema>;
 export type CompanyProfile = z.infer<typeof companyProfileSchema>;
 export type HiringNeedInput = z.infer<typeof hiringNeedInputSchema>;
 export type HiringNeed = z.infer<typeof hiringNeedSchema>;

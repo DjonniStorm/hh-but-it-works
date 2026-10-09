@@ -274,6 +274,20 @@ export class InvitationsService implements OnModuleInit {
     );
   }
 
+  // Резюме кандидата работодатель получает только по своему принятому приглашению.
+  async acceptedCandidate(
+    userId: string,
+    invitationId: string,
+  ): Promise<string> {
+    const row = await this.invitations.findOne({
+      where: { id: invitationId, userId, status: InvitationStatus.Accepted },
+    });
+    if (!row) {
+      throw new NotFoundException("Приглашение не найдено или ещё не принято");
+    }
+    return row.candidateProfileId;
+  }
+
   private async companiesOf(
     rows: Invitation[],
   ): Promise<Map<string, CompanyProfile>> {

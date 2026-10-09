@@ -10,6 +10,7 @@ import {
   profilesControllerSave,
 } from "@/shared/api/generated/sdk.gen";
 import { mapCandidateProfile, mapResumeDraft } from "@/shared/api/map-profile";
+import { saveFile } from "@/shared/lib/save-file";
 import { makeAutoObservable, runInAction } from "mobx";
 
 import type {
@@ -17,6 +18,7 @@ import type {
   ResumeDraft,
   SaveProfileInput,
 } from "@hh/contracts";
+import type { ResumeTemplate } from "@hh/types";
 
 import { type RequestOptions, readData, request } from "./request";
 import type { RootStore } from "./root-store";
@@ -102,23 +104,15 @@ export class ProfileStore {
     this.readSkills = read;
   }
 
-  downloadPdf(options?: CallOptions<void>) {
+  downloadPdf(template: ResumeTemplate, options?: CallOptions<void>) {
     return request(
       this.root,
       async () => {
-        const result = await profilesControllerExportPdf({ parseAs: "blob" });
-        const blob = readData(result);
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "profile.pdf";
-        document.body.append(link);
-        link.click();
-        // Сразу revoke обрывает загрузку в Firefox и Safari.
-        window.setTimeout(() => {
-          link.remove();
-          URL.revokeObjectURL(url);
-        }, 1000);
+        const result = await profilesControllerExportPdf({
+          query: { template },
+          parseAs: "blob",
+        });
+        saveFile(readData(result), "profile.pdf");
       },
       { loader: true, ...options },
     );

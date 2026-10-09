@@ -36,6 +36,7 @@ src/
   common/auth/             @Auth (guard'ы + их ошибки в Swagger), JWT guard, roles guard, @CurrentUser, @Roles
   common/openapi/          @ApiErrors и ApiErrorDto: коды ошибок ручек в Swagger
   common/mail/             MailService (nodemailer) и шаблоны писем в letters/
+  common/fsp/              FspClient: достижения из реестра ФСП (подборка и PDF-профиль)
   modules/
     users/                 User entity
     auth/                  register, confirm, confirm/resend, login, refresh, logout, me + session store в Redis
@@ -58,6 +59,15 @@ src/
 | `candidate/invitations` | `GET`, `POST viewed`, `POST :id/accept`, `POST :id/decline`                                                                                                                                                                                |
 
 Роли: `GET /assessment/*` — кандидат, `employer/*` — работодатель.
+
+## PDF-профиль
+
+- `GET /profile/export.pdf?template=ditto|gengar|pikachu` — кандидат скачивает свою анкету. Без `template` — Ditto.
+- `GET /employer/invitations/:id/resume.pdf?template=…` — то же резюме для работодателя, только по его принятому приглашению. До принятия — `404`.
+
+Рисует `profiles/resume-pdf` на pdf-lib + fontkit, без браузера. Раскладки, кегли и отступы сняты с эталонных PDF шаблонов Ditto, Gengar и Pikachu из [Reactive Resume](https://github.com/AmruthPillai/Reactive-Resume) (MIT): заголовки Merriweather, текст Inter, иконки Phosphor (MIT). Цвета из брендбука, как в теме веба: шапки, заголовки, линии и шкалы — основной `#402FFF`, подложки — его светлый оттенок, навык с подтверждением ФСП — акцент `#EC1D35`, заявленный — серый. Шрифты (OFL) лежат в `src/assets`. Фото в анкете нет: на его месте плитка с инициалами.
+
+Флаги `show*` действуют так же, как в подборке: скрытые стаж, зарплата, достижения ФСП и неподтверждённые навыки в PDF не попадают. Имя и контакты печатаются: PDF отдаёт сам кандидат или работодатель получает его после принятия. Опыт работы и образование берутся из анкеты (`experience`, `education`) в порядке, который задал кандидат. Описание опыта в несколько строк печатается списком.
 
 ## Подборка и рекомендательная система
 

@@ -54,6 +54,13 @@ export enum SearchStatus {
   Hidden = "hidden",
 }
 
+// Оформление PDF-профиля. Раскладки взяты из Reactive Resume (MIT), цвета — ФСП.
+export enum ResumeTemplate {
+  Ditto = "ditto",
+  Gengar = "gengar",
+  Pikachu = "pikachu",
+}
+
 export enum AttemptStatus {
   Passed = "passed",
   Failed = "failed",

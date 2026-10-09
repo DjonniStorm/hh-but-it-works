@@ -1,19 +1,16 @@
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
-import { Button } from "@mantine/core";
+import { ResumeTemplateMenu } from "@/shared/resume/ui/ResumeTemplateMenu";
 
 export const ProfileDownload = () => {
   const profiles = useStore(StoreKey.Profile);
 
   return (
-    <Button
-      type="button"
-      variant="default"
-      onClick={() => {
-        void profiles.downloadPdf();
+    <ResumeTemplateMenu
+      label="Скачать профиль"
+      onPick={(template) => {
+        void profiles.downloadPdf(template);
       }}
-    >
-      Скачать профиль
-    </Button>
+    />
   );
 };

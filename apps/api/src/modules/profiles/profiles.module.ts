@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
+import { FspModule } from "../../common/fsp/fsp.module";
 import { UsersModule } from "../users/users.module";
 import { CandidateProfile } from "./candidate-profile.entity";
 import { CandidateSeedService } from "./candidate-seed.service";
@@ -15,6 +16,7 @@ import { Skill } from "./skill.entity";
   imports: [
     TypeOrmModule.forFeature([CandidateProfile, Skill, CandidateSkill]),
     UsersModule,
+    FspModule,
   ],
   controllers: [ProfilesController],
   providers: [
@@ -23,6 +25,7 @@ import { Skill } from "./skill.entity";
     ResumeDraftService,
     ProfilePdfService,
   ],
-  exports: [ProfilesService],
+  // PDF-профиль скачивает и работодатель после принятия приглашения.
+  exports: [ProfilesService, ProfilePdfService],
 })
 export class ProfilesModule {}
