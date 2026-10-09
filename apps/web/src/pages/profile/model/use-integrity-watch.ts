@@ -16,11 +16,24 @@ type ClientFlag =
 // Повторное копирование в пределах паузы — одно событие, не десять.
 const copyPauseMs = 2000;
 
+// exited — вышли на экране теста, off — вернулись к попытке уже без полноэкранного режима.
+export type FullscreenPause = "exited" | "off";
+
+// requesting — ждём ответа браузера, unavailable — браузер режим не дал.
+type ScreenMode = FullscreenPause | "on" | "requesting" | "unavailable";
+
 export type IntegrityWatch = {
-  // Был полноэкранный режим и кандидат из него вышел: вопрос прячем до возврата.
-  fullscreenLost: boolean;
+  // Вопрос прячем, пока страница не в полноэкранном режиме.
+  pause: FullscreenPause | null;
   enterFullscreen: () => void;
 };
+
+function currentMode(): ScreenMode {
+  if (typeof document.documentElement.requestFullscreen !== "function") {
+    return "unavailable";
+  }
+  return document.fullscreenElement ? "on" : "off";
+}
 
 // attemptId есть, пока попытка открыта. Слушаем уходы только во время вопросов.
 export function useIntegrityWatch(
@@ -28,9 +41,10 @@ export function useIntegrityWatch(
   watching: boolean,
 ): IntegrityWatch {
   const root = useRootStore();
-  const [fullscreenLost, setFullscreenLost] = useState(false);
-  const wasFullscreen = useRef(false);
+  // Вкладку открыли заново посреди попытки: берём режим у документа, а не считаем, что его не было.
+  const [mode, setMode] = useState<ScreenMode>(currentMode);
   const deniedSent = useRef(false);
+  const openAttempt = useRef<string | null>(null);
 
   const report = useCallback(
     (type: ClientFlag, durationMs?: number) => {
@@ -49,17 +63,18 @@ export function useIntegrityWatch(
 
   const enterFullscreen = useCallback(() => {
     const target = document.documentElement;
-    if (!target.requestFullscreen) {
+    if (typeof target.requestFullscreen !== "function") {
+      setMode("unavailable");
       return;
     }
+    setMode("requesting");
     target
       .requestFullscreen()
       .then(() => {
-        wasFullscreen.current = true;
-        setFullscreenLost(false);
+        setMode("on");
       })
       .catch(() => {
-        setFullscreenLost(false);
+        setMode("unavailable");
         if (!deniedSent.current) {
           deniedSent.current = true;
           report(IntegrityFlag.FullscreenDenied);
@@ -98,17 +113,6 @@ export function useIntegrityWatch(
         comeBack();
       }
     };
-    const onFullscreen = () => {
-      if (document.fullscreenElement) {
-        wasFullscreen.current = true;
-        setFullscreenLost(false);
-        return;
-      }
-      if (wasFullscreen.current) {
-        setFullscreenLost(true);
-        report(IntegrityFlag.FullscreenExit);
-      }
-    };
     const onCopy = (event: Event) => {
       event.preventDefault();
       if (Date.now() - lastCopy > copyPauseMs) {
@@ -120,7 +124,6 @@ export function useIntegrityWatch(
     window.addEventListener("blur", onBlur);
     window.addEventListener("focus", comeBack);
     document.addEventListener("visibilitychange", onVisibility);
-    document.addEventListener("fullscreenchange", onFullscreen);
     document.addEventListener("copy", onCopy);
     document.addEventListener("cut", onCopy);
     document.addEventListener("contextmenu", onCopy);
@@ -128,19 +131,44 @@ export function useIntegrityWatch(
       window.removeEventListener("blur", onBlur);
       window.removeEventListener("focus", comeBack);
       document.removeEventListener("visibilitychange", onVisibility);
-      document.removeEventListener("fullscreenchange", onFullscreen);
       document.removeEventListener("copy", onCopy);
       document.removeEventListener("cut", onCopy);
       document.removeEventListener("contextmenu", onCopy);
     };
   }, [attemptId, watching, report]);
 
+  // За режимом следим и вне вопросов, иначе выход на плане попытки останется незамеченным.
+  useEffect(() => {
+    // Событие без fullscreenElement — выход, в том числе по Esc: страница его не запрещает, только видит.
+    const onFullscreen = () => {
+      if (document.fullscreenElement) {
+        setMode("on");
+        return;
+      }
+      if (attemptId && watching) {
+        setMode("exited");
+        report(IntegrityFlag.FullscreenExit);
+        return;
+      }
+      setMode("off");
+    };
+    document.addEventListener("fullscreenchange", onFullscreen);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFullscreen);
+    };
+  }, [attemptId, watching, report]);
+
   // Попытка закончилась — выходим из полноэкранного режима сами, без флага.
+  // При открытии вкладки attemptId пуст, пока грузится текущая попытка: тогда режим не трогаем.
   useEffect(() => {
     if (attemptId) {
+      openAttempt.current = attemptId;
       return;
     }
-    wasFullscreen.current = false;
+    if (openAttempt.current === null) {
+      return;
+    }
+    openAttempt.current = null;
     if (document.fullscreenElement) {
       void document.exitFullscreen().catch(() => {
         return undefined;
@@ -148,8 +176,9 @@ export function useIntegrityWatch(
     }
   }, [attemptId]);
 
+  const paused = mode === "exited" || mode === "off";
   return {
-    fullscreenLost: fullscreenLost && attemptId !== null,
+    pause: attemptId !== null && watching && paused ? mode : null,
     enterFullscreen,
   };
 }

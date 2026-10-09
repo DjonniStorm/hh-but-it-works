@@ -3,22 +3,24 @@ import { useState } from "react";
 import { useRootStore } from "@/app/store/store-context";
 import {
   type ActiveAttempt,
+  pauseTexts,
   sectionIndexOf,
 } from "@/pages/profile/model/attempt";
 import { answerItem } from "@/pages/profile/model/run-attempt";
+import type { FullscreenPause } from "@/pages/profile/model/use-integrity-watch";
 import { TestingQuestion } from "@/pages/profile/ui/TestingQuestion";
 import { TestingSectionRail } from "@/pages/profile/ui/TestingSectionRail";
 import { Alert, Button, Group, Stack, Text } from "@mantine/core";
 
 export const TestingRun = ({
   attempt,
-  fullscreenLost,
+  pause,
   onFullscreen,
   onAnswered,
   onStale,
 }: {
   attempt: ActiveAttempt;
-  fullscreenLost: boolean;
+  pause: FullscreenPause | null;
   onFullscreen: () => void;
   onAnswered: (next: ActiveAttempt) => void;
   onStale: () => void;
@@ -35,13 +37,10 @@ export const TestingRun = ({
         <Text>
           Вопрос {Math.min(attempt.index + 1, attempt.total)} из {attempt.total}
         </Text>
-        {fullscreenLost ? (
+        {pause ? (
           <Alert color="fspRed" variant="light" title="Вопрос на паузе">
             <Stack gap="sm">
-              <Text size="sm">
-                Вы вышли из полноэкранного режима, это записано. Таймер идёт.
-                Вернитесь, чтобы видеть вопрос.
-              </Text>
+              <Text size="sm">{pauseTexts[pause]}</Text>
               <Button type="button" color="fspRed" onClick={onFullscreen}>
                 Вернуться в полноэкранный режим
               </Button>
@@ -53,7 +52,7 @@ export const TestingRun = ({
             key={item.itemId}
             item={item}
             secondsLeft={attempt.secondsLeft}
-            hidden={fullscreenLost}
+            hidden={pause !== null}
             sending={sending}
             onSubmit={(draft) => {
               if (sending) {

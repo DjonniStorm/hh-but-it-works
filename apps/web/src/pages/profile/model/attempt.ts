@@ -6,6 +6,8 @@ import type {
 
 import { AttemptStatus, IntegrityFlag } from "@hh/types";
 
+import type { FullscreenPause } from "./use-integrity-watch";
+
 export type ActiveAttempt = ActiveAttemptDtoOutput;
 export type AttemptItem = NonNullable<ActiveAttempt["item"]>;
 export type AttemptResult = AssessmentResultDtoOutput;
@@ -33,6 +35,12 @@ export const flagLabels: Record<IntegrityFlag, string> = {
   [IntegrityFlag.IpChange]: "Смена IP-адреса",
   [IntegrityFlag.AgentChange]: "Смена браузера",
   [IntegrityFlag.FastAnswer]: "Слишком быстрый ответ",
+};
+
+export const pauseTexts: Record<FullscreenPause, string> = {
+  exited:
+    "Вы вышли из полноэкранного режима, это записано. Таймер идёт. Вернитесь, чтобы видеть вопрос.",
+  off: "Тест идёт в полноэкранном режиме. Таймер идёт. Включите его, чтобы видеть вопрос.",
 };
 
 export const statusLabels: Record<AttemptStatus, string> = {
