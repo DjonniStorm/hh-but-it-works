@@ -14,7 +14,8 @@
 Набор подходит для smoke/regression/e2e-проверок ML-пайплайна и безопасной
 разработки признаков. Он не подходит для доказательства production uplift.
 Для production promotion нужны независимые двойные человеческие оценки,
-adjudication и group-disjoint holdout. Шаблон готовит `human_labels.py`.
+adjudication и group-disjoint holdout. Шаблон готовит `human_labels.py`;
+батч-001 и инструкция для экспертов — `evaluation/annotation/README.md`.
 
 Ограничения: небольшой размер, вакансии 2021 года, синтетические кандидаты,
 нет причинно-следственных данных о найме, возможен selection bias источника.

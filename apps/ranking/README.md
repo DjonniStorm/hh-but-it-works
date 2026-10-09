@@ -220,7 +220,7 @@ LTR-контур работает как production-safe shadow/hybrid:
 - `evaluation/gold.py` воспроизводимо строит controlled-synthetic набор вокруг обезличенных публичных вакансий и делит его по `need.id`/source entity на train/calibration/test;
 - relevance-метки задаются явными сценариями qualification/intent, независимо от rules-score; `labelConfidence` используется как sample weight;
 - `evaluation/open_data.py` нормализует локальные JSON-выгрузки, отбрасывая работодателя, адреса и контакты; `data_quality.py` ставит PII/leakage gate;
-- `evaluation/human_labels.py` экспортирует blind CSV и принимает только согласованные двойные оценки, отправляя конфликты на adjudication;
+- `evaluation/human_labels.py` экспортирует blind CSV (готовый батч `evaluation/annotation/batch-001`, гайд аннотатора `evaluation/annotation/README.md`) и принимает двойные оценки с adjudication-решениями, валит батч при PII, неполноте или согласии ниже 0.6;
 - `evaluation/train_ltr.py` учит LightGBM LambdaRank только на train и fit-ит `IsotonicRegression` только на calibration;
 - `evaluation/evaluate_ltr.py` сравнивает rules, pure LTR и hybrid на untouched test по NDCG/Precision/MRR и диагностике калибровки;
 - runtime загружает `model.txt`, `model.meta.json` и безопасный `calibrator.json`, проверяет schema, feature order, SHA-256 кода признаков и артефактов;

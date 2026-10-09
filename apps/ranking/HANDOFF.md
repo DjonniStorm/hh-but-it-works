@@ -52,7 +52,7 @@
 - `evaluation/performance.py` — синтетическая нагрузка, avg latency и throughput.
 - `evaluation/gold.py` — real-vacancy-grounded controlled synthetic: 21 публичная обезличенная вакансия, 168 вымышленных профилей, независимые от rules multidimensional labels и entity-disjoint splits. Это не human gold.
 - `evaluation/open_data.py` + `data_quality.py` — PII-free normalization локальных open-data выгрузок и quality gates.
-- `evaluation/human_labels.py` — blind CSV, двойная независимая разметка и обязательный adjudication конфликтов.
+- `evaluation/human_labels.py` — blind CSV, двойная независимая разметка, adjudication-протокол и гейты импорта (PII, полнота, ≥2 кандидата на need, среднее согласие ≥ 0.6); батч-001 и гайд — `evaluation/annotation/README.md`.
 - `evaluation/train_ltr.py` + `features.py` — offline LTR по breakdown и rules-агрегатам, isotonic calibration, выход `model.txt` + `model.meta.json` + безопасный `calibrator.json`.
 - `evaluation/evaluate_ltr.py` — held-out сравнение rules/pure LTR/hybrid и два quality gate.
 - `evaluation/data/sanity_gold.jsonl` — 12 пар, 3 группы, метки 0..3.
@@ -224,7 +224,7 @@ dismiss/invite) и кандидатский верхний порог зарпл
 7. **Web покрыт только на ML-границе.** Три unit tests фиксируют динамические reason-коды, группу ФСП и передачу freshness; React-компоненты карточки отдельно не тестируются.
 8. **Fallback при недоступности — `503`.** Подборка не отдаётся вообще. Альтернатива (показать список без оценок) не реализована — это продуктовое решение, не ошибка.
 9. **Набор причин хрупок:** `reasons[:7]`/`warnings[:8]` обрезают молча, порядок кодов = порядок построения, а не значимость.
-10. **Рыночных judgments пока нет.** Инфраструктура open-data ingestion, synthetic bootstrap, double annotation, sample weights, calibration и activation lock готова; следующий внешний шаг — разметить обезличенные пары экспертами.
+10. **Рыночных judgments пока нет.** Инфраструктура open-data ingestion, synthetic bootstrap, double annotation, sample weights, calibration и activation lock готова; `evaluation/annotation/batch-001` (168 пар) и гайд аннотатора готовы к отправке экспертам — ждём CSV, дальше import → `--production-approved`.
 11. **Бандл `ltr-v1.1.0` оставлен как история.** Он обучен под `rules-v1.1.0` и не проходит проверку кода признаков текущей версии; активен только `ltr-v1.2.0` (Dockerfile, workflow, тесты). Не трогать и не копировать в свежий релиз — см. `evaluation/artifacts/README.md`.
 
 ---
@@ -257,7 +257,7 @@ dismiss/invite) и кандидатский верхний порог зарпл
 
 1. [#34 — план полного покрытия тестами](https://github.com/DjonniStorm/hh-but-it-works/issues/34): **completed** (PR #38, 183 теста, покрытие 98 %).
 2. [#35 — интеграционные тесты Nest ↔ ranking и CI](https://github.com/DjonniStorm/hh-but-it-works/issues/35): частично закрыт локально (5 contract tests + 3 web tests + ranking image workflow); осталось — unit-тесты бизнес-логики Nest и общий CI monorepo.
-3. [#36 — довести модель до идеала](https://github.com/DjonniStorm/hh-but-it-works/issues/36): локально закрыты разделы 1 (мёртвые слагаемые: опыт подключён из грейда, остальное выкинуто и перенормировано), 2 (gold/holdout/бенчмарк-гейты), 3 (LTR с fallback и версионированием), 4 (изотоническая калибровка), 6 (мониторинг), 7 (бюджет latency тестом). Осталось внешнее: human-labeled judgments, петля feedback (dismiss/invite) для персонализации, продуктовые решения по §8.
+3. [#36 — довести модель до идеала](https://github.com/DjonniStorm/hh-but-it-works/issues/36): локально закрыты разделы 1 (мёртвые слагаемые: опыт подключён из грейда, остальное выкинуто и перенормировано), 2 (gold/holdout/бенчмарк-гейты), 3 (LTR с fallback и версионированием), 4 (изотоническая калибровка), 6 (мониторинг), 7 (бюджет latency тестом). Human-labels: пайплайн и batch-001 полностью готовы (`evaluation/annotation/README.md`), осталось только получить разметку от экспертов. Внешнее: петля feedback (dismiss/invite) для персонализации, продуктовые решения по §8.
 
 ### 7.4 Хэндофф следующему агенту (последняя сессия: rules-v1.2.0 + опыт)
 
@@ -267,6 +267,7 @@ dismiss/invite) и кандидатский верхний порог зарпл
 2. **Мёртвые сигналы закрыты.** Из формулы выкинуты `location` (0.12), `employmentType` (0.08), `desiredSkills` (0.10), `personalization` (0.01); веса перенормированы (`nice` 0.03→0.04; opportunity → 0.50/0.31/0.19). `MODEL_VERSION = rules-v1.2.0`. Удалены `_personalization_fit`, поля `ScoreBreakdown` и `FEATURE_ORDER` под них; `RankingContext` и eligibility-гейты остались (см. §5).
 3. **Артефакты переобучены.** Новый бандл `evaluation/artifacts/ltr-v1.2.0` (простая модель 200×3, seed 42 — глубокая после перенормировки не проходила гейт uplift). Гейт: ltr +0.019 NDCG@5, hybrid +0.011, calibration RMSE ratio ≈ 0. Старый `ltr-v1.1.0` оставлен как история.
 4. **Снапшоты/версии.** `tests/snapshots/rank_response.json` перегенерирован (`UPDATE_SNAPSHOTS=1`); все тестовые assert'ы версий переведены на v1.2.0; `hybrid-`версия выводится из `RULES_MODEL_VERSION` (магии в `ltr.py` больше нет).
+5. **Human-labels этап закрыт инфраструктурно** (ветка `feat/ranking-rules-v1.2.0-experience`). `human_labels.py` теперь принимает adjudication-строки (`adjudicator:<имя>`), считает попарное согласие аннотаторов и валит батч при `--min-agreement` (по умолчанию 0.6), PII в rationale/annotator_id, неполноте разметки и need меньше чем из двух кандидатов; экспорт пишет `pairs.manifest.json` (sha256 датасета). Готов `evaluation/annotation/batch-001` (168 пар из gold) + гайд аннотатора `evaluation/annotation/README.md`: шкалы 0..3, процесс, adjudication, импорт, активация через `--production-approved`.
 
 Как проверять перед следующими правками:
 
@@ -290,5 +291,5 @@ E2E последняя сессия (2026-10-09): `docker build` → `/health` �
 
 - `reasons`/`warnings` сортируются порядком построения, а не по вкладу (§6.9) — кандидат №36 §5;
 - персонализация ждёт дизайн петли feedback (§6.3): слепой негативный буст по навыкам отклонённого демпфирует весь пул;
-- human-labeled judgments: `evaluation/human_labels.py` готов, ждёт экспертов;
+- human-labeled judgments: пайплайн и batch-001 готовы (`evaluation/annotation/README.md`), ждём CSV с разметкой от экспертов;
 - `salaryMax` кандидата и `relocation` — поля контракта, которых нет; вернуть их = правка `@hh/contracts` + форма.

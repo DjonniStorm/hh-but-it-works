@@ -46,9 +46,13 @@ ESCO/O\*NET полезны для таксономии и hard-negative generati
 2. Построить обезличенный candidate pool, сохраняя только необходимые
    профессиональные признаки.
 3. Дать каждую пару двум независимым экспертам. Шкала 0..3 отдельно для
-   qualification, intent/opportunity и overall mutual fit.
-4. Конфликты не усреднять автоматически — отправлять третьему adjudicator.
-5. Загружать через `human_labels.py`; `labelConfidence` попадёт в sample weight.
+   qualification, intent/opportunity и overall mutual fit. Готовый батч и
+   подробная шкала с процессом: [`annotation/README.md`](annotation/README.md).
+4. Конфликты не усреднять автоматически — отправлять третьему adjudicator
+   (строки `adjudicator:<имя>` в том же CSV).
+5. Загружать через `human_labels.py` (импорт проверяет полноту, PII,
+   согласие ≥ 0.6 и adjudication-протокол); `labelConfidence` попадёт в
+   sample weight.
 6. Проверить subgroup quality, leakage, calibration/drift и только затем
    обучить с `--production-approved` и прогнать независимый held-out gate.
 
