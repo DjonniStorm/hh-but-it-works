@@ -107,7 +107,6 @@ export const NeedForm = ({
           <MultiSelect
             label="Формат работы"
             withAsterisk
-            description="Можно выбрать несколько."
             data={workFormatOptions}
             {...form.getInputProps("workFormats")}
           />
