@@ -19,8 +19,7 @@ import { Skill } from "./skill.entity";
 const fontPaths: Record<keyof FontFiles, string> = {
   regular: "Inter-Regular.ttf",
   semibold: "Inter-SemiBold.ttf",
-  bold: "Inter-Bold.ttf",
-  mono: "JetBrainsMono-Regular.ttf",
+  serif: "Merriweather-SemiBold.ttf",
 };
 
 let fontFiles: Promise<FontFiles> | undefined;

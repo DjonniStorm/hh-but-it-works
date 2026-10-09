@@ -13,53 +13,58 @@ function hex(value: string): RGB {
   return rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255);
 }
 
-// Палитра ФСП: графит #1B1C21 и красный #EC1D35, остальное — их оттенки.
+// Роли цветов как в Reactive Resume: primary — заголовки, линии, иконки и шкалы,
+// плашки шапок — графит ФСП, подложка — графит на 15% поверх белого.
 export const palette = {
   ink: hex("#1B1C21"),
-  accent: hex("#EC1D35"),
+  primary: hex("#EC1D35"),
+  block: hex("#1B1C21"),
+  // Квадрат с инициалами на графите: чуть светлее плашки.
+  blockSoft: hex("#33343A"),
+  tint: hex("#DDDDDF"),
   muted: hex("#5F6067"),
-  faint: hex("#9A9BA1"),
-  rule: hex("#E3E4E8"),
-  panel: hex("#F3F3F5"),
-  dotOff: hex("#D5D6DB"),
   white: hex("#FFFFFF"),
-  inkMuted: hex("#B4B5BC"),
-  inkRule: hex("#3B3C43"),
+  // Разделитель на графитовой карточке Pikachu: белый на 50%.
+  onBlockRule: hex("#8D8E90"),
 } as const;
 
-// Тон фона под колонкой: на графите текст светлый.
+// Тон фона под колонкой: на графите текст и иконки белые.
 export enum Tone {
   Light = "light",
   Dark = "dark",
 }
 
-export const toneColors: Record<Tone, { text: RGB; muted: RGB; rule: RGB }> = {
-  [Tone.Light]: { text: palette.ink, muted: palette.muted, rule: palette.rule },
-  [Tone.Dark]: {
-    text: palette.white,
-    muted: palette.inkMuted,
-    rule: palette.inkRule,
-  },
+export const toneColors: Record<Tone, { text: RGB; icon: RGB }> = {
+  [Tone.Light]: { text: palette.ink, icon: palette.primary },
+  [Tone.Dark]: { text: palette.white, icon: palette.white },
 };
 
-// A4 в пунктах.
+// A4 в пунктах. Поля, ширина боковой колонки и отступы — как у шаблонов Reactive Resume.
 export const page = {
   width: 595.28,
   height: 841.89,
-  margin: 32,
-  // Ниже этой линии колонки не пишут: там колонтитул.
-  bottom: 46,
-  footer: 22,
+  padding: 14,
+  sidebar: 208.5,
 } as const;
 
 export const size = {
-  name: 24,
-  headline: 10.5,
-  section: 8.5,
-  body: 9.5,
-  small: 8,
-  tiny: 7,
-  grade: 20,
+  body: 10,
+  small: 9,
+  heading: 10.5,
+  name: 17.5,
+  nameLarge: 20,
+  icon: 10,
+  initials: 34,
+} as const;
+
+// Межстрочный интервал 1.5, отступы между разделами и записями.
+export const rhythm = {
+  line: 15,
+  smallLine: 13.5,
+  headingLine: 16,
+  section: 11,
+  item: 10,
+  iconGap: 5.7,
 } as const;
 
 export const specializationRole: Record<Specialization, string> = {
@@ -81,12 +86,14 @@ export const levelLabel: Record<SkillLevel, string> = {
   [SkillLevel.Strong]: "Сильный",
 };
 
-// Сколько точек из трёх закрашено у уровня навыка.
+// Сколько делений шкалы из трёх закрашено у уровня навыка.
 export const levelRank: Record<SkillLevel, number> = {
   [SkillLevel.Basic]: 1,
   [SkillLevel.Confident]: 2,
   [SkillLevel.Strong]: 3,
 };
+
+export const levelSteps = 3;
 
 export const workFormatLabel: Record<WorkFormat, string> = {
   [WorkFormat.Office]: "офис",
@@ -104,7 +111,7 @@ export const sectionTitle = {
   summary: "О кандидате",
   qualification: "Квалификация",
   preferences: "Ожидания",
-  contacts: "Контакты",
+  profiles: "Ссылки",
   skills: "Навыки",
   achievements: "Достижения ФСП",
   experience: "Опыт работы",
@@ -114,11 +121,8 @@ export const sectionTitle = {
 export const text = {
   noName: "Имя не указано",
   noSkills: "Навыки не указаны",
-  verifiedSkills: "Подтверждены",
-  claimedSkills: "Заявлены кандидатом",
-  skillLegend: "ТЕСТ — тестирование на платформе, ФСП — реестр ФСП",
-  gradeVerified: "ПОДТВЕРЖДЁН",
-  gradeClaimed: "ЗАЯВЛЕН",
+  gradeVerified: "Подтверждён тестированием",
+  gradeClaimed: "Заявлен, тест не пройден",
   claimedPrefix: "Заявлен",
   score: "Результат теста",
   testDate: "Тест пройден",
@@ -128,7 +132,6 @@ export const text = {
   status: "Статус",
   participant: "Участник",
   place: "место",
-  footer: "Профиль кандидата · Платформа ФСП · сформирован",
 } as const;
 
 // Фразы автосводки «О кандидате». Собирает их buildResume по видимым данным.
@@ -149,5 +152,8 @@ export const phrase = {
   },
   achievements: (count: number) => {
     return `Достижений в реестре ФСП: ${count}.`;
+  },
+  score: (score: number) => {
+    return `${score} из 100`;
   },
 } as const;

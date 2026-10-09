@@ -1,158 +1,112 @@
-import { leading, paragraph, pill, sectionTitle } from "./blocks";
-import type { TextStyle } from "./canvas";
+import {
+  heading,
+  levelBar,
+  levelBarHeight,
+  paragraph,
+  textStyle,
+} from "./blocks";
+import { baseline } from "./canvas";
 import type { Column } from "./column";
-import { type ResumeSkill, SkillSource, skillSourceLabel } from "./resume-data";
+import type { IconName } from "./icons";
+import { type ResumeSkill, SkillSource } from "./resume-data";
 import {
   levelLabel,
   levelRank,
-  palette,
+  levelSteps,
+  rhythm,
+  sectionTitle,
   size,
   text,
-  sectionTitle as titles,
   toneColors,
 } from "./theme";
 
-const rowHeight = 17;
-// Ширины колонок таблицы справа налево: дата, плашка, подпись уровня, точки.
-const dateWidth = 36;
-const pillWidth = 30;
-const levelWidth = 58;
-const dotsWidth = 22;
-// Уже этой ширины подпись уровня не показываем, остаются точки.
-const compactBelow = 260;
+const columnGap = 12;
+const textX = size.icon + rhythm.iconGap;
+const itemHeight = rhythm.line * 2 + rhythm.smallLine + 3 + levelBarHeight;
 
-const sourceFill: Record<SkillSource, typeof palette.accent> = {
-  [SkillSource.Test]: palette.accent,
-  [SkillSource.Fsp]: palette.ink,
+const sourceIcon: Record<SkillSource, IconName> = {
+  [SkillSource.Test]: "sealCheck",
+  [SkillSource.Fsp]: "medal",
 };
 
+const sourceCaption: Record<SkillSource, string> = {
+  [SkillSource.Test]: "Подтверждён тестом",
+  [SkillSource.Fsp]: "Подтверждён ФСП",
+};
+
+const claimedCaption = "Заявлен кандидатом";
+
+// Навыки сеткой в две колонки, как «Technical Skills» у Reactive Resume:
+// иконка и название, уровень, источник подтверждения и шкала из трёх делений.
 export function skillsBlock(col: Column, skills: ResumeSkill[]): void {
-  sectionTitle(col, titles.skills);
-  const colors = toneColors[col.tone];
+  heading(col, sectionTitle.skills, itemHeight);
   if (skills.length === 0) {
-    paragraph(col, text.noSkills, {
-      font: "regular",
-      size: size.body,
-      color: colors.muted,
-    });
-    col.gap(8);
+    paragraph(col, text.noSkills, textStyle(col));
+    col.gap(rhythm.section);
     return;
   }
-  const verified = skills.filter((skill) => {
-    return skill.source;
-  });
-  const claimed = skills.filter((skill) => {
-    return !skill.source;
-  });
-  if (verified.length > 0) {
-    group(col, `${text.verifiedSkills} · ${verified.length}`, verified);
-    paragraph(col, text.skillLegend, {
-      font: "regular",
-      size: size.tiny,
-      color: palette.faint,
-    });
-    col.gap(8);
+  const width = (col.width - columnGap) / 2;
+  for (let start = 0; start < skills.length; start += 2) {
+    if (start > 0) {
+      col.gap(rhythm.item + 2);
+    }
+    col.reserve(itemHeight);
+    skillItem(col, skills[start], col.x, width);
+    if (skills[start + 1]) {
+      skillItem(col, skills[start + 1], col.x + width + columnGap, width);
+    }
+    col.gap(itemHeight);
   }
-  if (claimed.length > 0) {
-    group(col, `${text.claimedSkills} · ${claimed.length}`, claimed);
-  }
-  col.gap(8);
+  col.gap(rhythm.section);
 }
 
-function group(col: Column, title: string, skills: ResumeSkill[]): void {
-  const colors = toneColors[col.tone];
-  col.reserve(14 + rowHeight);
-  col.canvas.text(col.index, title, col.x, col.y - size.small, {
-    font: "semibold",
-    size: size.small,
-    color: colors.muted,
-  });
-  col.gap(leading(size.small) + 2);
-  for (const skill of skills) {
-    row(col, skill);
-  }
-  col.gap(4);
-}
-
-function row(col: Column, skill: ResumeSkill): void {
+function skillItem(
+  col: Column,
+  skill: ResumeSkill,
+  x: number,
+  width: number,
+): void {
   const { canvas } = col;
   const colors = toneColors[col.tone];
-  col.reserve(rowHeight);
-  const baseline = col.y - 11;
-  const centerY = baseline + 3;
-  const compact = col.width < compactBelow;
-  let right = col.x + col.width;
+  let top = col.y;
+  const icon = skill.source ? sourceIcon[skill.source] : "code";
+  const iconTop = top - (rhythm.line - size.icon) / 2;
+  canvas.icon(col.index, icon, x, iconTop, size.icon, colors.icon);
+  const strong = textStyle(col, "semibold");
+  const name = canvas.clip(skill.title, strong, width - textX);
+  const nameY = baseline(top, rhythm.line, size.body);
+  canvas.text(col.index, name, x + textX, nameY, strong);
+  top -= rhythm.line;
 
-  // Справа налево: дата и плашка источника есть только у подтверждённых.
-  right -= dateWidth;
-  if (skill.source && skill.verifiedAt) {
-    const date: TextStyle = {
-      font: "mono",
-      size: size.tiny,
-      color: palette.faint,
-    };
-    const shown = skill.verifiedAt.toLocaleDateString("ru-RU", {
-      month: "2-digit",
-      year: "numeric",
-    });
-    canvas.text(
-      col.index,
-      shown,
-      right + dateWidth - canvas.width(shown, date),
-      baseline,
-      date,
-    );
-  }
-  right -= pillWidth;
-  if (skill.source) {
-    pill(
-      canvas,
-      col.index,
-      right + 2,
-      centerY,
-      skillSourceLabel[skill.source],
-      sourceFill[skill.source],
-      palette.white,
-    );
-  }
-  if (!compact) {
-    right -= levelWidth;
-    canvas.text(col.index, levelLabel[skill.level], right + 6, baseline, {
-      font: "regular",
-      size: size.small,
-      color: colors.muted,
-    });
-  }
-  right -= dotsWidth;
-  for (let dot = 0; dot < 3; dot += 1) {
-    canvas.page(col.index).drawCircle({
-      x: right + 3 + dot * 7,
-      y: centerY,
-      size: 2.4,
-      color: dot < levelRank[skill.level] ? palette.accent : palette.dotOff,
-    });
-  }
+  const levelY = baseline(top, rhythm.line, size.body);
+  canvas.text(col.index, levelLabel[skill.level], x, levelY, textStyle(col));
+  top -= rhythm.line;
 
-  const title: TextStyle = {
-    font: "regular",
-    size: size.body,
-    color: colors.text,
-  };
-  // Длинное название обрезаем, чтобы таблица не ломалась.
+  const small = textStyle(col, "regular", size.small);
+  const smallY = baseline(top, rhythm.smallLine, size.small);
   canvas.text(
     col.index,
-    canvas.clip(skill.title, title, right - col.x - 8),
-    col.x,
-    baseline,
-    title,
+    canvas.clip(caption(skill), small, width),
+    x,
+    smallY,
+    small,
   );
-  canvas.rect(
-    col.index,
-    col.x,
-    col.y - rowHeight + 0.5,
-    col.width,
-    0.4,
-    colors.rule,
-  );
-  col.gap(rowHeight);
+  top -= rhythm.smallLine + 3;
+
+  const filled = levelRank[skill.level];
+  levelBar(canvas, col.index, x, top, width, filled, levelSteps);
+}
+
+function caption(skill: ResumeSkill): string {
+  if (!skill.source) {
+    return claimedCaption;
+  }
+  if (!skill.verifiedAt) {
+    return sourceCaption[skill.source];
+  }
+  const date = skill.verifiedAt.toLocaleDateString("ru-RU", {
+    month: "2-digit",
+    year: "numeric",
+  });
+  return `${sourceCaption[skill.source]} · ${date}`;
 }

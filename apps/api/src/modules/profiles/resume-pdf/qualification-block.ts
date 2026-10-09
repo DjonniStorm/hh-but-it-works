@@ -1,98 +1,61 @@
-import { paragraph, pill } from "./blocks";
-import type { TextStyle } from "./canvas";
+import { heading, paragraph, progressBar, textStyle } from "./blocks";
+import { baseline } from "./canvas";
 import type { Column } from "./column";
 import type { ResumeQualification } from "./resume-data";
-import { gradeLabel, palette, size, text, toneColors } from "./theme";
+import {
+  gradeLabel,
+  phrase,
+  rhythm,
+  sectionTitle,
+  size,
+  text,
+  toneColors,
+} from "./theme";
 
-export function qualificationBlock(col: Column, value: ResumeQualification) {
+const textX = size.icon + rhythm.iconGap;
+
+// Грейд записью в стиле Reactive Resume: иконка и грейд, статус, балл со шкалой, дата теста.
+export function qualificationBlock(
+  col: Column,
+  value: ResumeQualification,
+): void {
+  heading(col, sectionTitle.qualification, rhythm.line * 3);
   const colors = toneColors[col.tone];
   const grade = gradeLabel[value.verified ?? value.claimed];
-  const gradeStyle: TextStyle = {
-    font: "bold",
-    size: size.grade,
-    color: colors.text,
-  };
-  col.reserve(40);
-  col.canvas.text(col.index, grade, col.x, col.y - size.grade, gradeStyle);
-  const pillX = col.x + col.canvas.width(grade, gradeStyle) + 8;
-  const pillY = col.y - size.grade * 0.62;
-  if (value.verified) {
-    pill(
-      col.canvas,
-      col.index,
-      pillX,
-      pillY,
-      text.gradeVerified,
-      palette.accent,
-      palette.white,
-    );
-  } else {
-    pill(
-      col.canvas,
-      col.index,
-      pillX,
-      pillY,
-      text.gradeClaimed,
-      colors.rule,
-      colors.text,
-    );
-  }
-  col.gap(size.grade + 8);
-  if (value.verified && value.verified !== value.claimed) {
-    paragraph(col, `${text.claimedPrefix}: ${gradeLabel[value.claimed]}`, {
-      font: "regular",
-      size: size.small,
-      color: colors.muted,
-    });
-    col.gap(4);
-  }
-  if (value.score !== null) {
-    scoreBar(col, value.score);
-  }
-  if (value.verifiedAt) {
-    paragraph(
-      col,
-      `${text.testDate} ${value.verifiedAt.toLocaleDateString("ru-RU")}`,
-      { font: "regular", size: size.small, color: colors.muted },
-    );
-  }
-  col.gap(10);
-}
-
-function scoreBar(col: Column, score: number): void {
-  const colors = toneColors[col.tone];
-  const label: TextStyle = {
-    font: "semibold",
-    size: size.tiny,
-    color: colors.muted,
-    tracking: 0.6,
-  };
-  const number: TextStyle = {
-    font: "mono",
-    size: size.small,
-    color: colors.text,
-  };
-  const shown = `${score}/100`;
-  col.reserve(26);
+  col.reserve(rhythm.line);
+  const iconTop = col.y - (rhythm.line - size.icon) / 2;
+  const icon = value.verified ? "sealCheck" : "code";
+  col.canvas.icon(col.index, icon, col.x, iconTop, size.icon, colors.icon);
+  const y = baseline(col.y, rhythm.line, size.body);
   col.canvas.text(
     col.index,
-    text.score.toUpperCase(),
-    col.x,
-    col.y - size.small,
-    label,
+    grade,
+    col.x + textX,
+    y,
+    textStyle(col, "semibold"),
   );
-  const numberX = col.x + col.width - col.canvas.width(shown, number);
-  col.canvas.text(col.index, shown, numberX, col.y - size.small, number);
-  const barY = col.y - size.small - 9;
-  const share = Math.min(Math.max(score, 0), 100) / 100;
-  col.canvas.rect(col.index, col.x, barY, col.width, 3.5, colors.rule);
-  col.canvas.rect(
-    col.index,
-    col.x,
-    barY,
-    col.width * share,
-    3.5,
-    palette.accent,
+  col.gap(rhythm.line);
+
+  const plain = textStyle(col);
+  paragraph(
+    col,
+    value.verified ? text.gradeVerified : text.gradeClaimed,
+    plain,
   );
-  col.gap(size.small + 17);
+  if (value.verified && value.verified !== value.claimed) {
+    paragraph(
+      col,
+      `${text.claimedPrefix}: ${gradeLabel[value.claimed]}`,
+      plain,
+    );
+  }
+  if (value.score !== null) {
+    paragraph(col, `${text.score}: ${phrase.score(value.score)}`, plain);
+    progressBar(col, value.score / 100);
+  }
+  if (value.verifiedAt) {
+    const date = value.verifiedAt.toLocaleDateString("ru-RU");
+    paragraph(col, `${text.testDate} ${date}`, plain);
+  }
+  col.gap(rhythm.section);
 }

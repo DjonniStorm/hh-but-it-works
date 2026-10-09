@@ -1,4 +1,5 @@
 import type { CandidateProfile } from "../candidate-profile.entity";
+import type { IconName } from "./icons";
 
 export enum ContactKind {
   Email = "email",
@@ -15,6 +16,20 @@ export const contactLabel: Record<ContactKind, string> = {
   [ContactKind.Linkedin]: "LinkedIn",
   [ContactKind.Website]: "Сайт",
 };
+
+export const contactIcon: Record<ContactKind, IconName> = {
+  [ContactKind.Email]: "envelope",
+  [ContactKind.Telegram]: "telegram",
+  [ContactKind.Github]: "github",
+  [ContactKind.Linkedin]: "linkedin",
+  [ContactKind.Website]: "globe",
+};
+
+// Как в Reactive Resume: почта и сайт в шапке, профили соцсетей — разделом «Ссылки».
+export const profileKinds: ReadonlySet<ContactKind> = new Set([
+  ContactKind.Github,
+  ContactKind.Linkedin,
+]);
 
 export type ResumeContact = { kind: ContactKind; value: string; url: string };
 

@@ -2,195 +2,214 @@ import type { PDFDocument } from "pdf-lib";
 
 import { ResumeTemplate } from "@hh/types";
 
-import { contactsBlock, contactsHeight, leading } from "./blocks";
-import { Canvas, type Fonts, type TextStyle } from "./canvas";
+import { Canvas, type Fonts, type TextStyle, baseline } from "./canvas";
 import { Column } from "./column";
-import { drawContacts, monogram, planContacts } from "./header-parts";
+import {
+  contactListHeight,
+  drawContactList,
+  drawContactRow,
+  monogram,
+  planContactRow,
+} from "./header-parts";
 import type { ResumeData } from "./resume-data";
-import { mainSections, sidebarSections, summary } from "./sections";
-import { Tone, page, palette, size } from "./theme";
+import {
+  headerContacts,
+  mainSections,
+  sidebarSections,
+  summary,
+} from "./sections";
+import { Tone, page, palette, rhythm, size } from "./theme";
 
-// footerX — откуда начинать колонтитул: у Gengar слева панель, подпись уходит вправо.
-export type Drawn = { canvas: Canvas; footerX: number };
+// Геометрия снята с эталонных PDF Reactive Resume (A4, поля 14 pt, боковая колонка 35%).
+type Layout = (doc: PDFDocument, fonts: Fonts, data: ResumeData) => Canvas;
 
-type Layout = (doc: PDFDocument, fonts: Fonts, data: ResumeData) => Drawn;
+const { width: W, height: H, padding: P, sidebar: S } = page;
+const mainX = S + P;
+const mainWidth = W - mainX - P;
+const sidebarWidth = S - P * 2;
 
-const sidebarWidth = 160;
-const gutter = 24;
-const mainX = page.margin + sidebarWidth + gutter;
-const mainWidth = page.width - mainX - page.margin;
-
-const nameStyle = (fontSize: number, tone: Tone): TextStyle => {
-  return {
-    font: "bold",
-    size: fontSize,
-    color: tone === Tone.Dark ? palette.white : palette.ink,
-  };
+const nameStyle = (fontSize: number): TextStyle => {
+  return { font: "serif", size: fontSize, color: palette.white };
 };
 
 const headlineStyle: TextStyle = {
   font: "regular",
-  size: size.headline,
-  color: palette.inkMuted,
+  size: size.body,
+  color: palette.white,
 };
 
-// Ditto: графитовая полоса с именем, квадрат с инициалами заходит на неё снизу.
+const noop = () => {
+  return undefined;
+};
+
+// Ditto: графитовая полоса с именем, плитка с инициалами заходит на неё снизу.
 const ditto: Layout = (doc, fonts, data) => {
-  const canvas = new Canvas(doc, fonts, () => {
-    return undefined;
+  const canvas = new Canvas(doc, fonts, noop);
+  const band = 63.5;
+  const side = 100;
+  const tileTop = H - 24;
+  canvas.rect(0, 0, H - band, W, band, palette.block);
+  monogram(canvas, (mainX - side) / 2, tileTop, side, data.initials, {
+    fill: palette.tint,
+    ink: palette.primary,
+    radius: 0,
   });
-  const band = 108;
-  const side = 104;
-  const top = page.height;
-  canvas.rect(0, 0, top - band, page.width, band, palette.ink);
-  monogram(
-    canvas,
-    page.margin + (sidebarWidth - side) / 2,
-    top - 22,
-    side,
-    data.initials,
-    true,
-  );
-  const name = canvas.fit(
-    data.name,
-    nameStyle(size.name, Tone.Dark),
-    mainWidth,
-    14,
-  );
-  canvas.text(0, data.name, mainX, top - 50, name);
-  canvas.text(
-    0,
-    canvas.clip(data.headline, headlineStyle, mainWidth),
-    mainX,
-    top - 72,
-    headlineStyle,
-  );
+  const name = canvas.fit(data.name, nameStyle(size.name), mainWidth, 12);
+  canvas.text(0, data.name, mainX, H - 30, name);
+  const headline = canvas.clip(data.headline, headlineStyle, mainWidth);
+  canvas.text(0, headline, mainX, H - 46, headlineStyle);
 
-  const contacts = planContacts(canvas, data.contacts, mainWidth, Tone.Light);
-  drawContacts(canvas, contacts, mainX, top - band - 14, Tone.Light);
-
-  const sidebar = new Column(
+  const contactLine = 18;
+  const contactsTop = H - band - 6;
+  const contacts = headerContacts(data);
+  const row = planContactRow(
     canvas,
-    page.margin,
-    sidebarWidth,
-    top - 22 - side - 26,
-  );
-  sidebarSections(sidebar, data);
-  const main = new Column(
-    canvas,
-    mainX,
+    contacts,
     mainWidth,
-    top - band - 14 - contacts.height - 16,
+    contactLine,
+    Tone.Light,
   );
+  drawContactRow(canvas, row, mainX, contactsTop, contactLine, Tone.Light);
+
+  const mainTop = contactsTop - row.height - 12;
+  const main = new Column(canvas, mainX, mainWidth, mainTop, false);
   mainSections(main, data, true);
-  return { canvas, footerX: page.margin };
+  const sidebarTop = tileTop - side - 10;
+  const sidebar = new Column(canvas, P, sidebarWidth, sidebarTop, false);
+  sidebarSections(sidebar, data);
+  return canvas;
 };
 
-// Gengar: боковая панель на всю высоту, сверху графитовая плитка с именем и контактами.
+// Gengar: боковая колонка на подложке, сверху графитовая плитка с именем и контактами,
+// справа сверху — подложка со сводкой.
 const gengar: Layout = (doc, fonts, data) => {
-  const panel = 196;
-  const inset = 24;
-  const innerWidth = panel - inset * 2;
-  const rightWidth = page.width - panel - inset - page.margin;
-  const canvas = new Canvas(doc, fonts, (_page, index) => {
-    canvas.rect(index, 0, 0, panel, page.height, palette.panel);
-  });
-  const top = page.height;
-  const side = 84;
-  const name = nameStyle(19, Tone.Dark);
-  const nameLines = canvas.wrap(data.name, name, innerWidth);
-  const headline: TextStyle = { ...headlineStyle, size: size.body };
-  const headlineLines = canvas.wrap(data.headline, headline, innerWidth);
-  const contactsTop =
-    inset +
-    side +
-    16 +
-    nameLines.length * leading(name.size) +
-    4 +
-    headlineLines.length * leading(headline.size) +
-    16;
+  const side = 100;
+  const nameSize = size.name;
+  const nameLine = nameSize * 1.3;
+  const contactLine = 18;
+  const contacts = headerContacts(data);
+  // Высоты считаем до рисования: подложка не должна лежать под плиткой, иначе на стыке шов.
+  const measure = new Canvas(doc, fonts, noop);
+  const nameLines = measure.wrap(data.name, nameStyle(nameSize), sidebarWidth);
+  const headlineLines = measure.wrap(
+    data.headline,
+    headlineStyle,
+    sidebarWidth,
+  );
   const tile =
-    contactsTop + contactsHeight(canvas, data.contacts, innerWidth) + 12;
+    P +
+    side +
+    7 +
+    nameLines.length * nameLine +
+    headlineLines.length * rhythm.line +
+    6 +
+    contactListHeight(contacts, contactLine) +
+    P;
+  const summaryLines = measure.wrap(data.summary, headlineStyle, mainWidth);
+  const strip = P * 2 + summaryLines.length * rhythm.line;
 
-  canvas.rect(0, 0, top - tile, panel, tile, palette.ink);
-  monogram(canvas, inset, top - inset, side, data.initials, false);
-  let y = top - inset - side - 16;
+  const canvas = new Canvas(doc, fonts, (index) => {
+    const height = index === 0 ? H - tile : H;
+    canvas.rect(index, 0, 0, S, height, palette.tint);
+  });
+  canvas.rect(0, 0, H - tile, S, tile, palette.block);
+  canvas.rect(0, S, H - strip, W - S, strip, palette.tint);
+  monogram(canvas, P, H - P, side, data.initials, {
+    fill: palette.blockSoft,
+    ink: palette.white,
+    radius: 0,
+  });
+  let top = H - P - side - 7;
   for (const line of nameLines) {
-    canvas.text(0, line, inset, y - name.size, name);
-    y -= leading(name.size);
+    canvas.text(
+      0,
+      line,
+      P,
+      baseline(top, nameLine, nameSize),
+      nameStyle(nameSize),
+    );
+    top -= nameLine;
   }
-  y -= 4;
   for (const line of headlineLines) {
-    canvas.text(0, line, inset, y - headline.size, headline);
-    y -= leading(headline.size);
+    canvas.text(
+      0,
+      line,
+      P,
+      baseline(top, rhythm.line, size.body),
+      headlineStyle,
+    );
+    top -= rhythm.line;
   }
-  const contacts = new Column(canvas, inset, innerWidth, top - contactsTop);
-  contacts.tone = Tone.Dark;
-  contactsBlock(contacts, data.contacts);
+  top -= 6;
+  drawContactList(
+    canvas,
+    contacts,
+    P,
+    top,
+    sidebarWidth,
+    contactLine,
+    Tone.Dark,
+  );
 
-  // Справа сверху — светлая плашка со сводкой, как блок summary у оригинала.
-  const body: TextStyle = {
-    font: "regular",
-    size: size.body,
-    color: palette.ink,
-  };
-  const lines = canvas.wrap(data.summary, body, rightWidth);
-  const strip = lines.length * leading(size.body) + inset * 2;
-  canvas.rect(0, panel, top - strip, page.width - panel, strip, palette.panel);
-  const lead = new Column(canvas, panel + inset, rightWidth, top - inset);
+  const lead = new Column(canvas, mainX, mainWidth, H - P, true);
   summary(lead, data.summary);
-
-  const sidebar = new Column(canvas, inset, innerWidth, top - tile - 24);
-  sidebarSections(sidebar, data);
-  const main = new Column(canvas, panel + inset, rightWidth, top - strip - 24);
+  const main = new Column(canvas, mainX, mainWidth, H - strip - 10, true);
   mainSections(main, data, false);
-  return { canvas, footerX: panel + inset };
+  const sidebar = new Column(canvas, P, sidebarWidth, H - tile - 10, true);
+  sidebarSections(sidebar, data);
+  return canvas;
 };
 
-// Pikachu: слева крупный квадрат с инициалами, справа графитовая карточка с именем.
+// Pikachu: слева скруглённая плитка с инициалами, справа скруглённая графитовая карточка.
 const pikachu: Layout = (doc, fonts, data) => {
-  const canvas = new Canvas(doc, fonts, () => {
-    return undefined;
-  });
-  const top = page.height - page.margin;
-  const side = 120;
-  const pad = 18;
-  const inner = mainWidth - pad * 2;
-  const contacts = planContacts(canvas, data.contacts, inner, Tone.Dark);
-  const card = Math.max(side, pad + 26 + 20 + 14 + contacts.height + pad);
+  const canvas = new Canvas(doc, fonts, noop);
+  const left = 199;
+  const cardX = P + left + P;
+  const cardWidth = W - cardX - P;
+  const pad = 13.6;
+  const inner = cardWidth - pad * 2;
+  const nameLine = 27;
+  const contactLine = 16.5;
+  const contacts = headerContacts(data);
+  const row = planContactRow(canvas, contacts, inner, contactLine, Tone.Dark);
+  const card = pad + nameLine + rhythm.line + 8 + 4.5 + row.height + pad;
+  const top = H - P;
 
-  monogram(
-    canvas,
-    page.margin + (sidebarWidth - side) / 2,
-    top,
-    side,
-    data.initials,
-    false,
-  );
-  canvas.rect(0, mainX, top - card, mainWidth, card, palette.ink);
-  const name = canvas.fit(data.name, nameStyle(22, Tone.Dark), inner, 14);
-  canvas.text(0, data.name, mainX + pad, top - pad - 22, name);
+  canvas.roundedRect(0, cardX, top, cardWidth, card, 6, palette.block);
+  const side = Math.min(card, left);
+  monogram(canvas, P + (left - side) / 2, top, side, data.initials, {
+    fill: palette.tint,
+    ink: palette.primary,
+    radius: 6,
+  });
+  let y = top - pad;
+  const name = canvas.fit(data.name, nameStyle(size.nameLarge), inner, 12);
   canvas.text(
     0,
-    canvas.clip(data.headline, headlineStyle, inner),
-    mainX + pad,
-    top - pad - 40,
+    data.name,
+    cardX + pad,
+    baseline(y, nameLine, name.size),
+    name,
+  );
+  y -= nameLine;
+  const headline = canvas.clip(data.headline, headlineStyle, inner);
+  canvas.text(
+    0,
+    headline,
+    cardX + pad,
+    baseline(y, rhythm.line, size.body),
     headlineStyle,
   );
-  canvas.rect(0, mainX + pad, top - pad - 52, inner, 0.6, palette.inkRule);
-  canvas.rect(0, mainX + pad, top - pad - 52.5, 22, 1.6, palette.accent);
-  drawContacts(canvas, contacts, mainX + pad, top - pad - 60, Tone.Dark);
+  y -= rhythm.line + 8;
+  canvas.rect(0, cardX + pad, y, inner, 0.75, palette.onBlockRule);
+  y -= 4.5;
+  drawContactRow(canvas, row, cardX + pad, y, contactLine, Tone.Dark);
 
-  const sidebar = new Column(
-    canvas,
-    page.margin,
-    sidebarWidth,
-    top - side - 24,
-  );
-  sidebarSections(sidebar, data);
-  const main = new Column(canvas, mainX, mainWidth, top - card - 22);
+  const main = new Column(canvas, cardX, cardWidth, top - card - 10, true);
   mainSections(main, data, true);
-  return { canvas, footerX: page.margin };
+  const sidebar = new Column(canvas, P, left, top - side - 12, true);
+  sidebarSections(sidebar, data);
+  return canvas;
 };
 
 export const layouts: Record<ResumeTemplate, Layout> = {

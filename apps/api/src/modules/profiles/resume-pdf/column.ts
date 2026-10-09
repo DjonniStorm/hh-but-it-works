@@ -12,20 +12,21 @@ export class Column {
     readonly x: number,
     readonly width: number,
     top: number,
-    private readonly nextTop: number = sheet.height - sheet.margin,
+    // У Gengar и Pikachu под заголовком раздела линия, у Ditto нет.
+    readonly headingRule: boolean,
     public tone: Tone = Tone.Light,
   ) {
     this.y = top;
   }
 
-  // Если блок высотой height не влезает до колонтитула, начинаем его на новом листе.
+  // Если блок высотой height не влезает до нижнего поля, начинаем его на новом листе.
   reserve(height: number): void {
-    if (this.y - height >= sheet.bottom) {
+    if (this.y - height >= sheet.padding) {
       return;
     }
     this.index += 1;
     this.canvas.page(this.index);
-    this.y = this.nextTop;
+    this.y = sheet.height - sheet.padding;
     // Продолжение колонки на следующих листах всегда на светлом фоне.
     this.tone = Tone.Light;
   }

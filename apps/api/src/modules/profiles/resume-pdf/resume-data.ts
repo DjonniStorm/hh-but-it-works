@@ -19,11 +19,6 @@ export enum SkillSource {
   Fsp = "fsp",
 }
 
-export const skillSourceLabel: Record<SkillSource, string> = {
-  [SkillSource.Test]: "ТЕСТ",
-  [SkillSource.Fsp]: "ФСП",
-};
-
 export type ResumeSkill = {
   title: string;
   level: SkillLevel;
