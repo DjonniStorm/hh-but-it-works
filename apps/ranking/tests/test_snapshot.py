@@ -39,7 +39,7 @@ def test_rank_response_matches_snapshot():
 def test_snapshot_covers_both_outcomes():
     body = json.loads(RESPONSE.read_text(encoding="utf-8"))
     results = body["results"]
-    assert body["modelVersion"] == "rules-v1.1.0"
+    assert body["modelVersion"] == "rules-v1.2.0"
     assert any(item["eligible"] for item in results)
     assert any(not item["eligible"] for item in results)
     assert any(item["warnings"] for item in results)

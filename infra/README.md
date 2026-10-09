@@ -29,7 +29,7 @@ docker run -p 8000:8000 hh-ranking-test
 curl -s localhost:8000/health
 ```
 
-Модель уже обучена и лежит в `apps/ranking/evaluation/artifacts/ltr-v1.1.0`.
+Модель уже обучена и лежит в `apps/ranking/evaluation/artifacts/ltr-v1.2.0`.
 Docker build только копирует model/metadata/calibrator/report в минимальный runtime:
 scikit-learn и обучение ему не нужны. Workflow `ranking-image.yml` публикует
 готовые `amd64`/`arm64` образы в

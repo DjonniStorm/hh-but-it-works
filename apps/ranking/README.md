@@ -7,7 +7,7 @@
 ## Готовый запуск без обучения
 
 Версионированные `model.txt`, metadata, calibrator и held-out report лежат в
-[`evaluation/artifacts/ltr-v1.1.0`](evaluation/artifacts/ltr-v1.1.0). Обычная
+[`evaluation/artifacts/ltr-v1.2.0`](evaluation/artifacts/ltr-v1.2.0). Обычная
 Docker-сборка только устанавливает runtime и копирует готовую модель — LightGBM
 training и scikit-learn при сборке/запуске не выполняются.
 
@@ -81,10 +81,9 @@ Related technologies могут давать мягкий relevance, но **не
 - verified evidence;
 - competency scores;
 - assessment;
-- experience;
+- experience (для Nest диапазон лет разворачивается из грейда вакансии, см. INTEGRATION);
 - precomputed semantic similarity или объяснимый lexical fallback по текстам;
-- профильный FSP evidence bonus с силой и количеством достижений;
-- session personalization.
+- профильный FSP evidence bonus с силой и количеством достижений.
 
 ### OpportunityFit
 
@@ -92,10 +91,9 @@ Related technologies могут давать мягкий relevance, но **не
 
 - salary;
 - work mode;
-- location;
-- employment type;
-- target specialization;
-- desired stack.
+- target specialization.
+
+Локация, тип занятости и желаемый стек **выведены из формулы в `rules-v1.2.0`**: в контракте нет полей, которыми их заполнить (см. HANDOFF §5).
 
 ### IntentScore
 
@@ -114,7 +112,12 @@ Related technologies могут давать мягкий relevance, но **не
 
 `RankRequest.context` принимает короткоживущие `skillBoosts` и `competencyBoosts` в диапазоне `[-1, 1]`.
 
-Это позволяет backend после `Подходит / Не подходит` уточнить текущую выдачу без online retraining. Событие при этом должно логироваться backend-ом для будущего обучения.
+Слагаемое персонализации выведено из формулы в `rules-v1.2.0`: boost'ам неоткуда
+прийти из текущего контракта, и константа в формуле — худшее состояние.
+`competencyBoosts` остаётся живым модификатором внутри слагаемого компетенций;
+`skillBoosts` зарезервирован под будущую петлю обратной связи (dismiss/invite,
+issue #36 §6) и на score сейчас не влияет. Событие «Подходит / Не подходит»
+backend логирует `InteractionEvent` для будущего обучения.
 
 ## Explainability
 
@@ -185,7 +188,7 @@ LTR-контур работает как production-safe shadow/hybrid:
 - `evaluation/train_ltr.py` учит LightGBM LambdaRank только на train и fit-ит `IsotonicRegression` только на calibration;
 - `evaluation/evaluate_ltr.py` сравнивает rules, pure LTR и hybrid на untouched test по NDCG/Precision/MRR и диагностике калибровки;
 - runtime загружает `model.txt`, `model.meta.json` и безопасный `calibrator.json`, проверяет schema, feature order, SHA-256 кода признаков и артефактов;
-- любая ошибка загрузки/предикта безопасно возвращает `rules-v1.1.0`; hard filters LTR не переопределяет.
+- любая ошибка загрузки/предикта безопасно возвращает `rules-v1.2.0`; hard filters LTR не переопределяет.
 - `scripts/promote_ml.sh` атомарно публикует локальные артефакты только после entity/group-disjoint quality gate;
 - Docker runtime build копирует проверенный versioned artifact bundle и никогда не обучает модель.
 

@@ -2,7 +2,7 @@
 set -eu
 
 ranking_dir="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-artifact_dir="${1:-$ranking_dir/evaluation/artifacts/ltr-v1.1.0}"
+artifact_dir="${1:-$ranking_dir/evaluation/artifacts/ltr-v1.2.0}"
 
 cd "$ranking_dir"
 for artifact in model.txt model.meta.json calibrator.json promotion-report.json; do

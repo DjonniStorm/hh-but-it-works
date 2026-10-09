@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 
 from factories import candidate, need
 from main import app
-from schemas import RankingContext
 from scoring import rank_candidates
 from taxonomy import canonical_skill
 
@@ -123,14 +122,6 @@ def test_ranking_orders_better_candidate_first():
     )
     results = rank_candidates([weak, good], need(strictGrade=False))
     assert results[0].candidateId == "good"
-
-
-def test_session_feedback_can_reorder_equally_qualified_candidates():
-    docker = candidate(id="docker", skills=candidate().skills + [{"id": "docker", "verified": True}])
-    redis = candidate(id="redis", skills=candidate().skills + [{"id": "redis", "verified": True}])
-    context = RankingContext(skillBoosts={"docker": 1.0, "redis": -1.0})
-    results = rank_candidates([redis, docker], need(niceSkills=[]), context)
-    assert results[0].candidateId == "docker"
 
 
 def test_backward_compatible_vacancy_request():

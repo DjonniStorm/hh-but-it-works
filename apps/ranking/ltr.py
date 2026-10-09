@@ -189,7 +189,7 @@ class LTRRanker:
     def artifact_version(self) -> str:
         if self.model is None:
             return RULES_MODEL_VERSION
-        version = str(self.metadata.get("modelVersion", "ltr-v1.1.0"))
+        version = str(self.metadata.get("modelVersion", "ltr-v1.2.0"))
         return f"{version}-calibrated" if self.calibrator is not None else version
 
     @property
@@ -197,7 +197,8 @@ class LTRRanker:
         if self.model is None or self.active_mode in {"rules", "shadow"}:
             return RULES_MODEL_VERSION
         if self.active_mode == "hybrid":
-            return f"hybrid-v1.1.0-ltr{self.blend_weight:.2f}"
+            rules_series = RULES_MODEL_VERSION.removeprefix("rules-")
+            return f"hybrid-{rules_series}-ltr{self.blend_weight:.2f}"
         return self.artifact_version
 
     @property

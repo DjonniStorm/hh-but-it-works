@@ -183,6 +183,10 @@ class RankRequest(BaseModel):
 
 
 class ScoreBreakdown(BaseModel):
+    """Части matchScore. Поля без источника данных из контракта (location,
+    employmentType, desiredSkills, personalization) выведены из модели в
+    rules-v1.2.0: слагаемое без данных — худшее состояние, см. HANDOFF §5."""
+
     specialization: float
     grade: float
     mustSkills: float
@@ -195,12 +199,8 @@ class ScoreBreakdown(BaseModel):
     fspEvidence: float
     salary: float
     workMode: float
-    location: float
-    employmentType: float
     targetRole: float
-    desiredSkills: float
     freshness: float
-    personalization: float = 0.5
 
 
 class RankItem(BaseModel):

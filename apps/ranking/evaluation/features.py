@@ -19,12 +19,8 @@ FEATURE_ORDER = [
     "fspEvidence",
     "salary",
     "workMode",
-    "location",
-    "employmentType",
     "targetRole",
-    "desiredSkills",
     "freshness",
-    "personalization",
     # Rules aggregates are useful priors. A future human-labeled LTR model can
     # learn corrections instead of rediscovering the whole baseline formula.
     "qualificationScore",

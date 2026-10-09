@@ -67,6 +67,9 @@ test("ranking request carries every live ML signal without PII", () => {
     PostgreSQL: 0.35,
   });
   assert.equal(request.vacancy.text, "Backend Node.js service with PostgreSQL");
+  // Грейд middle..senior разворачивается в требования по стажу 3..15 лет.
+  assert.equal(request.vacancy.experienceMin, 3);
+  assert.equal(request.vacancy.experienceMax, 15);
 
   const candidate = request.candidates[0];
   assert.deepEqual(candidate.competencies, { "Node.js": 0.88 });
@@ -85,7 +88,7 @@ test("ranking request carries every live ML signal without PII", () => {
   assert.equal("displayName" in candidate, false);
 });
 
-test("breakdown exposes the exact v1.1 scoring weights", () => {
+test("breakdown exposes the exact v1.2 scoring weights", () => {
   const components = {
     specialization: 1,
     grade: 1,
@@ -94,16 +97,13 @@ test("breakdown exposes the exact v1.1 scoring weights", () => {
     mustSkills: 1,
     verifiedMustSkills: 1,
     niceSkills: 1,
-    desiredSkills: 1,
-    personalization: 1,
     competency: 1,
     assessment: 1,
     fspEvidence: 1,
     salary: 1,
     workMode: 1,
-    location: 1,
-    employmentType: 1,
     targetRole: 1,
+    freshness: 1,
   };
 
   const breakdown = toBreakdown(components);
@@ -192,13 +192,13 @@ test("shortlist preserves model version and orders candidates by ranking", async
       rank: async (actualNeed, actualCandidates) => {
         assert.equal(actualNeed, need);
         assert.equal(actualCandidates, candidates);
-        return { modelVersion: "hybrid-v1.1.0-ltr0.25", scores };
+        return { modelVersion: "hybrid-v1.2.0-ltr0.25", scores };
       },
     },
   );
 
   const shortlist = await service.shortlist("employer-1", "need-1");
-  assert.equal(shortlist.modelVersion, "hybrid-v1.1.0-ltr0.25");
+  assert.equal(shortlist.modelVersion, "hybrid-v1.2.0-ltr0.25");
   assert.deepEqual(
     shortlist.items.map((item) => item.candidate.id),
     ["candidate-high", "candidate-low"],
