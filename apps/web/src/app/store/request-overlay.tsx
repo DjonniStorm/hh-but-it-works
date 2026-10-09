@@ -22,10 +22,7 @@ export const RequestOverlay = observer(
           height: fullScreen ? undefined : "100%",
         }}
       >
-        {/* Оверлей на весь экран: внутри короткой страницы картинка обрезалась снизу,
-            на длинной уезжала из вида. */}
         <LoadingOverlay
-          pos="fixed"
           visible={loading.visible}
           zIndex={400}
           loaderProps={{ size: 148, children: <RequestLoader /> }}
