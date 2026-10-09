@@ -17,7 +17,8 @@ export type SkillRow = {
 export type EducationFormRow = {
   school: string;
   program: string;
-  fromYear: number;
+  // Пустой «с» — "": в резюме hh.ru есть только год выпуска.
+  fromYear: number | "";
   toYear: number | "";
 };
 
@@ -34,10 +35,12 @@ export type ContactValues = {
   specialization: string;
   claimedGrade: string;
   fspId: string;
+  phone: string;
   telegram: string;
   github: string;
   linkedin: string;
   website: string;
+  softSkills: string[];
   // Пустое поле NumberInput — "". Схема переводит его в null.
   desiredSalaryFrom: number | "";
   experienceYears: number | "";

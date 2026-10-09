@@ -1,4 +1,4 @@
-import type { CandidateProfile } from "@hh/contracts";
+import type { CandidateProfile, ResumeDraft } from "@hh/contracts";
 
 // Разделы анкеты, которые живут отдельными плитками. Появляются по кнопке «Добавить раздел».
 export type SectionKey = "education" | "experience";
@@ -18,6 +18,16 @@ const hasData: Record<SectionKey, (profile: CandidateProfile) => boolean> = {
     return profile.experience.length > 0;
   },
 };
+
+// Записи из резюме открывают свой раздел, иначе черновик ляжет в скрытую плитку.
+export function sectionsWithDraft(
+  current: SectionKey[],
+  draft: ResumeDraft,
+): SectionKey[] {
+  return sectionOrder.filter((key) => {
+    return current.includes(key) || draft[key].length > 0;
+  });
+}
 
 // Уже заполненные разделы открываем сразу: спрятанные данные кандидат не увидит.
 export function initialSections(profile: CandidateProfile): SectionKey[] {

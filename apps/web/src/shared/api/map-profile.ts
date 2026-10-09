@@ -13,10 +13,12 @@ export function mapCandidateProfile(profile: {
   specialization: string | null;
   claimedGrade: string | null;
   fspId: string | null;
+  phone: string | null;
   telegram: string | null;
   github: string | null;
   linkedin: string | null;
   website: string | null;
+  softSkills: string[];
   desiredSalaryFrom: number | null;
   experienceYears: number | null;
   education: {
@@ -57,10 +59,12 @@ export function mapCandidateProfile(profile: {
     specialization: mapSpecialization(profile.specialization),
     claimedGrade: mapGrade(profile.claimedGrade),
     fspId: profile.fspId,
+    phone: profile.phone,
     telegram: profile.telegram,
     github: profile.github,
     linkedin: profile.linkedin,
     website: profile.website,
+    softSkills: profile.softSkills,
     desiredSalaryFrom: profile.desiredSalaryFrom,
     experienceYears: profile.experienceYears,
     education: profile.education.map((item) => {
@@ -95,13 +99,41 @@ export function mapCandidateProfile(profile: {
 
 export function mapResumeDraft(draft: {
   displayName: string | null;
+  specialization: string | null;
   experienceYears: number | null;
   claimedGrade: string | null;
+  phone: string | null;
   telegram: string | null;
   github: string | null;
+  linkedin: string | null;
+  website: string | null;
+  desiredSalaryFrom: number | null;
+  workFormats: string[];
+  searchStatus: string | null;
   skills: { slug: string; title: string }[];
+  softSkills: string[];
+  education: {
+    school: string;
+    program: string;
+    fromYear: number | null;
+    toYear: number | null;
+  }[];
+  experience: {
+    company: string;
+    role: string;
+    fromYear: number;
+    toYear: number | null;
+    summary: string;
+  }[];
 }): ResumeDraft {
-  return { ...draft, claimedGrade: mapGrade(draft.claimedGrade) };
+  return {
+    ...draft,
+    specialization: mapSpecialization(draft.specialization),
+    claimedGrade: mapGrade(draft.claimedGrade),
+    workFormats: draft.workFormats.map(mapWorkFormat),
+    searchStatus:
+      draft.searchStatus === null ? null : mapSearchStatus(draft.searchStatus),
+  };
 }
 
 function mapSpecialization(value: string | null): Specialization | null {

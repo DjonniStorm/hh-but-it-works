@@ -47,7 +47,10 @@ export class CandidateProfile {
   @Column({ type: "varchar", nullable: true })
   fspId!: string | null;
 
-  /** Ссылки агрегатора. Пустая строка с клиента хранится как null. */
+  /** Телефон и ссылки агрегатора. Пустая строка с клиента хранится как null. */
+  @Column({ type: "varchar", length: 40, nullable: true })
+  phone!: string | null;
+
   @Column({ type: "varchar", length: 120, nullable: true })
   telegram!: string | null;
 
@@ -59,6 +62,10 @@ export class CandidateProfile {
 
   @Column({ type: "varchar", length: 120, nullable: true })
   website!: string | null;
+
+  /** Софт-скиллы из формы или резюме. Подборка их не учитывает. */
+  @Column({ type: "text", array: true, default: "{}" })
+  softSkills!: string[];
 
   /** Ожидания кандидата. По ним подборка сверяет вилку и формат работодателя. */
   @Column({ type: "int", nullable: true })

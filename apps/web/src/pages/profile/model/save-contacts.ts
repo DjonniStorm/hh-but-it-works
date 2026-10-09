@@ -13,10 +13,13 @@ export function contactsFromProfile(profile: CandidateProfile): ContactValues {
     specialization: profile.specialization ?? "",
     claimedGrade: profile.claimedGrade ?? "",
     fspId: profile.fspId ?? "",
+    phone: profile.phone ?? "",
     telegram: profile.telegram ?? "",
     github: profile.github ?? "",
     linkedin: profile.linkedin ?? "",
     website: profile.website ?? "",
+    // Обычные массивы: у observable klona уходит в символ MobX и зацикливается.
+    softSkills: profile.softSkills.slice(),
     desiredSalaryFrom: profile.desiredSalaryFrom ?? "",
     experienceYears: profile.experienceYears ?? "",
     education: educationFromProfile(profile.education),
@@ -38,10 +41,12 @@ export function contactInput(
     specialization: values.specialization as Specialization,
     claimedGrade: values.claimedGrade as Grade,
     fspId: values.fspId,
+    phone: values.phone,
     telegram: values.telegram,
     github: values.github,
     linkedin: values.linkedin,
     website: values.website,
+    softSkills: values.softSkills,
     desiredSalaryFrom:
       values.desiredSalaryFrom === "" ? null : values.desiredSalaryFrom,
     experienceYears:
@@ -50,7 +55,8 @@ export function contactInput(
       return {
         school: item.school,
         program: item.program,
-        fromYear: item.fromYear,
+        // Резолвер уже не пропустил пустой год. В типе формы он шире.
+        fromYear: item.fromYear as number,
         toYear: item.toYear === "" ? null : item.toYear,
       };
     }),

@@ -67,10 +67,12 @@ export type CandidateProfileDtoOutput = {
     specialization: 'backend' | 'frontend' | 'data' | 'security' | null;
     claimedGrade: 'junior' | 'middle' | 'senior' | null;
     fspId: string | null;
+    phone: string | null;
     telegram: string | null;
     github: string | null;
     linkedin: string | null;
     website: string | null;
+    softSkills: Array<string>;
     desiredSalaryFrom: number | null;
     experienceYears: number | null;
     education: Array<{
@@ -109,13 +111,34 @@ export type CandidateProfileDtoOutput = {
 
 export type ResumeDraftDtoOutput = {
     displayName: string | null;
+    specialization: 'backend' | 'frontend' | 'data' | 'security' | null;
     experienceYears: number | null;
     claimedGrade: 'junior' | 'middle' | 'senior' | null;
+    phone: string | null;
     telegram: string | null;
     github: string | null;
+    linkedin: string | null;
+    website: string | null;
+    desiredSalaryFrom: number | null;
+    workFormats: Array<'office' | 'hybrid' | 'remote'>;
+    searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden' | null;
     skills: Array<{
         slug: string;
         title: string;
+    }>;
+    softSkills: Array<string>;
+    education: Array<{
+        school: string;
+        program: string;
+        fromYear: number | null;
+        toYear: number | null;
+    }>;
+    experience: Array<{
+        company: string;
+        role: string;
+        fromYear: number;
+        toYear: number | null;
+        summary: string;
     }>;
 };
 
@@ -124,10 +147,12 @@ export type SaveProfileDto = {
     specialization: 'backend' | 'frontend' | 'data' | 'security';
     claimedGrade: 'junior' | 'middle' | 'senior';
     fspId: string;
+    phone: string;
     telegram: string;
     github: string;
     linkedin: string;
     website: string;
+    softSkills: Array<string>;
     desiredSalaryFrom: '' | number | null;
     experienceYears: '' | number | null;
     education: Array<{

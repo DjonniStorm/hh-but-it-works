@@ -1,59 +1,26 @@
 import type { ResumeDraft } from "@hh/contracts";
-import { Grade, gradeIndex } from "@hh/types";
+import { Grade, SearchStatus, Specialization, WorkFormat } from "@hh/types";
 
-import { skillCatalog } from "./skill-catalog";
-
-type CatalogSlug = (typeof skillCatalog)[number]["slug"];
-
-// Слово целиком: «go» не находится внутри «golang», «java» — внутри «javascript».
-const boundary = String.raw`(?<![\p{L}\p{N}])`;
-const end = String.raw`(?![\p{L}\p{N}])`;
-
-function term(source: string): RegExp {
-  return new RegExp(`${boundary}${source}${end}`, "iu");
-}
-
-const skillPatterns: Record<CatalogSlug, RegExp[]> = {
-  postgresql: [term("postgresql"), term("postgres")],
-  "http-api": [
-    term(String.raw`https?(?:\s*[/:,]\s*|\s+)api`),
-    term(String.raw`rest(?:\s+|-)api`),
-  ],
-  typescript: [term("typescript")],
-  docker: [term("docker")],
-  testing: [term("pytest"), term("jest")],
-  python: [term("python")],
-  csharp: [
-    term(String.raw`c\s*#`),
-    term(String.raw`c\s*sharp`),
-    term("csharp"),
-  ],
-  react: [term(String.raw`react(?:\.js|js)?`)],
-  go: [term("golang")],
-  java: [term("java(?!script)")],
-};
-
-const gradePattern =
-  /(?<![\p{L}\p{N}])(senior|сеньор|синьор|сеньер|middle|миддл|мидл|junior|джуниор|джун)(?![\p{L}\p{N}])/iu;
-
-const gradeByWord: Record<string, Grade> = {
-  senior: Grade.Senior,
-  сеньор: Grade.Senior,
-  синьор: Grade.Senior,
-  сеньер: Grade.Senior,
-  middle: Grade.Middle,
-  миддл: Grade.Middle,
-  мидл: Grade.Middle,
-  junior: Grade.Junior,
-  джуниор: Grade.Junior,
-  джун: Grade.Junior,
-};
-
-const skippedLine =
-  /^(резюме|resume|cv|curriculum vitae|контакты|навыки|опыт|experience|skills|profile|профиль)$/iu;
-
-const roleWord =
-  /^(developer|engineer|backend|frontend|разработчик|менеджер)$/iu;
+import { experienceYears } from "./resume-experience";
+import { educationFrom, experienceFrom } from "./resume-history";
+import {
+  type ResumeLine,
+  Section,
+  headingOf,
+  splitResume,
+  textOf,
+} from "./resume-sections";
+import { type CatalogSkill, findSkills } from "./resume-skills";
+import {
+  activeSearch,
+  gradeGoal,
+  gradeWords,
+  roleLine,
+  softSkillWords,
+  specializationWords,
+  workFormatLine,
+  workFormatWords,
+} from "./resume-vocabulary";
 
 const githubSkip = new Set([
   "about",
@@ -84,123 +51,223 @@ const githubSkip = new Set([
   "topics",
 ]);
 
+// Ссылки на эти сайты — не личный сайт кандидата.
+const notWebsite =
+  /(?:github\.com|linkedin\.com|t\.me|telegram\.me|hh\.ru|vk\.com|habr\.com|youtube\.com|example\.com)/i;
+
+// Шапка: имя, должность, контакты. Дальше 8 строк грейд и роль уже не ищем.
+const headerSize = 8;
+// Должность под именем: у LinkedIn имя стоит после боковой колонки, не в начале файла.
+const linesUnderName = 3;
+const minOwnSkills = 5;
+
 // null — в файле нет текста. Пустые поля — текст был, но анкеты в нём не нашлось.
-export function draftFromText(text: string): ResumeDraft | null {
-  if (text.replace(/\s+/g, "") === "") {
+export function draftFromText(
+  raw: string,
+  catalog: CatalogSkill[] = [],
+): ResumeDraft | null {
+  if (raw.replace(/\s+/g, "") === "") {
     return null;
   }
+  const lines = splitResume(raw);
+  const whole = textOf(lines, ...Object.values(Section));
   return {
-    displayName: displayNameFrom(text),
-    experienceYears: experienceFrom(text),
-    claimedGrade: gradeFrom(text),
-    telegram: telegramFrom(text),
-    github: githubFrom(text),
-    skills: findSkills(text),
+    displayName: displayNameFrom(lines),
+    specialization: specializationFrom(lines),
+    experienceYears: experienceYears(whole, textOf(lines, Section.Experience)),
+    claimedGrade: gradeFrom(lines),
+    phone: phoneFrom(whole),
+    telegram: telegramFrom(whole),
+    github: githubFrom(whole),
+    linkedin: linkedinFrom(whole),
+    website: websiteFrom(lines),
+    desiredSalaryFrom: salaryFrom(lines),
+    workFormats: workFormatsFrom(lines),
+    searchStatus: activeSearch.test(whole)
+      ? SearchStatus.ActivelyLooking
+      : null,
+    skills: findSkills(skillText(lines, whole), catalog),
+    softSkills: softSkillsFrom(lines, whole),
+    education: educationFrom(lines),
+    experience: experienceFrom(lines),
   };
 }
 
-export function findSkills(text: string): ResumeDraft["skills"] {
-  const found: ResumeDraft["skills"] = [];
-  for (const skill of skillCatalog) {
-    const hit = skillPatterns[skill.slug].some((pattern) => {
-      return pattern.test(text);
+// Полный раздел навыков — опыт не смотрим: там стек прошлых проектов и чужих команд.
+// У LinkedIn в «Top Skills» всего три навыка, остальное только в опыте.
+function skillText(lines: ResumeLine[], whole: string): string {
+  const own = textOf(lines, Section.Skills);
+  if (findSkills(own).length < minOwnSkills) {
+    return whole;
+  }
+  return textOf(
+    lines,
+    Section.Header,
+    Section.Desired,
+    Section.Skills,
+    Section.About,
+  );
+}
+
+function softSkillsFrom(lines: ResumeLine[], whole: string): string[] {
+  const own = textOf(lines, Section.Skills, Section.About);
+  const source = own || whole;
+  return softSkillWords
+    .filter(([pattern]) => {
+      return pattern.test(source);
+    })
+    .map(([, title]) => {
+      return title;
     });
-    if (hit) {
-      found.push({ slug: skill.slug, title: skill.title });
-    }
-  }
-  return found;
 }
 
-function displayNameFrom(text: string): string | null {
-  const lines = text.split(/\r?\n/).slice(0, 15);
-  for (const raw of lines) {
-    const line = raw.trim();
-    if (!line || skippedLine.test(line)) {
-      continue;
-    }
-    if (line.includes("@") || /https?:\/\//i.test(line)) {
-      continue;
-    }
-    if (findSkills(line).length > 0) {
-      continue;
-    }
-    const words = line.split(/\s+/);
-    if (words.length < 2 || words.length > 3) {
-      continue;
-    }
-    if (gradePattern.test(line)) {
-      continue;
-    }
+function titleLines(lines: ResumeLine[]): ResumeLine[] {
+  const name = nameIndex(lines);
+  return lines.filter((line, index) => {
+    return (
+      (index < headerSize && line.section === Section.Header) ||
+      (name !== -1 && index > name && index <= name + linesUnderName) ||
+      line.section === Section.Desired
+    );
+  });
+}
+
+function specializationFrom(lines: ResumeLine[]): Specialization | null {
+  const score = new Map<Specialization, number>();
+  const title = new Set(titleLines(lines));
+  for (const line of lines) {
     if (
-      words.some((word) => {
-        return roleWord.test(word);
-      })
+      line.section !== Section.Experience &&
+      line.section !== Section.About &&
+      !title.has(line)
     ) {
       continue;
     }
-    // Имя в резюме с заглавной. Строчная строка — это предложение, не имя.
-    const nameWord = /^\p{Lu}[\p{L}'’-]{0,39}$/u;
-    if (
-      !words.every((word) => {
-        return nameWord.test(word);
-      })
-    ) {
-      continue;
-    }
-    return line.slice(0, 80);
-  }
-  return null;
-}
-
-function gradeFrom(text: string): Grade | null {
-  const pattern = new RegExp(gradePattern.source, "giu");
-  let best: Grade | null = null;
-  for (const match of text.matchAll(pattern)) {
-    const grade = gradeByWord[match[1]?.toLowerCase() ?? ""];
-    if (!grade) {
-      continue;
-    }
-    if (!best || gradeIndex(grade) > gradeIndex(best)) {
-      best = grade;
+    // Желаемая должность весит втрое больше упоминаний в опыте.
+    const weight = title.has(line) ? 3 : 1;
+    for (const [specialization, pattern] of Object.entries(
+      specializationWords,
+    )) {
+      const hits =
+        line.text.match(new RegExp(pattern.source, "giu"))?.length ?? 0;
+      const key = specialization as Specialization;
+      score.set(key, (score.get(key) ?? 0) + hits * weight);
     }
   }
-  return best;
-}
-
-function experienceFrom(text: string): number | null {
-  const near = /(?:опыт|стаж|experience)[^\d]{0,30}(\d+(?:[.,]\d+)?)/giu;
-  for (const match of text.matchAll(near)) {
-    const value = years(match[1] ?? "");
-    if (value !== null) {
-      return value;
-    }
-  }
-  const loose =
-    /(\d+(?:[.,]\d+)?)\s*\+?\s*(?:года|лет|год|years|year)(?![\p{L}\p{N}])/giu;
-  for (const match of text.matchAll(loose)) {
-    if (isAge(text, match.index ?? 0)) {
-      continue;
-    }
-    const value = years(match[1] ?? "");
-    if (value !== null) {
-      return value;
-    }
-  }
-  return null;
-}
-
-function isAge(text: string, index: number): boolean {
-  const before = text.slice(Math.max(0, index - 40), index).toLowerCase();
-  return /возраст|родил|мужчина|женщина/.test(before);
-}
-
-function years(raw: string): number | null {
-  const value = Number(raw.replace(",", "."));
-  if (!Number.isFinite(value) || value < 0 || value > 40) {
+  const ranked = [...score.entries()].sort((left, right) => {
+    return right[1] - left[1];
+  });
+  const [best, second] = ranked;
+  if (!best || best[1] === 0 || best[1] === second?.[1]) {
     return null;
   }
-  return Math.round(value * 10) / 10;
+  return best[0];
+}
+
+// Грейд со строки должности: сначала желаемая, потом последняя работа, потом «О себе».
+function gradeFrom(lines: ResumeLine[]): Grade | null {
+  const lastJob = lines.find((line) => {
+    return line.section === Section.Experience && roleLine.test(line.text);
+  });
+  const ordered = [
+    ...titleLines(lines),
+    ...(lastJob ? [lastJob] : []),
+    ...lines.filter((line) => {
+      return line.section === Section.About;
+    }),
+  ];
+  for (const line of ordered) {
+    if (!roleLine.test(line.text)) {
+      continue;
+    }
+    const grade = gradeOfLine(line.text);
+    if (grade) {
+      return grade;
+    }
+  }
+  return null;
+}
+
+function gradeOfLine(text: string): Grade | null {
+  let first: { index: number; grade: Grade } | null = null;
+  for (const [pattern, grade] of gradeWords) {
+    for (const match of text.matchAll(new RegExp(pattern.source, "giu"))) {
+      const index = match.index ?? 0;
+      if (gradeGoal.test(text.slice(Math.max(0, index - 30), index))) {
+        continue;
+      }
+      if (!first || index < first.index) {
+        first = { index, grade };
+      }
+      break;
+    }
+  }
+  return first?.grade ?? null;
+}
+
+const nameWord = /^\p{Lu}[\p{L}'’-]{0,39}$/u;
+
+function displayNameFrom(lines: ResumeLine[]): string | null {
+  const index = nameIndex(lines);
+  if (index === -1) {
+    return null;
+  }
+  return (lines[index]?.text ?? "")
+    .split(" ")
+    .map(nameCase)
+    .join(" ")
+    .slice(0, 80);
+}
+
+function nameIndex(lines: ResumeLine[]): number {
+  return lines.slice(0, 25).findIndex((line) => {
+    return isName(line);
+  });
+}
+
+function isName(line: ResumeLine): boolean {
+  const text = line.text;
+  if (headingOf(text) || line.section === Section.Skills) {
+    return false;
+  }
+  if (/[@\d/:|•·(),]/.test(text)) {
+    return false;
+  }
+  if (findSkills(text).length > 0 || roleLine.test(text)) {
+    return false;
+  }
+  const words = text.split(" ");
+  if (words.length < 2 || words.length > 3) {
+    return false;
+  }
+  return words.map(nameCase).every((word) => {
+    return nameWord.test(word);
+  });
+}
+
+// «DAVID PETROV» — так пишут имя в шапке, в анкету оно идёт как «David Petrov».
+function nameCase(word: string): string {
+  if (word.length > 1 && word === word.toUpperCase()) {
+    return word.charAt(0) + word.slice(1).toLowerCase();
+  }
+  return word;
+}
+
+function phoneFrom(text: string): string | null {
+  const match =
+    /(?<![\d])(?:\+7|8|7)[\s(-]*\d{3}[\s)-]*\d{3}[\s-]*\d{2}[\s-]*\d{2}(?!\d)|\+\d{1,3}[\s(-]*\d{2,4}[\s)-]*\d{3}[\s-]*\d{2,4}[\s-]*\d{0,4}(?!\d)/.exec(
+      text,
+    );
+  if (!match) {
+    return null;
+  }
+  const digits = match[0].replace(/\D/g, "");
+  // Российский номер приводим к одному виду, остальные оставляем как в резюме.
+  if (digits.length === 11 && /^[78]/.test(digits)) {
+    const d = digits.slice(1);
+    return `+7 (${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6, 8)}-${d.slice(8)}`;
+  }
+  return match[0].trim();
 }
 
 function telegramFrom(text: string): string | null {
@@ -224,4 +291,61 @@ function githubFrom(text: string): string | null {
     return null;
   }
   return `github.com/${match[1]}`;
+}
+
+function linkedinFrom(text: string): string | null {
+  // LinkedIn переносит длинную ссылку по дефису на следующую строку.
+  const joined = text.replace(/(linkedin\.com\/in\/[\w-]*-)\n/gi, "$1");
+  const match = /linkedin\.com\/in\/([\w-]{3,100})/i.exec(joined);
+  if (!match?.[1]) {
+    return null;
+  }
+  return `linkedin.com/in/${match[1]}`;
+}
+
+function websiteFrom(lines: ResumeLine[]): string | null {
+  const text = textOf(lines, Section.Header, Section.Contacts, Section.About);
+  for (const match of text.matchAll(/(?:https?:\/\/|www\.)[^\s,;|]+/gi)) {
+    const url = match[0].replace(/[.)]+$/, "");
+    if (notWebsite.test(url)) {
+      continue;
+    }
+    return url.slice(0, 120);
+  }
+  return null;
+}
+
+function salaryFrom(lines: ResumeLine[]): number | null {
+  const text = textOf(lines, Section.Desired);
+  const match = /(\d[\d\s  ]{2,})\s*(?:₽|руб|rub|р\.)/iu.exec(text);
+  if (!match?.[1]) {
+    return null;
+  }
+  const value = Number(match[1].replace(/\D/g, ""));
+  if (!Number.isInteger(value) || value < 1000) {
+    return null;
+  }
+  return value;
+}
+
+function workFormatsFrom(lines: ResumeLine[]): WorkFormat[] {
+  const source = lines
+    .filter((line) => {
+      return workFormatLine.test(line.text) || line.section === Section.Desired;
+    })
+    .filter((line) => {
+      // В желаемой должности учитываем только строки-перечисления, не название позиции.
+      return workFormatLine.test(line.text) || !roleLine.test(line.text);
+    })
+    .map((line) => {
+      return line.text;
+    })
+    .join("\n");
+  return workFormatWords
+    .filter(([pattern]) => {
+      return pattern.test(source);
+    })
+    .map(([, format]) => {
+      return format;
+    });
 }

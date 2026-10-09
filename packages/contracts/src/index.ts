@@ -76,8 +76,11 @@ export const apiErrorSchema = z.object({
   errors: z.array(validationIssueSchema).optional(),
 });
 
-export const specializationSchema = z.enum(Specialization);
-export const gradeSchema = z.enum(Grade);
+export const specializationSchema = z.enum(
+  Specialization,
+  "Выберите специализацию",
+);
+export const gradeSchema = z.enum(Grade, "Выберите грейд");
 export const skillLevelSchema = z.enum(SkillLevel);
 export const skillVerificationSchema = z.enum(SkillVerification);
 export const workFormatSchema = z.enum(WorkFormat, "Выберите формат работы");
@@ -181,10 +184,12 @@ export const candidateProfileSchema = z.object({
   specialization: specializationSchema.nullable(),
   claimedGrade: gradeSchema.nullable(),
   fspId: z.string().max(64).nullable(),
+  phone: z.string().max(40).nullable(),
   telegram: z.string().max(120).nullable(),
   github: z.string().max(120).nullable(),
   linkedin: z.string().max(120).nullable(),
   website: z.string().max(120).nullable(),
+  softSkills: z.array(z.string()),
   // Ожидания кандидата: по ним подборка сверяет вилку и формат работодателя.
   desiredSalaryFrom: z.number().int().positive().nullable(),
   experienceYears: z.number().min(0).nullable(),
@@ -234,14 +239,18 @@ const optionalYearsSchema = z
   });
 
 export const saveContactsSchema = z.object({
-  displayName: z.string().trim().min(1, "Укажите имя"),
+  displayName: z.string().trim().min(1, "Укажите ФИО"),
   specialization: specializationSchema,
   claimedGrade: gradeSchema,
   fspId: z.string().trim().max(64, "Слишком длинный ID"),
+  phone: z.string().trim().max(40, "Слишком длинный номер"),
   telegram: linkField,
   github: linkField,
   linkedin: linkField,
   website: linkField,
+  softSkills: z
+    .array(z.string().trim().min(1).max(60, "Слишком длинное качество"))
+    .max(20, "Не больше 20 качеств"),
   desiredSalaryFrom: optionalSalarySchema,
   experienceYears: optionalYearsSchema,
   education: z.array(saveEducationEntrySchema).max(8),
@@ -280,16 +289,31 @@ export const saveProfileSchema = saveContactsSchema.extend({
 // Черновик из текста резюме. В профиль не пишется, пока кандидат не сохранит форму.
 export const resumeDraftSchema = z.object({
   displayName: z.string().max(80).nullable(),
+  specialization: specializationSchema.nullable(),
   experienceYears: z.number().min(0).max(40).nullable(),
   claimedGrade: gradeSchema.nullable(),
+  phone: z.string().max(40).nullable(),
   telegram: z.string().max(120).nullable(),
   github: z.string().max(120).nullable(),
+  linkedin: z.string().max(120).nullable(),
+  website: z.string().max(120).nullable(),
+  desiredSalaryFrom: z.number().int().positive().nullable(),
+  workFormats: z.array(workFormatSchema),
+  searchStatus: searchStatusSchema.nullable(),
   skills: z.array(
     z.object({
       slug: z.string(),
       title: z.string(),
     }),
   ),
+  softSkills: z.array(z.string()),
+  // Год начала учёбы hh.ru не пишет, только год выпуска: тогда fromYear — null.
+  education: z.array(
+    educationEntrySchema.extend({
+      fromYear: educationEntrySchema.shape.fromYear.nullable(),
+    }),
+  ),
+  experience: z.array(experienceEntrySchema),
 });
 
 // Модель работодателя: профиль компании, потребности, подборка, приглашения.
