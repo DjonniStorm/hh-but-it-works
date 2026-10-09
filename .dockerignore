@@ -1,0 +1,17 @@
+# Контекст сборки api и web — корень репозитория. В образ не тащим
+# зависимости и сборки с хоста, секреты и тяжёлые данные ranking.
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+**/.env
+**/.env.*
+!**/.env.example
+.git
+.claude
+docs
+infra
+apps/ranking
+apps/mock
+**/__pycache__
+**/.pytest_cache
+**/.venv
