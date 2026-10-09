@@ -2,18 +2,22 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { In, Repository } from "typeorm";
 
-import type {
-  CompanyProfile as CompanyProfileView,
-  CompanyResponse,
-  HiringNeedInput,
-  HiringNeedList,
-  HiringNeed as HiringNeedView,
-  Match,
-  Shortlist,
+import {
+  type CandidateSearch,
+  type CandidateSearchResult,
+  type CompanyProfile as CompanyProfileView,
+  type CompanyResponse,
+  type HiringNeedInput,
+  type HiringNeedList,
+  type HiringNeed as HiringNeedView,
+  type Match,
+  type Shortlist,
+  type ShortlistCategory,
+  candidateSearchLimit,
 } from "@hh/contracts";
 
 import { CandidateProfile } from "../profiles/candidate-profile.entity";
-import { CandidatePoolService } from "./candidate-pool.service";
+import { CandidatePoolService, categoriesOf } from "./candidate-pool.service";
 import { CompanyProfile } from "./company-profile.entity";
 import { HiringNeed } from "./hiring-need.entity";
 import { NeedDismissal } from "./need-dismissal.entity";
@@ -95,6 +99,33 @@ export class EmployersService {
     return this.toNeedView(need, await this.pool.listed(), new Set());
   }
 
+  // Отклонённые и приглашения остаются: «Не подходит» относится к человеку, а не к тексту.
+  // Приглашения хранят свои текст и вилку, название потребности подтянут уже новое.
+  async updateNeed(
+    userId: string,
+    id: string,
+    input: HiringNeedInput,
+  ): Promise<HiringNeedView> {
+    const need = await this.requireNeed(userId, id);
+    const saved = await this.needs.save(this.needs.merge(need, input));
+    const [listed, dismissed] = await Promise.all([
+      this.pool.listed(),
+      this.dismissedIds(saved.id),
+    ]);
+    return this.toNeedView(saved, listed, dismissed);
+  }
+
+  // Мягкое удаление: отправленные приглашения по потребности остаются в силе и с названием.
+  // «Не подходит» и избранное нужны только подборке, их удаляем вместе с ней.
+  async deleteNeed(userId: string, id: string): Promise<void> {
+    const need = await this.requireNeed(userId, id);
+    await this.needs.manager.transaction(async (manager) => {
+      await manager.delete(NeedDismissal, { needId: need.id });
+      await manager.delete(NeedFavorite, { needId: need.id });
+      await manager.softDelete(HiringNeed, { id: need.id });
+    });
+  }
+
   async shortlist(userId: string, needId: string): Promise<Shortlist> {
     const need = await this.requireNeed(userId, needId);
     const [listed, dismissed, favorites] = await Promise.all([
@@ -131,7 +162,26 @@ export class EmployersService {
         (left.candidate.assessmentScore ?? 0)
       );
     });
-    return { needId: need.id, modelVersion: ranked.modelVersion, items };
+    return {
+      needId: need.id,
+      modelVersion: ranked.modelVersion,
+      categories: countCategories(need, items),
+      items,
+    };
+  }
+
+  // Без потребности ранжировать не по чему: сначала сильный результат теста.
+  async searchCandidates(
+    filter: CandidateSearch,
+  ): Promise<CandidateSearchResult> {
+    const found = await this.pool.search(filter);
+    found.sort((left, right) => {
+      return (right.assessmentScore ?? 0) - (left.assessmentScore ?? 0);
+    });
+    return {
+      items: found.slice(0, candidateSearchLimit),
+      total: found.length,
+    };
   }
 
   async setDismissed(
@@ -252,6 +302,24 @@ function toCompanyView(company: CompanyProfile): CompanyProfileView {
     contactEmail: company.contactEmail,
     contactTelegram: company.contactTelegram,
   };
+}
+
+// Сколько кандидатов подборки (без отклонённых) в каждой категории потребности.
+// В подборку попадают только с подтверждённым грейдом, поэтому считаем по нему.
+function countCategories(
+  need: HiringNeed,
+  items: Match[],
+): ShortlistCategory[] {
+  const counts = items.reduce((acc, item) => {
+    const grade = item.candidate.verifiedGrade;
+    if (!item.dismissed && grade !== null) {
+      acc.set(grade, (acc.get(grade) ?? 0) + 1);
+    }
+    return acc;
+  }, new Map<string, number>());
+  return categoriesOf(need).map((category) => {
+    return { ...category, candidateCount: counts.get(category.grade) ?? 0 };
+  });
 }
 
 // Контракт подборки: оценка 0–100. Ранжирователь отдаёт 0–1, клиент уже умножает.

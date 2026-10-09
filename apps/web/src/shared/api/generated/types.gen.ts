@@ -330,6 +330,11 @@ export type HiringNeedDtoOutput = {
 export type ShortlistDtoOutput = {
     needId: string;
     modelVersion: string;
+    categories: Array<{
+        grade: 'junior' | 'middle' | 'senior';
+        match: 'exact' | 'adjacent';
+        candidateCount: number;
+    }>;
     items: Array<{
         candidate: {
             id: string;
@@ -373,6 +378,45 @@ export type ShortlistDtoOutput = {
         dismissed: boolean;
         favorite: boolean;
     }>;
+};
+
+export type CandidateSearchDto = {
+    specialization: 'backend' | 'frontend' | 'data' | 'security' | null;
+    grades: Array<'junior' | 'middle' | 'senior'>;
+    skills: Array<string>;
+    fspOnly: boolean;
+};
+
+export type CandidateSearchResultDtoOutput = {
+    items: Array<{
+        id: string;
+        alias: string;
+        specialization: 'backend' | 'frontend' | 'data' | 'security';
+        claimedGrade: 'junior' | 'middle' | 'senior';
+        verifiedGrade: 'junior' | 'middle' | 'senior' | null;
+        gradeConfidence: number | null;
+        experienceYears: number | null;
+        skills: Array<{
+            title: string;
+            level: 'basic' | 'confident' | 'strong' | null;
+            verification: 'unverified' | 'verified' | 'verified_external';
+            score: number | null;
+            verifiedAt: string | null;
+        }>;
+        assessmentScore: number | null;
+        profileFreshness: number;
+        fspAchievements: Array<{
+            title: string;
+            year: number;
+            place: number | null;
+        }>;
+        preferences: {
+            desiredSalaryFrom: number | null;
+            workFormats: Array<'office' | 'hybrid' | 'remote'>;
+            searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden';
+        };
+    }>;
+    total: number;
 };
 
 export type InvitationListDtoOutput = {
@@ -1067,6 +1111,42 @@ export type EmployersControllerCreateNeedResponses = {
 
 export type EmployersControllerCreateNeedResponse = EmployersControllerCreateNeedResponses[keyof EmployersControllerCreateNeedResponses];
 
+export type EmployersControllerDeleteNeedData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/employer/needs/{id}';
+};
+
+export type EmployersControllerDeleteNeedErrors = {
+    /**
+     * Параметр id в пути не является UUID
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+    /**
+     * Потребность не найдена или принадлежит другому работодателю
+     */
+    404: ApiErrorDto;
+};
+
+export type EmployersControllerDeleteNeedError = EmployersControllerDeleteNeedErrors[keyof EmployersControllerDeleteNeedErrors];
+
+export type EmployersControllerDeleteNeedResponses = {
+    204: void;
+};
+
+export type EmployersControllerDeleteNeedResponse = EmployersControllerDeleteNeedResponses[keyof EmployersControllerDeleteNeedResponses];
+
 export type EmployersControllerGetNeedData = {
     body?: never;
     path: {
@@ -1102,6 +1182,42 @@ export type EmployersControllerGetNeedResponses = {
 };
 
 export type EmployersControllerGetNeedResponse = EmployersControllerGetNeedResponses[keyof EmployersControllerGetNeedResponses];
+
+export type EmployersControllerUpdateNeedData = {
+    body: HiringNeedInputDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/employer/needs/{id}';
+};
+
+export type EmployersControllerUpdateNeedErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors. Также: параметр id в пути не является UUID
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+    /**
+     * Потребность не найдена или принадлежит другому работодателю
+     */
+    404: ApiErrorDto;
+};
+
+export type EmployersControllerUpdateNeedError = EmployersControllerUpdateNeedErrors[keyof EmployersControllerUpdateNeedErrors];
+
+export type EmployersControllerUpdateNeedResponses = {
+    200: HiringNeedDtoOutput;
+};
+
+export type EmployersControllerUpdateNeedResponse = EmployersControllerUpdateNeedResponses[keyof EmployersControllerUpdateNeedResponses];
 
 export type EmployersControllerShortlistData = {
     body?: never;
@@ -1306,6 +1422,36 @@ export type EmployersControllerFavoriteResponses = {
 };
 
 export type EmployersControllerFavoriteResponse = EmployersControllerFavoriteResponses[keyof EmployersControllerFavoriteResponses];
+
+export type EmployersControllerSearchCandidatesData = {
+    body: CandidateSearchDto;
+    path?: never;
+    query?: never;
+    url: '/employer/candidates/search';
+};
+
+export type EmployersControllerSearchCandidatesErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+};
+
+export type EmployersControllerSearchCandidatesError = EmployersControllerSearchCandidatesErrors[keyof EmployersControllerSearchCandidatesErrors];
+
+export type EmployersControllerSearchCandidatesResponses = {
+    200: CandidateSearchResultDtoOutput;
+};
+
+export type EmployersControllerSearchCandidatesResponse = EmployersControllerSearchCandidatesResponses[keyof EmployersControllerSearchCandidatesResponses];
 
 export type EmployersControllerListInvitationsData = {
     body?: never;

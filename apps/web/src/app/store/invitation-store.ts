@@ -52,6 +52,15 @@ export class InvitationStore {
     });
   }
 
+  // Приглашение показывает текущее название потребности: сервер берёт его по needId.
+  renameNeed(needId: string, title: string): void {
+    for (const invitation of this.items) {
+      if (invitation.needId === needId) {
+        invitation.needTitle = title;
+      }
+    }
+  }
+
   load(options?: CallOptions<Invitation[]>) {
     this.syncOwner();
     return request(

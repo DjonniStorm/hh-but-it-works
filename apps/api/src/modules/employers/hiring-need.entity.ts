@@ -1,6 +1,7 @@
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   Index,
   PrimaryGeneratedColumn,
@@ -55,4 +56,9 @@ export class HiringNeed {
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;
+
+  /** Мягкое удаление: find() её больше не видит, а отправленные приглашения
+   *  сохраняют название потребности (InvitationsService.needTitles читает withDeleted). */
+  @DeleteDateColumn({ type: "timestamptz", nullable: true })
+  deletedAt!: Date | null;
 }

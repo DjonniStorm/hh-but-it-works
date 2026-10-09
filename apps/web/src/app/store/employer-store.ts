@@ -1,18 +1,28 @@
 import {
   employersControllerCreateNeed,
+  employersControllerDeleteNeed,
   employersControllerDismiss,
   employersControllerFavorite,
   employersControllerGetCompany,
   employersControllerListNeeds,
   employersControllerRestore,
   employersControllerSaveCompany,
+  employersControllerSearchCandidates,
   employersControllerShortlist,
   employersControllerUnfavorite,
+  employersControllerUpdateNeed,
 } from "@/shared/api/generated/sdk.gen";
-import { mapCompany, mapNeed, mapShortlist } from "@/shared/api/map-employer";
+import {
+  mapCandidateSearch,
+  mapCompany,
+  mapNeed,
+  mapShortlist,
+} from "@/shared/api/map-employer";
 import { makeAutoObservable, observable, runInAction } from "mobx";
 
 import type {
+  CandidateSearch,
+  CandidateSearchResult,
   CompanyProfile,
   HiringNeed,
   HiringNeedInput,
@@ -105,6 +115,52 @@ export class EmployerStore {
     );
   }
 
+  updateNeed(
+    needId: string,
+    input: HiringNeedInput,
+    options?: CallOptions<HiringNeed>,
+  ) {
+    return request(
+      this.root,
+      async () => {
+        const result = await employersControllerUpdateNeed({
+          path: { id: needId },
+          body: input,
+        });
+        const need = mapNeed(readData(result));
+        runInAction(() => {
+          this.needs = this.needs.map((item) => {
+            return item.id === need.id ? need : item;
+          });
+          // Состав подборки зависит от требований: старую не показываем, экран загрузит новую.
+          this.shortlists.delete(need.id);
+          this.root.invitations.renameNeed(need.id, need.title);
+        });
+        return need;
+      },
+      { loader: true, ...options },
+    );
+  }
+
+  deleteNeed(needId: string, options?: CallOptions<void>) {
+    return request(
+      this.root,
+      async () => {
+        const result = await employersControllerDeleteNeed({
+          path: { id: needId },
+        });
+        readData(result);
+        runInAction(() => {
+          this.needs = this.needs.filter((need) => {
+            return need.id !== needId;
+          });
+          this.shortlists.delete(needId);
+        });
+      },
+      { loader: true, ...options },
+    );
+  }
+
   loadShortlist(needId: string, options?: CallOptions<Shortlist>) {
     return request(
       this.root,
@@ -119,6 +175,23 @@ export class EmployerStore {
         return shortlist;
       },
       // Экран подборки пуст, пока она не пришла.
+      { loader: true, retry: loadRetry, ...options },
+    );
+  }
+
+  // Выдачу держит экран поиска: она зависит от фильтров в адресе, а не от кабинета.
+  searchCandidates(
+    filter: CandidateSearch,
+    options?: CallOptions<CandidateSearchResult>,
+  ) {
+    return request(
+      this.root,
+      async () => {
+        const result = await employersControllerSearchCandidates({
+          body: filter,
+        });
+        return mapCandidateSearch(readData(result));
+      },
       { loader: true, retry: loadRetry, ...options },
     );
   }

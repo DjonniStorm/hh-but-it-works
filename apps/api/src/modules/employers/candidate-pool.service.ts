@@ -2,7 +2,13 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { type FindOptionsWhere, In, IsNull, Not, Repository } from "typeorm";
 
-import type { CandidateSnapshot, HiringNeedInput } from "@hh/contracts";
+import {
+  type CandidateSearch,
+  type CandidateSnapshot,
+  type CategoryMatch,
+  type HiringNeedInput,
+  hasFspEvidence,
+} from "@hh/contracts";
 import {
   Grade,
   SearchStatus,
@@ -47,11 +53,44 @@ export class CandidatePoolService {
     return this.profiles.find({ where: onExchange });
   }
 
+  // Банк кандидатов: те же правила биржи и видимости, что у подборки, плюс фильтры работодателя.
+  // Специализация и грейд — в запросе к базе, навыки и ФСП — по готовым снимкам.
+  async search(filter: CandidateSearch): Promise<CandidateSnapshot[]> {
+    const profiles = await this.profiles.find({
+      where: {
+        ...onExchange,
+        ...(filter.specialization
+          ? { specialization: filter.specialization }
+          : {}),
+        ...(filter.grades.length > 0
+          ? { verifiedGrade: In(filter.grades) }
+          : {}),
+      },
+    });
+    const wanted = filter.skills.map((skill) => {
+      return skill.toLowerCase();
+    });
+    const snapshots = await this.snapshots(profiles);
+    return snapshots.filter((candidate) => {
+      const titles = new Set(
+        candidate.skills.map((skill) => {
+          return skill.title.toLowerCase();
+        }),
+      );
+      const hasSkills = wanted.every((skill) => {
+        return titles.has(skill);
+      });
+      return hasSkills && (!filter.fspOnly || hasFspEvidence(candidate));
+    });
+  }
+
   // Своя специализация и подтверждённый грейд в диапазоне потребности ±1 ступень.
   // Заявленный грейд не открывает доступ к verified talent marketplace.
   // pool — результат listed(): подборка и счётчик в списке потребностей отбирают одинаково.
   eligible(need: NeedFilter, pool: CandidateProfile[]): CandidateProfile[] {
-    const grades = gradesAround(need);
+    const grades = categoriesOf(need).map((category) => {
+      return category.grade;
+    });
     return pool.filter((profile) => {
       if (profile.specialization !== need.specialization) {
         return false;
@@ -155,11 +194,20 @@ export function profileFreshness(lastSignalAt: Date, now = Date.now()): number {
   return 0.4;
 }
 
-// Грейды потребности и по ступени вокруг: для junior–middle это junior, middle, senior.
-function gradesAround(need: NeedFilter): Grade[] {
+// Грейды потребности и по ступени вокруг: для junior–middle это junior, middle (exact)
+// и senior (adjacent). По этому же списку подборка отбирает кандидатов.
+export function categoriesOf(
+  need: NeedFilter,
+): { grade: Grade; match: CategoryMatch }[] {
   const from = gradeIndex(need.gradeFrom);
   const to = gradeIndex(need.gradeTo);
-  return gradeOrder.slice(Math.max(0, from - 1), to + 2);
+  return gradeOrder.slice(Math.max(0, from - 1), to + 2).map((grade) => {
+    const index = gradeIndex(grade);
+    return {
+      grade,
+      match: index >= from && index <= to ? "exact" : "adjacent",
+    };
+  });
 }
 
 // Имя и контакты работодатель видит только после принятия приглашения (ТЗ 2.2.2).

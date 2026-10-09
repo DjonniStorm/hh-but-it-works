@@ -3,11 +3,13 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   ParseUUIDPipe,
   Post,
   Put,
 } from "@nestjs/common";
+import { ApiNoContentResponse } from "@nestjs/swagger";
 import { ZodResponse } from "nestjs-zod";
 
 import { Role } from "@hh/types";
@@ -21,6 +23,8 @@ import {
 } from "../../common/openapi/api-errors.decorator";
 import { User } from "../users/user.entity";
 import {
+  CandidateSearchDto,
+  CandidateSearchResultDto,
   CompanyProfileDto,
   CompanyResponseDto,
   HiringNeedDto,
@@ -88,6 +92,31 @@ export class EmployersController {
     return this.employers.getNeed(user.id, id);
   }
 
+  @Put("needs/:id")
+  @ZodResponse({ status: 200, type: HiringNeedDto })
+  @ApiErrors({
+    400: `${invalidBody}. Также: параметр id в пути не является UUID`,
+    404: needNotFound,
+  })
+  updateNeed(
+    @CurrentUser() user: User,
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Body() body: HiringNeedInputDto,
+  ) {
+    return this.employers.updateNeed(user.id, id, body);
+  }
+
+  @Delete("needs/:id")
+  @HttpCode(204)
+  @ApiNoContentResponse()
+  @ApiErrors({ 400: invalidId, 404: needNotFound })
+  deleteNeed(
+    @CurrentUser() user: User,
+    @Param("id", new ParseUUIDPipe()) id: string,
+  ) {
+    return this.employers.deleteNeed(user.id, id);
+  }
+
   @Get("needs/:id/shortlist")
   @ZodResponse({ status: 200, type: ShortlistDto })
   @ApiErrors(shortlistErrors)
@@ -141,6 +170,15 @@ export class EmployersController {
     @Param("candidateId", new ParseUUIDPipe()) candidateId: string,
   ) {
     return this.employers.setDismissed(user.id, id, candidateId, false);
+  }
+
+  // Фильтры в теле, а не в query: массивы грейдов и навыков без разбора строк.
+  @Post("candidates/search")
+  @HttpCode(200)
+  @ZodResponse({ status: 200, type: CandidateSearchResultDto })
+  @ApiErrors({ 400: invalidBody })
+  searchCandidates(@Body() body: CandidateSearchDto) {
+    return this.employers.searchCandidates(body);
   }
 
   @Get("invitations")

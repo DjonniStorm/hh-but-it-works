@@ -42,7 +42,7 @@ src/
 
 ## Роуты
 
-`ROUTES` в `shared/router/routes.ts`: `/`, `/profile`, `/invitations`, `/auth/{login,register,confirm}`, `/employer`, `/employer/needs`, `/employer/needs/new`, `/employer/needs/:needId`, `/employer/invitations`, `/employer/company`, `/test`.
+`ROUTES` в `shared/router/routes.ts`: `/`, `/profile`, `/invitations`, `/auth/{login,register,confirm}`, `/employer`, `/employer/needs`, `/employer/needs/new`, `/employer/needs/:needId`, `/employer/needs/:needId/edit`, `/employer/search`, `/employer/invitations`, `/employer/company`, `/test`.
 
 `ProtectedRoute` пускает только с токеном, `CandidateRoute`/`EmployerRoute` — по `role`.
 
