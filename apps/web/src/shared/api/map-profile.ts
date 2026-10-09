@@ -1,4 +1,4 @@
-import type { CandidateProfile } from "@hh/contracts";
+import type { CandidateProfile, ResumeDraft } from "@hh/contracts";
 import {
   Grade,
   SearchStatus,
@@ -72,6 +72,17 @@ export function mapCandidateProfile(profile: {
       };
     }),
   };
+}
+
+export function mapResumeDraft(draft: {
+  displayName: string | null;
+  experienceYears: number | null;
+  claimedGrade: string | null;
+  telegram: string | null;
+  github: string | null;
+  skills: { slug: string; title: string }[];
+}): ResumeDraft {
+  return { ...draft, claimedGrade: mapGrade(draft.claimedGrade) };
 }
 
 function mapSpecialization(value: string | null): Specialization | null {
