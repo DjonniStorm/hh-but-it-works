@@ -158,6 +158,10 @@ function entry(col: Column, value: ResumeEntry): void {
   if (value.subtitle) {
     paragraph(col, value.subtitle, plain);
   }
+  if (value.note) {
+    col.gap(3);
+    paragraph(col, value.note, plain);
+  }
   for (const detail of value.details) {
     bullet(col, detail, plain);
   }

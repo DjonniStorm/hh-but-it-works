@@ -134,6 +134,7 @@ export const text = {
   salary: "Зарплата",
   status: "Статус",
   participant: "Участник",
+  present: "н. в.",
   place: "место",
 } as const;
 

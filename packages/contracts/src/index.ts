@@ -102,6 +102,87 @@ export const profileSkillSchema = z.object({
 
 const linkField = z.string().trim().max(120, "Слишком длинная ссылка");
 
+const resumeYearSchema = z
+  .number("Укажите год")
+  .int("Только целый год")
+  .min(1950, "Год не раньше 1950")
+  .max(2035, "Год не позже 2035");
+
+// Пустой «по» в форме — "", на сервер уходит null: по настоящее время.
+const optionalEndYearSchema = z
+  .union([z.literal(""), resumeYearSchema])
+  .nullable()
+  .transform((value) => {
+    return value === "" ? null : value;
+  });
+
+function yearsInOrder(entry: {
+  fromYear: number;
+  toYear: number | null;
+}): boolean {
+  return entry.toYear === null || entry.toYear >= entry.fromYear;
+}
+
+export const educationEntrySchema = z.object({
+  school: z.string().max(80),
+  program: z.string().max(80),
+  fromYear: z.number().int().min(1950).max(2035),
+  toYear: z.number().int().min(1950).max(2035).nullable(),
+});
+
+export const experienceEntrySchema = z.object({
+  company: z.string().max(80),
+  role: z.string().max(80),
+  fromYear: z.number().int().min(1950).max(2035),
+  toYear: z.number().int().min(1950).max(2035).nullable(),
+  summary: z.string().max(280),
+});
+
+export const saveEducationEntrySchema = z
+  .object({
+    school: z
+      .string()
+      .trim()
+      .min(1, "Укажите учебное заведение")
+      .max(80, "Слишком длинное название"),
+    program: z
+      .string()
+      .trim()
+      .min(1, "Укажите программу")
+      .max(80, "Слишком длинное название"),
+    fromYear: resumeYearSchema,
+    toYear: optionalEndYearSchema,
+  })
+  .refine(yearsInOrder, {
+    message: "Год окончания не раньше начала",
+    path: ["toYear"],
+  });
+
+export const saveExperienceEntrySchema = z
+  .object({
+    company: z
+      .string()
+      .trim()
+      .min(1, "Укажите компанию")
+      .max(80, "Слишком длинное название"),
+    role: z
+      .string()
+      .trim()
+      .min(1, "Укажите должность")
+      .max(80, "Слишком длинное название"),
+    fromYear: resumeYearSchema,
+    toYear: optionalEndYearSchema,
+    summary: z
+      .string()
+      .trim()
+      .min(1, "Коротко опишите, чем занимались")
+      .max(280, "Слишком длинный текст"),
+  })
+  .refine(yearsInOrder, {
+    message: "Год окончания не раньше начала",
+    path: ["toYear"],
+  });
+
 export const candidateProfileSchema = z.object({
   displayName: z.string(),
   specialization: specializationSchema.nullable(),
@@ -114,6 +195,8 @@ export const candidateProfileSchema = z.object({
   // Ожидания кандидата: по ним подборка сверяет вилку и формат работодателя.
   desiredSalaryFrom: z.number().int().positive().nullable(),
   experienceYears: z.number().min(0).nullable(),
+  education: z.array(educationEntrySchema),
+  experience: z.array(experienceEntrySchema),
   workFormats: z.array(workFormatSchema),
   searchStatus: searchStatusSchema,
   showExperience: z.boolean(),
@@ -168,6 +251,8 @@ export const saveContactsSchema = z.object({
   website: linkField,
   desiredSalaryFrom: optionalSalarySchema,
   experienceYears: optionalYearsSchema,
+  education: z.array(saveEducationEntrySchema).max(8),
+  experience: z.array(saveExperienceEntrySchema).max(12),
   workFormats: z.array(workFormatSchema).max(3),
   searchStatus: searchStatusSchema,
   showExperience: z.boolean(),
@@ -623,6 +708,8 @@ export type Health = z.infer<typeof healthSchema>;
 export type ValidationIssue = z.infer<typeof validationIssueSchema>;
 export type ApiError = z.infer<typeof apiErrorSchema>;
 export type CandidateProfile = z.infer<typeof candidateProfileSchema>;
+export type EducationEntry = z.infer<typeof educationEntrySchema>;
+export type ExperienceEntry = z.infer<typeof experienceEntrySchema>;
 export type SaveProfileInput = z.infer<typeof saveProfileSchema>;
 export type ResumeDraft = z.infer<typeof resumeDraftSchema>;
 export type ResumePdfQuery = z.infer<typeof resumePdfQuerySchema>;

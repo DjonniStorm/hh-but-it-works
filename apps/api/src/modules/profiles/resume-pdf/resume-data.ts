@@ -31,6 +31,8 @@ export type ResumeEntry = {
   title: string;
   subtitle: string | null;
   period: string;
+  // Абзац под записью: описание опыта. Строки списком — в details.
+  note: string | null;
   details: string[];
 };
 
@@ -96,8 +98,8 @@ export function buildResume(source: ResumeSource): ResumeData {
     contacts: contactsOf(profile, source.email),
     skills,
     facts: factsOf(profile, experienceYears),
-    experience: [],
-    education: [],
+    experience: experienceEntries(profile),
+    education: educationEntries(profile),
     achievements,
     generatedAt: new Date(),
   };
@@ -130,6 +132,43 @@ function visibleSkills(source: ResumeSource): ResumeSkill[] {
     });
 }
 
+// Опыт и образование кандидат заполняет сам. Порядок — как в анкете.
+function experienceEntries(profile: CandidateProfile): ResumeEntry[] {
+  return (profile.experience ?? []).map((item) => {
+    const lines = item.summary
+      .split(/\r?\n/)
+      .map((line) => {
+        return line.replace(/^\s*[-•*]\s*/, "").trim();
+      })
+      .filter(Boolean);
+    // Несколько строк — список с маркерами, одна — обычный абзац.
+    const listed = lines.length > 1;
+    return {
+      title: item.company,
+      subtitle: item.role || null,
+      period: yearRange(item.fromYear, item.toYear),
+      note: listed ? null : (lines[0] ?? null),
+      details: listed ? lines : [],
+    };
+  });
+}
+
+function educationEntries(profile: CandidateProfile): ResumeEntry[] {
+  return (profile.education ?? []).map((item) => {
+    return {
+      title: item.school,
+      subtitle: item.program || null,
+      period: yearRange(item.fromYear, item.toYear),
+      note: null,
+      details: [],
+    };
+  });
+}
+
+function yearRange(fromYear: number, toYear: number | null): string {
+  return `${fromYear} — ${toYear ?? text.present}`;
+}
+
 function achievementEntries(source: ResumeSource): ResumeEntry[] {
   return [...source.achievements]
     .sort((left, right) => {
@@ -140,6 +179,7 @@ function achievementEntries(source: ResumeSource): ResumeEntry[] {
         title: item.title,
         subtitle: item.place ? `${item.place} ${text.place}` : text.participant,
         period: String(item.year),
+        note: null,
         details: [],
       };
     });

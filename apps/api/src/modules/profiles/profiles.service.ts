@@ -485,6 +485,8 @@ export class ProfilesService implements OnModuleInit {
       website: profile?.website ?? null,
       desiredSalaryFrom: profile?.desiredSalaryFrom ?? null,
       experienceYears: profile?.experienceYears ?? null,
+      education: profile?.education ?? [],
+      experience: profile?.experience ?? [],
       workFormats: profile?.workFormats ?? [],
       searchStatus: profile?.searchStatus ?? SearchStatus.OpenToOffers,
       showExperience: profile?.showExperience ?? true,
@@ -535,6 +537,8 @@ function expectations(
   CandidateProfile,
   | "desiredSalaryFrom"
   | "experienceYears"
+  | "education"
+  | "experience"
   | "workFormats"
   | "searchStatus"
   | "showExperience"
@@ -545,6 +549,8 @@ function expectations(
   return {
     desiredSalaryFrom: input.desiredSalaryFrom,
     experienceYears: input.experienceYears,
+    education: input.education,
+    experience: input.experience,
     workFormats: input.workFormats,
     searchStatus: input.searchStatus,
     showExperience: input.showExperience,
