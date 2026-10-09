@@ -59,8 +59,8 @@ export class ProfilesController {
   })
   @ZodResponse({ status: 200, type: ResumeDraftDto })
   @ApiErrors({
-    400: "Файла нет, это не PDF, PDF больше 5 МБ или 10 страниц, не читается",
-    422: "В PDF нет текста, из которого собрать анкету",
+    400: "Файл не передан, не является PDF, больше 5 МБ или 10 страниц либо не читается",
+    422: "В PDF нет текста для заполнения анкеты",
   })
   resumeDraft(
     @UploadedFile() file: Express.Multer.File | undefined,
@@ -86,7 +86,7 @@ export class ProfilesController {
   @Put()
   @ZodResponse({ status: 200, type: CandidateProfileDto })
   @ApiErrors({
-    400: `${invalidBody}. Или навык пустой, skillId неизвестен, своих навыков больше лимита`,
+    400: `${invalidBody}. Также: пустое название навыка, неизвестный skillId или превышен лимит собственных навыков`,
   })
   save(@CurrentUser() user: User, @Body() body: SaveProfileDto) {
     return this.profiles.save(user.id, body);

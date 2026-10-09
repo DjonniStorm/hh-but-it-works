@@ -34,7 +34,8 @@ import {
 import { EmployersService } from "./employers.service";
 import { InvitationsService } from "./invitations.service";
 
-const needNotFound = "Потребности нет или она чужая";
+const needNotFound =
+  "Потребность не найдена или принадлежит другому работодателю";
 
 // Подборку считает сервис ранжирования: без него ручка отвечает 503.
 const shortlistErrors = {
@@ -152,8 +153,8 @@ export class EmployersController {
   @ZodResponse({ status: 200, type: InvitationDto })
   @ApiErrors({
     400: invalidId,
-    404: "Приглашения нет или оно чужое",
-    409: "Кандидат уже ответил или приглашение уже отозвано",
+    404: "Приглашение не найдено или принадлежит другой компании",
+    409: "Кандидат уже ответил на приглашение или оно отозвано",
   })
   withdraw(
     @CurrentUser() user: User,
@@ -165,8 +166,8 @@ export class EmployersController {
   @Post("invitations")
   @ZodResponse({ status: 201, type: InvitationDto })
   @ApiErrors({
-    400: `${invalidBody}. Или профиль компании не заполнен`,
-    404: "Кандидата нет на бирже или потребность не найдена",
+    400: `${invalidBody}. Также: профиль компании не заполнен`,
+    404: "Кандидат не найден на бирже или потребность не найдена",
     409: "У кандидата уже есть активное приглашение от компании",
   })
   createInvitation(

@@ -46,7 +46,7 @@
             }
           },
           "400": {
-            "description": "Тело запроса не прошло схему: список замечаний в errors",
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
             "content": {
               "application/json": {
                 "schema": {
@@ -95,7 +95,7 @@
             }
           },
           "400": {
-            "description": "Тело запроса не прошло схему: список замечаний в errors",
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
             "content": {
               "application/json": {
                 "schema": {
@@ -137,7 +137,7 @@
             "description": ""
           },
           "400": {
-            "description": "Тело запроса не прошло схему: список замечаний в errors",
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
             "content": {
               "application/json": {
                 "schema": {
@@ -147,7 +147,7 @@
             }
           },
           "429": {
-            "description": "Письмо на эту почту уже отправляли меньше минуты назад",
+            "description": "Письмо на этот адрес уже отправлено, повторная отправка доступна через минуту",
             "content": {
               "application/json": {
                 "schema": {
@@ -186,7 +186,7 @@
             }
           },
           "400": {
-            "description": "Тело запроса не прошло схему: список замечаний в errors",
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
             "content": {
               "application/json": {
                 "schema": {
@@ -245,7 +245,7 @@
             }
           },
           "400": {
-            "description": "Тело запроса не прошло схему: список замечаний в errors",
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
             "content": {
               "application/json": {
                 "schema": {
@@ -287,7 +287,7 @@
             "description": ""
           },
           "400": {
-            "description": "Тело запроса не прошло схему: список замечаний в errors",
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
             "content": {
               "application/json": {
                 "schema": {
@@ -326,7 +326,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -360,7 +360,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -370,7 +370,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли candidate",
+            "description": "Доступ только для роли candidate",
             "content": {
               "application/json": {
                 "schema": {
@@ -412,7 +412,7 @@
             }
           },
           "400": {
-            "description": "Тело запроса не прошло схему: список замечаний в errors. Или навык пустой, skillId неизвестен, своих навыков больше лимита",
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors. Также: пустое название навыка, неизвестный skillId или превышен лимит собственных навыков",
             "content": {
               "application/json": {
                 "schema": {
@@ -422,7 +422,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -432,7 +432,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли candidate",
+            "description": "Доступ только для роли candidate",
             "content": {
               "application/json": {
                 "schema": {
@@ -483,7 +483,7 @@
             }
           },
           "400": {
-            "description": "Файла нет, это не PDF, PDF больше 5 МБ или 10 страниц, не читается",
+            "description": "Файл не передан, не является PDF, больше 5 МБ или 10 страниц либо не читается",
             "content": {
               "application/json": {
                 "schema": {
@@ -493,7 +493,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -503,7 +503,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли candidate",
+            "description": "Доступ только для роли candidate",
             "content": {
               "application/json": {
                 "schema": {
@@ -513,7 +513,7 @@
             }
           },
           "422": {
-            "description": "В PDF нет текста, из которого собрать анкету",
+            "description": "В PDF нет текста для заполнения анкеты",
             "content": {
               "application/json": {
                 "schema": {
@@ -548,7 +548,7 @@
             "description": ""
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -558,7 +558,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли candidate",
+            "description": "Доступ только для роли candidate",
             "content": {
               "application/json": {
                 "schema": {
@@ -612,7 +612,7 @@
             }
           },
           "400": {
-            "description": "Тело запроса не прошло схему: список замечаний в errors. Или анкета не сохранена, для её навыков нет вопросов",
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors. Также: анкета не сохранена или для её навыков нет вопросов",
             "content": {
               "application/json": {
                 "schema": {
@@ -622,7 +622,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -632,7 +632,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли candidate",
+            "description": "Доступ только для роли candidate",
             "content": {
               "application/json": {
                 "schema": {
@@ -642,7 +642,7 @@
             }
           },
           "409": {
-            "description": "Уже идёт другая попытка или грейд пока нельзя сменить",
+            "description": "Есть незавершённая попытка или смена грейда пока недоступна",
             "content": {
               "application/json": {
                 "schema": {
@@ -676,7 +676,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -686,7 +686,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли candidate",
+            "description": "Доступ только для роли candidate",
             "content": {
               "application/json": {
                 "schema": {
@@ -730,7 +730,7 @@
             }
           },
           "400": {
-            "description": "Тело запроса не прошло схему: список замечаний в errors. Или попытки нет: её закрыли или истекло время",
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors. Также: попытка не найдена, завершена или время истекло",
             "content": {
               "application/json": {
                 "schema": {
@@ -740,7 +740,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -750,7 +750,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли candidate",
+            "description": "Доступ только для роли candidate",
             "content": {
               "application/json": {
                 "schema": {
@@ -760,7 +760,7 @@
             }
           },
           "409": {
-            "description": "Вопрос уже закрыт или все вопросы отвечены",
+            "description": "Вопрос уже закрыт или на все вопросы даны ответы",
             "content": {
               "application/json": {
                 "schema": {
@@ -804,7 +804,7 @@
             }
           },
           "400": {
-            "description": "Тело запроса не прошло схему: список замечаний в errors. Или попытки нет",
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors. Также: попытка не найдена",
             "content": {
               "application/json": {
                 "schema": {
@@ -814,7 +814,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -824,7 +824,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли candidate",
+            "description": "Доступ только для роли candidate",
             "content": {
               "application/json": {
                 "schema": {
@@ -868,7 +868,7 @@
             }
           },
           "400": {
-            "description": "Тело запроса не прошло схему: список замечаний в errors. Или попытки нет: её уже завершили или истекло время",
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors. Также: попытка не найдена, уже завершена или время истекло",
             "content": {
               "application/json": {
                 "schema": {
@@ -878,7 +878,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -888,7 +888,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли candidate",
+            "description": "Доступ только для роли candidate",
             "content": {
               "application/json": {
                 "schema": {
@@ -898,7 +898,7 @@
             }
           },
           "409": {
-            "description": "Специализация в анкете сменилась во время теста",
+            "description": "Специализация в анкете изменилась во время теста",
             "content": {
               "application/json": {
                 "schema": {
@@ -932,7 +932,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -942,7 +942,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли candidate",
+            "description": "Доступ только для роли candidate",
             "content": {
               "application/json": {
                 "schema": {
@@ -976,7 +976,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -986,7 +986,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли employer",
+            "description": "Доступ только для роли employer",
             "content": {
               "application/json": {
                 "schema": {
@@ -1028,7 +1028,7 @@
             }
           },
           "400": {
-            "description": "Тело запроса не прошло схему: список замечаний в errors",
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
             "content": {
               "application/json": {
                 "schema": {
@@ -1038,7 +1038,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -1048,7 +1048,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли employer",
+            "description": "Доступ только для роли employer",
             "content": {
               "application/json": {
                 "schema": {
@@ -1082,7 +1082,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -1092,7 +1092,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли employer",
+            "description": "Доступ только для роли employer",
             "content": {
               "application/json": {
                 "schema": {
@@ -1134,7 +1134,7 @@
             }
           },
           "400": {
-            "description": "Тело запроса не прошло схему: список замечаний в errors",
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
             "content": {
               "application/json": {
                 "schema": {
@@ -1144,7 +1144,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -1154,7 +1154,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли employer",
+            "description": "Доступ только для роли employer",
             "content": {
               "application/json": {
                 "schema": {
@@ -1197,7 +1197,7 @@
             }
           },
           "400": {
-            "description": "id в пути — не UUID",
+            "description": "Параметр id в пути не является UUID",
             "content": {
               "application/json": {
                 "schema": {
@@ -1207,7 +1207,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -1217,7 +1217,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли employer",
+            "description": "Доступ только для роли employer",
             "content": {
               "application/json": {
                 "schema": {
@@ -1227,7 +1227,7 @@
             }
           },
           "404": {
-            "description": "Потребности нет или она чужая",
+            "description": "Потребность не найдена или принадлежит другому работодателю",
             "content": {
               "application/json": {
                 "schema": {
@@ -1270,7 +1270,7 @@
             }
           },
           "400": {
-            "description": "id в пути — не UUID",
+            "description": "Параметр id в пути не является UUID",
             "content": {
               "application/json": {
                 "schema": {
@@ -1280,7 +1280,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -1290,7 +1290,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли employer",
+            "description": "Доступ только для роли employer",
             "content": {
               "application/json": {
                 "schema": {
@@ -1300,7 +1300,7 @@
             }
           },
           "404": {
-            "description": "Потребности нет или она чужая",
+            "description": "Потребность не найдена или принадлежит другому работодателю",
             "content": {
               "application/json": {
                 "schema": {
@@ -1361,7 +1361,7 @@
             }
           },
           "400": {
-            "description": "id в пути — не UUID",
+            "description": "Параметр id в пути не является UUID",
             "content": {
               "application/json": {
                 "schema": {
@@ -1371,7 +1371,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -1381,7 +1381,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли employer",
+            "description": "Доступ только для роли employer",
             "content": {
               "application/json": {
                 "schema": {
@@ -1391,7 +1391,7 @@
             }
           },
           "404": {
-            "description": "Потребности нет или она чужая",
+            "description": "Потребность не найдена или принадлежит другому работодателю",
             "content": {
               "application/json": {
                 "schema": {
@@ -1450,7 +1450,7 @@
             }
           },
           "400": {
-            "description": "id в пути — не UUID",
+            "description": "Параметр id в пути не является UUID",
             "content": {
               "application/json": {
                 "schema": {
@@ -1460,7 +1460,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -1470,7 +1470,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли employer",
+            "description": "Доступ только для роли employer",
             "content": {
               "application/json": {
                 "schema": {
@@ -1480,7 +1480,7 @@
             }
           },
           "404": {
-            "description": "Потребности нет или она чужая",
+            "description": "Потребность не найдена или принадлежит другому работодателю",
             "content": {
               "application/json": {
                 "schema": {
@@ -1541,7 +1541,7 @@
             }
           },
           "400": {
-            "description": "id в пути — не UUID",
+            "description": "Параметр id в пути не является UUID",
             "content": {
               "application/json": {
                 "schema": {
@@ -1551,7 +1551,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -1561,7 +1561,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли employer",
+            "description": "Доступ только для роли employer",
             "content": {
               "application/json": {
                 "schema": {
@@ -1571,7 +1571,7 @@
             }
           },
           "404": {
-            "description": "Потребности нет или она чужая",
+            "description": "Потребность не найдена или принадлежит другому работодателю",
             "content": {
               "application/json": {
                 "schema": {
@@ -1630,7 +1630,7 @@
             }
           },
           "400": {
-            "description": "id в пути — не UUID",
+            "description": "Параметр id в пути не является UUID",
             "content": {
               "application/json": {
                 "schema": {
@@ -1640,7 +1640,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -1650,7 +1650,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли employer",
+            "description": "Доступ только для роли employer",
             "content": {
               "application/json": {
                 "schema": {
@@ -1660,7 +1660,7 @@
             }
           },
           "404": {
-            "description": "Потребности нет или она чужая",
+            "description": "Потребность не найдена или принадлежит другому работодателю",
             "content": {
               "application/json": {
                 "schema": {
@@ -1704,7 +1704,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -1714,7 +1714,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли employer",
+            "description": "Доступ только для роли employer",
             "content": {
               "application/json": {
                 "schema": {
@@ -1756,7 +1756,7 @@
             }
           },
           "400": {
-            "description": "Тело запроса не прошло схему: список замечаний в errors. Или профиль компании не заполнен",
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors. Также: профиль компании не заполнен",
             "content": {
               "application/json": {
                 "schema": {
@@ -1766,7 +1766,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -1776,7 +1776,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли employer",
+            "description": "Доступ только для роли employer",
             "content": {
               "application/json": {
                 "schema": {
@@ -1786,7 +1786,7 @@
             }
           },
           "404": {
-            "description": "Кандидата нет на бирже или потребность не найдена",
+            "description": "Кандидат не найден на бирже или потребность не найдена",
             "content": {
               "application/json": {
                 "schema": {
@@ -1839,7 +1839,7 @@
             }
           },
           "400": {
-            "description": "id в пути — не UUID",
+            "description": "Параметр id в пути не является UUID",
             "content": {
               "application/json": {
                 "schema": {
@@ -1849,7 +1849,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -1859,7 +1859,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли employer",
+            "description": "Доступ только для роли employer",
             "content": {
               "application/json": {
                 "schema": {
@@ -1869,7 +1869,7 @@
             }
           },
           "404": {
-            "description": "Приглашения нет или оно чужое",
+            "description": "Приглашение не найдено или принадлежит другой компании",
             "content": {
               "application/json": {
                 "schema": {
@@ -1879,7 +1879,7 @@
             }
           },
           "409": {
-            "description": "Кандидат уже ответил или приглашение уже отозвано",
+            "description": "Кандидат уже ответил на приглашение или оно отозвано",
             "content": {
               "application/json": {
                 "schema": {
@@ -1913,7 +1913,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -1923,7 +1923,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли candidate",
+            "description": "Доступ только для роли candidate",
             "content": {
               "application/json": {
                 "schema": {
@@ -1960,7 +1960,7 @@
             "description": ""
           },
           "400": {
-            "description": "Тело запроса не прошло схему: список замечаний в errors",
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
             "content": {
               "application/json": {
                 "schema": {
@@ -1970,7 +1970,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -1980,7 +1980,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли candidate",
+            "description": "Доступ только для роли candidate",
             "content": {
               "application/json": {
                 "schema": {
@@ -2023,7 +2023,7 @@
             }
           },
           "400": {
-            "description": "id в пути — не UUID",
+            "description": "Параметр id в пути не является UUID",
             "content": {
               "application/json": {
                 "schema": {
@@ -2033,7 +2033,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -2043,7 +2043,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли candidate",
+            "description": "Доступ только для роли candidate",
             "content": {
               "application/json": {
                 "schema": {
@@ -2053,7 +2053,7 @@
             }
           },
           "404": {
-            "description": "Приглашения нет или оно не этому кандидату",
+            "description": "Приглашение не найдено или адресовано другому кандидату",
             "content": {
               "application/json": {
                 "schema": {
@@ -2106,7 +2106,7 @@
             }
           },
           "400": {
-            "description": "id в пути — не UUID",
+            "description": "Параметр id в пути не является UUID",
             "content": {
               "application/json": {
                 "schema": {
@@ -2116,7 +2116,7 @@
             }
           },
           "401": {
-            "description": "Нет access-токена, он истёк или пользователя уже нет",
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
             "content": {
               "application/json": {
                 "schema": {
@@ -2126,7 +2126,7 @@
             }
           },
           "403": {
-            "description": "Ручка только для роли candidate",
+            "description": "Доступ только для роли candidate",
             "content": {
               "application/json": {
                 "schema": {
@@ -2136,7 +2136,7 @@
             }
           },
           "404": {
-            "description": "Приглашения нет или оно не этому кандидату",
+            "description": "Приглашение не найдено или адресовано другому кандидату",
             "content": {
               "application/json": {
                 "schema": {

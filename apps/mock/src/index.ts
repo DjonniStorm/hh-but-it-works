@@ -7,7 +7,10 @@ const achievementSchema = t.Object({
   title: t.String({ description: "Название соревнования" }),
   year: t.Number({ description: "Год проведения" }),
   place: t.Nullable(
-    t.Number({ minimum: 1, description: "Место; null — участие без места" }),
+    t.Number({
+      minimum: 1,
+      description: "Занятое место; null, если место не присуждено",
+    }),
   ),
 });
 
@@ -133,11 +136,11 @@ new Elysia()
       return { status: "ok" as const, service: "mock" as const };
     },
     {
-      detail: { summary: "Проверка, что мок жив" },
+      detail: { summary: "Проверка доступности мока" },
       response: {
         200: t.Object(
           { status: t.Literal("ok"), service: t.Literal("mock") },
-          { description: "Мок работает" },
+          { description: "Мок доступен" },
         ),
       },
     },
@@ -153,7 +156,9 @@ new Elysia()
     },
     {
       params: t.Object({
-        fspId: t.String({ description: "ID участника, например fsp-b101" }),
+        fspId: t.String({
+          description: "Идентификатор участника, например fsp-b101",
+        }),
       }),
       detail: { summary: "Достижения участника ФСП" },
       response: {
@@ -163,7 +168,7 @@ new Elysia()
         ),
         404: t.Object(
           { message: t.String() },
-          { description: "У участника нет истории в реестре" },
+          { description: "История участника в реестре не найдена" },
         ),
       },
     },

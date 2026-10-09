@@ -31,8 +31,8 @@ export class AssessmentsController {
   @Post("attempts")
   @ZodResponse({ status: 201, type: ActiveAttemptDto })
   @ApiErrors({
-    400: `${invalidBody}. Или анкета не сохранена, для её навыков нет вопросов`,
-    409: "Уже идёт другая попытка или грейд пока нельзя сменить",
+    400: `${invalidBody}. Также: анкета не сохранена или для её навыков нет вопросов`,
+    409: "Есть незавершённая попытка или смена грейда пока недоступна",
   })
   start(
     @CurrentUser() user: User,
@@ -55,8 +55,8 @@ export class AssessmentsController {
   @Post("attempts/answer")
   @ZodResponse({ status: 200, type: ActiveAttemptDto })
   @ApiErrors({
-    400: `${invalidBody}. Или попытки нет: её закрыли или истекло время`,
-    409: "Вопрос уже закрыт или все вопросы отвечены",
+    400: `${invalidBody}. Также: попытка не найдена, завершена или время истекло`,
+    409: "Вопрос уже закрыт или на все вопросы даны ответы",
   })
   answer(
     @CurrentUser() user: User,
@@ -69,7 +69,7 @@ export class AssessmentsController {
 
   @Post("attempts/events")
   @ZodResponse({ status: 200, type: AssessmentEventsAcceptedDto })
-  @ApiErrors({ 400: `${invalidBody}. Или попытки нет` })
+  @ApiErrors({ 400: `${invalidBody}. Также: попытка не найдена` })
   events(@CurrentUser() user: User, @Body() body: AssessmentEventsDto) {
     return this.assessments.events(user.id, body);
   }
@@ -77,8 +77,8 @@ export class AssessmentsController {
   @Post("attempts/finish")
   @ZodResponse({ status: 200, type: AssessmentResultDto })
   @ApiErrors({
-    400: `${invalidBody}. Или попытки нет: её уже завершили или истекло время`,
-    409: "Специализация в анкете сменилась во время теста",
+    400: `${invalidBody}. Также: попытка не найдена, уже завершена или время истекло`,
+    409: "Специализация в анкете изменилась во время теста",
   })
   finish(@CurrentUser() user: User, @Body() body: FinishAssessmentDto) {
     return this.assessments.finish(user.id, body.attemptId);

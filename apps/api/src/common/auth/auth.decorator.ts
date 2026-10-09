@@ -8,7 +8,7 @@ import { JwtAuthGuard } from "./jwt-auth.guard";
 import { Roles } from "./roles.decorator";
 import { RolesGuard } from "./roles.guard";
 
-const noToken = "Нет access-токена, он истёк или пользователя уже нет";
+const noToken = "Access-токен отсутствует, истёк или пользователь удалён";
 
 // Guard'ы и их ошибки в Swagger одним декоратором: 401 и 403 в описании
 // появляются ровно там, где их может вернуть guard.
@@ -27,7 +27,7 @@ export function Auth(...roles: Role[]) {
     Roles(...roles),
     ApiErrors({
       401: noToken,
-      403: `Ручка только для роли ${roles.join(", ")}`,
+      403: `Доступ только для роли ${roles.join(", ")}`,
     }),
   );
 }

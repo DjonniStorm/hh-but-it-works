@@ -49,7 +49,7 @@ export class AuthController {
   @ApiNoContentResponse()
   @ApiErrors({
     400: invalidBody,
-    429: "Письмо на эту почту уже отправляли меньше минуты назад",
+    429: "Письмо на этот адрес уже отправлено, повторная отправка доступна через минуту",
   })
   resendConfirmation(@Body() body: ResendConfirmationDto) {
     return this.auth.resendConfirmation(body);
