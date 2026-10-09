@@ -131,7 +131,7 @@ export const TestingTab = ({ profile }: { profile: CandidateProfile }) => {
         {phase === "run" && attempt ? (
           <TestingRun
             attempt={attempt}
-            fullscreenLost={watch.fullscreenLost}
+            pause={watch.pause}
             onFullscreen={watch.enterFullscreen}
             onAnswered={advance}
             onStale={() => {
