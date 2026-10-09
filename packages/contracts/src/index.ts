@@ -76,8 +76,11 @@ export const apiErrorSchema = z.object({
   errors: z.array(validationIssueSchema).optional(),
 });
 
-export const specializationSchema = z.enum(Specialization);
-export const gradeSchema = z.enum(Grade);
+export const specializationSchema = z.enum(
+  Specialization,
+  "Выберите специализацию",
+);
+export const gradeSchema = z.enum(Grade, "Выберите грейд");
 export const skillLevelSchema = z.enum(SkillLevel);
 export const skillVerificationSchema = z.enum(SkillVerification);
 export const workFormatSchema = z.enum(WorkFormat, "Выберите формат работы");
@@ -234,7 +237,7 @@ const optionalYearsSchema = z
   });
 
 export const saveContactsSchema = z.object({
-  displayName: z.string().trim().min(1, "Укажите имя"),
+  displayName: z.string().trim().min(1, "Укажите ФИО"),
   specialization: specializationSchema,
   claimedGrade: gradeSchema,
   fspId: z.string().trim().max(64, "Слишком длинный ID"),
@@ -278,18 +281,28 @@ export const saveProfileSchema = saveContactsSchema.extend({
 });
 
 // Черновик из текста резюме. В профиль не пишется, пока кандидат не сохранит форму.
+// Почты, телефона и софт-скиллов в анкете нет: их форма только показывает.
 export const resumeDraftSchema = z.object({
   displayName: z.string().max(80).nullable(),
+  specialization: specializationSchema.nullable(),
   experienceYears: z.number().min(0).max(40).nullable(),
   claimedGrade: gradeSchema.nullable(),
+  email: z.string().max(120).nullable(),
+  phone: z.string().max(40).nullable(),
   telegram: z.string().max(120).nullable(),
   github: z.string().max(120).nullable(),
+  linkedin: z.string().max(120).nullable(),
+  website: z.string().max(120).nullable(),
+  desiredSalaryFrom: z.number().int().positive().nullable(),
+  workFormats: z.array(workFormatSchema),
+  searchStatus: searchStatusSchema.nullable(),
   skills: z.array(
     z.object({
       slug: z.string(),
       title: z.string(),
     }),
   ),
+  softSkills: z.array(z.string()),
 });
 
 // Модель работодателя: профиль компании, потребности, подборка, приглашения.

@@ -10,13 +10,29 @@ type ContactForm = {
 export function draftHasFields(draft: ResumeDraft): boolean {
   return (
     draft.displayName !== null ||
+    draft.specialization !== null ||
     draft.experienceYears !== null ||
     draft.claimedGrade !== null ||
     draft.telegram !== null ||
     draft.github !== null ||
+    draft.linkedin !== null ||
+    draft.website !== null ||
+    draft.desiredSalaryFrom !== null ||
+    draft.workFormats.length > 0 ||
     draft.skills.length > 0
   );
 }
+
+// Строковые поля анкеты, которые черновик переносит как есть.
+const textFields = [
+  "displayName",
+  "specialization",
+  "telegram",
+  "github",
+  "linkedin",
+  "website",
+  "searchStatus",
+] as const;
 
 // Подтверждённый грейд черновик не трогает: его ставит только тест.
 export function applyContactDraft(
@@ -24,17 +40,20 @@ export function applyContactDraft(
   draft: ResumeDraft,
   verifiedGrade: Grade | null,
 ): void {
-  if (draft.displayName) {
-    form.setFieldValue("displayName", draft.displayName);
-  }
-  if (draft.telegram) {
-    form.setFieldValue("telegram", draft.telegram);
-  }
-  if (draft.github) {
-    form.setFieldValue("github", draft.github);
+  for (const field of textFields) {
+    const value = draft[field];
+    if (value) {
+      form.setFieldValue(field, value);
+    }
   }
   if (draft.experienceYears !== null) {
     form.setFieldValue("experienceYears", draft.experienceYears);
+  }
+  if (draft.desiredSalaryFrom !== null) {
+    form.setFieldValue("desiredSalaryFrom", draft.desiredSalaryFrom);
+  }
+  if (draft.workFormats.length > 0) {
+    form.setFieldValue("workFormats", draft.workFormats.slice());
   }
   if (!verifiedGrade && draft.claimedGrade) {
     form.setFieldValue("claimedGrade", draft.claimedGrade);

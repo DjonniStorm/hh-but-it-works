@@ -109,14 +109,23 @@ export type CandidateProfileDtoOutput = {
 
 export type ResumeDraftDtoOutput = {
     displayName: string | null;
+    specialization: 'backend' | 'frontend' | 'data' | 'security' | null;
     experienceYears: number | null;
     claimedGrade: 'junior' | 'middle' | 'senior' | null;
+    email: string | null;
+    phone: string | null;
     telegram: string | null;
     github: string | null;
+    linkedin: string | null;
+    website: string | null;
+    desiredSalaryFrom: number | null;
+    workFormats: Array<'office' | 'hybrid' | 'remote'>;
+    searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden' | null;
     skills: Array<{
         slug: string;
         title: string;
     }>;
+    softSkills: Array<string>;
 };
 
 export type SaveProfileDto = {

@@ -54,7 +54,7 @@ export const ContactsPanel = ({
         </Text>
         <TextInput label="Почта" value={email} readOnly />
         <TextInput
-          label="Имя"
+          label="ФИО"
           autoComplete="name"
           withAsterisk
           {...form.getInputProps("displayName")}
