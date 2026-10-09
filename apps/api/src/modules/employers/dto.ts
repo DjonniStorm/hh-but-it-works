@@ -3,6 +3,8 @@ import { createZodDto } from "nestjs-zod";
 import {
   candidateInvitationListSchema,
   candidateInvitationSchema,
+  candidateSearchResultSchema,
+  candidateSearchSchema,
   companyProfileSchema,
   companyResponseSchema,
   hiringNeedInputSchema,
@@ -21,6 +23,10 @@ export class HiringNeedInputDto extends createZodDto(hiringNeedInputSchema) {}
 export class HiringNeedDto extends createZodDto(hiringNeedSchema) {}
 export class HiringNeedListDto extends createZodDto(hiringNeedListSchema) {}
 export class ShortlistDto extends createZodDto(shortlistSchema) {}
+export class CandidateSearchDto extends createZodDto(candidateSearchSchema) {}
+export class CandidateSearchResultDto extends createZodDto(
+  candidateSearchResultSchema,
+) {}
 export class InvitationInputDto extends createZodDto(invitationInputSchema) {}
 export class InvitationDto extends createZodDto(invitationSchema) {}
 export class InvitationListDto extends createZodDto(invitationListSchema) {}

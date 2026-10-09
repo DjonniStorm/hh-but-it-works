@@ -1,0 +1,4 @@
+# ranking сверяет SHA-256 сырых байтов кода признаков, модели и калибратора
+# с model.meta.json. С CRLF (core.autocrlf=true на Windows) суммы не сходятся,
+# и сервис тихо уходит из hybrid в rules. Поэтому в apps/ranking всегда LF.
+apps/ranking/** text=auto eol=lf

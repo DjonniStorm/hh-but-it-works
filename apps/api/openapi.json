@@ -44,6 +44,26 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Пользователь с такой почтой уже есть",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Auth"]
@@ -73,6 +93,26 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Ссылка подтверждения недействительна или уже использована",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Auth"]
@@ -96,8 +136,25 @@
           "204": {
             "description": ""
           },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
           "429": {
-            "description": "Письмо уже отправлено"
+            "description": "Письмо на этот адрес уже отправлено, повторная отправка доступна через минуту",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Auth"]
@@ -124,6 +181,36 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SessionDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Неверная почта или пароль",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Почта не подтверждена",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -156,6 +243,26 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Refresh-токен недействителен, истёк или уже использован",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Auth"]
@@ -178,6 +285,26 @@
         "responses": {
           "204": {
             "description": ""
+          },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Refresh-токен недействителен или истёк",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Auth"]
@@ -194,6 +321,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PublicUserDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -218,6 +355,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CandidateProfileDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -250,6 +407,36 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CandidateProfileDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors. Также: пустое название навыка, неизвестный skillId или превышен лимит собственных навыков",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -294,6 +481,46 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Файл не передан, не является PDF, больше 5 МБ или 10 страниц либо не читается",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "В PDF нет текста для заполнения анкеты",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -319,6 +546,36 @@
               }
             },
             "description": ""
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Анкета ещё не сохранена",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -353,6 +610,46 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors. Также: анкета не сохранена или для её навыков нет вопросов",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Есть незавершённая попытка или смена грейда пока недоступна",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -374,6 +671,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CurrentAttemptDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -411,6 +728,46 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors. Также: попытка не найдена, завершена или время истекло",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Вопрос уже закрыт или на все вопросы даны ответы",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -442,6 +799,36 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AssessmentEventsAcceptedDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors. Также: попытка не найдена",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -479,6 +866,46 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors. Также: попытка не найдена, уже завершена или время истекло",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Специализация в анкете изменилась во время теста",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -503,6 +930,26 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -524,6 +971,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CompanyResponseDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли employer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -559,6 +1026,36 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли employer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -580,6 +1077,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HiringNeedListDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли employer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -612,6 +1129,36 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HiringNeedDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли employer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -648,6 +1195,191 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Параметр id в пути не является UUID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли employer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Потребность не найдена или принадлежит другому работодателю",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      },
+      "put": {
+        "operationId": "EmployersController_updateNeed",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HiringNeedInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HiringNeedDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors. Также: параметр id в пути не является UUID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли employer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Потребность не найдена или принадлежит другому работодателю",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      },
+      "delete": {
+        "operationId": "EmployersController_deleteNeed",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "Параметр id в пути не является UUID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли employer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Потребность не найдена или принадлежит другому работодателю",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -678,6 +1410,56 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ShortlistDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Параметр id в пути не является UUID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли employer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Потребность не найдена или принадлежит другому работодателю",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Сервис ранжирования недоступен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -722,6 +1504,56 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Параметр id в пути не является UUID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли employer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Потребность не найдена или принадлежит другому работодателю",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Сервис ранжирования недоступен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -758,6 +1590,56 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ShortlistDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Параметр id в пути не является UUID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли employer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Потребность не найдена или принадлежит другому работодателю",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Сервис ранжирования недоступен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -802,6 +1684,56 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Параметр id в пути не является UUID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли employer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Потребность не найдена или принадлежит другому работодателю",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Сервис ранжирования недоступен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -841,6 +1773,120 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Параметр id в пути не является UUID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли employer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Потребность не найдена или принадлежит другому работодателю",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Сервис ранжирования недоступен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      }
+    },
+    "/employer/candidates/search": {
+      "post": {
+        "operationId": "EmployersController_searchCandidates",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CandidateSearchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateSearchResultDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли employer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -862,6 +1908,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/InvitationListDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли employer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -894,6 +1960,56 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/InvitationDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors. Также: профиль компании не заполнен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли employer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Кандидат не найден на бирже или потребность не найдена",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "У кандидата уже есть активное приглашение от компании",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -930,6 +2046,56 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Параметр id в пути не является UUID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли employer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Приглашение не найдено или принадлежит другой компании",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Кандидат уже ответил на приглашение или оно отозвано",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -951,6 +2117,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CandidateInvitationListDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -981,6 +2167,36 @@
         "responses": {
           "204": {
             "description": ""
+          },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1014,6 +2230,56 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Параметр id в пути не является UUID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Приглашение не найдено или адресовано другому кандидату",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Кандидат уже ответил на приглашение",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1044,6 +2310,56 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CandidateInvitationDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Параметр id в пути не является UUID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Приглашение не найдено или адресовано другому кандидату",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Кандидат уже ответил на приглашение",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
                 }
               }
             }
@@ -1135,6 +2451,54 @@
         },
         "required": ["id", "email", "role", "emailVerifiedAt"],
         "additionalProperties": false
+      },
+      "ApiErrorDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599
+          },
+          "message": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      }
+                    ]
+                  }
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": ["code", "path", "message"],
+              "additionalProperties": {}
+            }
+          }
+        },
+        "required": ["statusCode", "message"]
       },
       "ConfirmEmailDto": {
         "type": "object",
@@ -2601,6 +3965,29 @@
           "modelVersion": {
             "type": "string"
           },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "grade": {
+                  "type": "string",
+                  "enum": ["junior", "middle", "senior"]
+                },
+                "match": {
+                  "type": "string",
+                  "enum": ["exact", "adjacent"]
+                },
+                "candidateCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": ["grade", "match", "candidateCount"],
+              "additionalProperties": false
+            }
+          },
           "items": {
             "type": "array",
             "items": {
@@ -2853,7 +4240,205 @@
             }
           }
         },
-        "required": ["needId", "modelVersion", "items"],
+        "required": ["needId", "modelVersion", "categories", "items"],
+        "additionalProperties": false
+      },
+      "CandidateSearchDto": {
+        "type": "object",
+        "properties": {
+          "specialization": {
+            "type": "string",
+            "enum": ["backend", "frontend", "data", "security", null],
+            "nullable": true
+          },
+          "grades": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["junior", "middle", "senior"]
+            }
+          },
+          "skills": {
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "fspOnly": {
+            "type": "boolean"
+          }
+        },
+        "required": ["specialization", "grades", "skills", "fspOnly"]
+      },
+      "CandidateSearchResultDto_Output": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "alias": {
+                  "type": "string"
+                },
+                "specialization": {
+                  "type": "string",
+                  "enum": ["backend", "frontend", "data", "security"]
+                },
+                "claimedGrade": {
+                  "type": "string",
+                  "enum": ["junior", "middle", "senior"]
+                },
+                "verifiedGrade": {
+                  "type": "string",
+                  "enum": ["junior", "middle", "senior", null],
+                  "nullable": true
+                },
+                "gradeConfidence": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "nullable": true
+                },
+                "experienceYears": {
+                  "type": "number",
+                  "minimum": 0,
+                  "nullable": true
+                },
+                "skills": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "level": {
+                        "type": "string",
+                        "enum": ["basic", "confident", "strong", null],
+                        "nullable": true
+                      },
+                      "verification": {
+                        "type": "string",
+                        "enum": ["unverified", "verified", "verified_external"]
+                      },
+                      "score": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "nullable": true
+                      },
+                      "verifiedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                        "nullable": true
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "level",
+                      "verification",
+                      "score",
+                      "verifiedAt"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "assessmentScore": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100,
+                  "nullable": true
+                },
+                "profileFreshness": {
+                  "default": 1,
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "fspAchievements": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "year": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "place": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991,
+                        "nullable": true
+                      }
+                    },
+                    "required": ["title", "year", "place"],
+                    "additionalProperties": false
+                  }
+                },
+                "preferences": {
+                  "type": "object",
+                  "properties": {
+                    "desiredSalaryFrom": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "nullable": true
+                    },
+                    "workFormats": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": ["office", "hybrid", "remote"]
+                      }
+                    },
+                    "searchStatus": {
+                      "type": "string",
+                      "enum": ["actively-looking", "open-to-offers", "hidden"]
+                    }
+                  },
+                  "required": [
+                    "desiredSalaryFrom",
+                    "workFormats",
+                    "searchStatus"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "id",
+                "alias",
+                "specialization",
+                "claimedGrade",
+                "verifiedGrade",
+                "gradeConfidence",
+                "experienceYears",
+                "skills",
+                "assessmentScore",
+                "profileFreshness",
+                "fspAchievements",
+                "preferences"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": ["items", "total"],
         "additionalProperties": false
       },
       "InvitationListDto_Output": {

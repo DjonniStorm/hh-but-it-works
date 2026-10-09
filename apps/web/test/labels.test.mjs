@@ -28,6 +28,10 @@ test("shortlist mapper preserves profile freshness", () => {
   const mapped = mapShortlist({
     needId: "need-1",
     modelVersion: "hybrid-v1.1.0-ltr0.25",
+    categories: [
+      { grade: "middle", match: "exact", candidateCount: 1 },
+      { grade: "senior", match: "adjacent", candidateCount: 0 },
+    ],
     items: [
       {
         candidate: {
@@ -61,4 +65,13 @@ test("shortlist mapper preserves profile freshness", () => {
 
   assert.equal(mapped.items[0].candidate.profileFreshness, 0.7);
   assert.equal(mapped.modelVersion, "hybrid-v1.1.0-ltr0.25");
+  assert.deepEqual(
+    mapped.categories.map((category) => {
+      return [category.grade, category.match, category.candidateCount];
+    }),
+    [
+      ["middle", "exact", 1],
+      ["senior", "adjacent", 0],
+    ],
+  );
 });

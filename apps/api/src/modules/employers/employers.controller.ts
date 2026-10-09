@@ -3,23 +3,28 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   ParseUUIDPipe,
   Post,
   Put,
-  UseGuards,
 } from "@nestjs/common";
-import { ApiBearerAuth } from "@nestjs/swagger";
+import { ApiNoContentResponse } from "@nestjs/swagger";
 import { ZodResponse } from "nestjs-zod";
 
 import { Role } from "@hh/types";
 
+import { Auth } from "../../common/auth/auth.decorator";
 import { CurrentUser } from "../../common/auth/current-user.decorator";
-import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
-import { Roles } from "../../common/auth/roles.decorator";
-import { RolesGuard } from "../../common/auth/roles.guard";
+import {
+  ApiErrors,
+  invalidBody,
+  invalidId,
+} from "../../common/openapi/api-errors.decorator";
 import { User } from "../users/user.entity";
 import {
+  CandidateSearchDto,
+  CandidateSearchResultDto,
   CompanyProfileDto,
   CompanyResponseDto,
   HiringNeedDto,
@@ -33,10 +38,18 @@ import {
 import { EmployersService } from "./employers.service";
 import { InvitationsService } from "./invitations.service";
 
+const needNotFound =
+  "Потребность не найдена или принадлежит другому работодателю";
+
+// Подборку считает сервис ранжирования: без него ручка отвечает 503.
+const shortlistErrors = {
+  400: invalidId,
+  404: needNotFound,
+  503: "Сервис ранжирования недоступен",
+};
+
 @Controller("employer")
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.Employer)
+@Auth(Role.Employer)
 export class EmployersController {
   constructor(
     private readonly employers: EmployersService,
@@ -51,6 +64,7 @@ export class EmployersController {
 
   @Put("company")
   @ZodResponse({ status: 200, type: CompanyProfileDto })
+  @ApiErrors({ 400: invalidBody })
   saveCompany(@CurrentUser() user: User, @Body() body: CompanyProfileDto) {
     return this.employers.saveCompany(user.id, body);
   }
@@ -63,12 +77,14 @@ export class EmployersController {
 
   @Post("needs")
   @ZodResponse({ status: 201, type: HiringNeedDto })
+  @ApiErrors({ 400: invalidBody })
   createNeed(@CurrentUser() user: User, @Body() body: HiringNeedInputDto) {
     return this.employers.createNeed(user.id, body);
   }
 
   @Get("needs/:id")
   @ZodResponse({ status: 200, type: HiringNeedDto })
+  @ApiErrors({ 400: invalidId, 404: needNotFound })
   getNeed(
     @CurrentUser() user: User,
     @Param("id", new ParseUUIDPipe()) id: string,
@@ -76,8 +92,34 @@ export class EmployersController {
     return this.employers.getNeed(user.id, id);
   }
 
+  @Put("needs/:id")
+  @ZodResponse({ status: 200, type: HiringNeedDto })
+  @ApiErrors({
+    400: `${invalidBody}. Также: параметр id в пути не является UUID`,
+    404: needNotFound,
+  })
+  updateNeed(
+    @CurrentUser() user: User,
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Body() body: HiringNeedInputDto,
+  ) {
+    return this.employers.updateNeed(user.id, id, body);
+  }
+
+  @Delete("needs/:id")
+  @HttpCode(204)
+  @ApiNoContentResponse()
+  @ApiErrors({ 400: invalidId, 404: needNotFound })
+  deleteNeed(
+    @CurrentUser() user: User,
+    @Param("id", new ParseUUIDPipe()) id: string,
+  ) {
+    return this.employers.deleteNeed(user.id, id);
+  }
+
   @Get("needs/:id/shortlist")
   @ZodResponse({ status: 200, type: ShortlistDto })
+  @ApiErrors(shortlistErrors)
   shortlist(
     @CurrentUser() user: User,
     @Param("id", new ParseUUIDPipe()) id: string,
@@ -88,6 +130,7 @@ export class EmployersController {
   // «Не подходит»: скрыть кандидата в этой потребности. Ответ — обновлённая подборка.
   @Put("needs/:id/dismissed/:candidateId")
   @ZodResponse({ status: 200, type: ShortlistDto })
+  @ApiErrors(shortlistErrors)
   dismiss(
     @CurrentUser() user: User,
     @Param("id", new ParseUUIDPipe()) id: string,
@@ -98,6 +141,7 @@ export class EmployersController {
 
   @Put("needs/:id/favorites/:candidateId")
   @ZodResponse({ status: 200, type: ShortlistDto })
+  @ApiErrors(shortlistErrors)
   favorite(
     @CurrentUser() user: User,
     @Param("id", new ParseUUIDPipe()) id: string,
@@ -108,6 +152,7 @@ export class EmployersController {
 
   @Delete("needs/:id/favorites/:candidateId")
   @ZodResponse({ status: 200, type: ShortlistDto })
+  @ApiErrors(shortlistErrors)
   unfavorite(
     @CurrentUser() user: User,
     @Param("id", new ParseUUIDPipe()) id: string,
@@ -118,12 +163,22 @@ export class EmployersController {
 
   @Delete("needs/:id/dismissed/:candidateId")
   @ZodResponse({ status: 200, type: ShortlistDto })
+  @ApiErrors(shortlistErrors)
   restore(
     @CurrentUser() user: User,
     @Param("id", new ParseUUIDPipe()) id: string,
     @Param("candidateId", new ParseUUIDPipe()) candidateId: string,
   ) {
     return this.employers.setDismissed(user.id, id, candidateId, false);
+  }
+
+  // Фильтры в теле, а не в query: массивы грейдов и навыков без разбора строк.
+  @Post("candidates/search")
+  @HttpCode(200)
+  @ZodResponse({ status: 200, type: CandidateSearchResultDto })
+  @ApiErrors({ 400: invalidBody })
+  searchCandidates(@Body() body: CandidateSearchDto) {
+    return this.employers.searchCandidates(body);
   }
 
   @Get("invitations")
@@ -134,6 +189,11 @@ export class EmployersController {
 
   @Post("invitations/:id/withdraw")
   @ZodResponse({ status: 200, type: InvitationDto })
+  @ApiErrors({
+    400: invalidId,
+    404: "Приглашение не найдено или принадлежит другой компании",
+    409: "Кандидат уже ответил на приглашение или оно отозвано",
+  })
   withdraw(
     @CurrentUser() user: User,
     @Param("id", new ParseUUIDPipe()) id: string,
@@ -143,6 +203,11 @@ export class EmployersController {
 
   @Post("invitations")
   @ZodResponse({ status: 201, type: InvitationDto })
+  @ApiErrors({
+    400: `${invalidBody}. Также: профиль компании не заполнен`,
+    404: "Кандидат не найден на бирже или потребность не найдена",
+    409: "У кандидата уже есть активное приглашение от компании",
+  })
   createInvitation(
     @CurrentUser() user: User,
     @Body() body: InvitationInputDto,

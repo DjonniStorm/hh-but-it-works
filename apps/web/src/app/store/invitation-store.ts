@@ -44,12 +44,21 @@ export class InvitationStore {
   hasActive(candidateId: string): boolean {
     return this.items.some((invitation) => {
       return (
-        (invitation.candidateId === candidateId &&
-          invitation.status === InvitationStatus.Sent) ||
-        invitation.status === InvitationStatus.Viewed ||
-        invitation.status === InvitationStatus.Accepted
+        invitation.candidateId === candidateId &&
+        (invitation.status === InvitationStatus.Sent ||
+          invitation.status === InvitationStatus.Viewed ||
+          invitation.status === InvitationStatus.Accepted)
       );
     });
+  }
+
+  // Приглашение показывает текущее название потребности: сервер берёт его по needId.
+  renameNeed(needId: string, title: string): void {
+    for (const invitation of this.items) {
+      if (invitation.needId === needId) {
+        invitation.needTitle = title;
+      }
+    }
   }
 
   load(options?: CallOptions<Invitation[]>) {

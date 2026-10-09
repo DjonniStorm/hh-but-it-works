@@ -87,7 +87,7 @@ sh apps/ranking/scripts/check.sh            # ML-часть (нужен Python 3
 2. CI покрывает ranking image и artifact verification; общего monorepo CI пока нет.
 3. `apps/ranking` — полное описание состояния в [`apps/ranking/HANDOFF.md`](../../apps/ranking/HANDOFF.md): что сделано, что не подключено к контракту (semantic, персонализация, freshness), что дальше.
 4. Ranking поддерживает rules/shadow/hybrid/LTR. Готовый versioned artifact хранится в репозитории; Docker не обучает, а копирует его и запускает demo hybrid с явным unapproved override. `ranking-image.yml` публикует multi-arch GHCR image, `scripts/promote_ml.sh` создаёт новую версию, `verify_artifacts.sh` проверяет checksum/held-out gate. Настоящий production artifact требует двойную human-разметку.
-5. `infra/prod` пуст.
+5. Прод-стенд — `infra/prod` (compose, Caddy), развёртывание описано в `infra/README.md`. Схема базы — `synchronize: true`, миграций нет.
 
 ## 6. Что не делать
 
