@@ -44,7 +44,9 @@ src/
                         прозрачнее), набор и позиции собираются по хешу почты/токена
                         (model/art-layout.ts)
     router/             routes, router, ProtectedRoute, CandidateRoute, EmployerRoute, RouteError
-    error/              ErrorStore -> notifier
+    error/              ErrorStore -> notifier; ErrorScreen — экран ошибки загрузки с одним
+                        случайным артом из пула 5 шт. (ErrorArt), отдельный TypeErrorArt
+                        лежит в RouteError — всё inline-SVG, без lazy
     loader/             LoadingStore -> RequestOverlay
     lib/                labels.ts (локализация reason/warning/rejectedBy кодов), format.ts
     theme/              feedbackColor и тосты

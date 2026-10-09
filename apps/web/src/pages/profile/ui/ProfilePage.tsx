@@ -7,8 +7,9 @@ import { profileTabParser } from "@/pages/profile/model/profile-tab";
 import { BackHome } from "@/pages/profile/ui/BackHome";
 import { ProfilePanels } from "@/pages/profile/ui/ProfilePanels";
 import { TestingTab } from "@/pages/profile/ui/TestingTab";
+import { ErrorScreen } from "@/shared/error/ui/ErrorScreen";
 import { pageTitle } from "@/shared/router/page-title";
-import { Stack, Tabs, Text, Title } from "@mantine/core";
+import { Stack, Tabs, Title } from "@mantine/core";
 import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { useQueryState } from "nuqs";
@@ -77,7 +78,12 @@ export const ProfilePage = observer(() => {
           </Tabs.Panel>
         </Tabs>
       ) : loading.visible ? null : (
-        <Text>Профиль не загрузился</Text>
+        <ErrorScreen
+          title="Профиль не загрузился"
+          onReload={() => {
+            void profiles.load();
+          }}
+        />
       )}
       <BackHome />
     </Stack>
