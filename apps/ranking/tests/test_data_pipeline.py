@@ -221,6 +221,55 @@ def test_min_agreement_gate_blocks_low_consensus_batch(tmp_path):
         import_annotations(dataset, annotations, tmp_path / "output.jsonl", min_agreement=1.5)
 
 
+def test_llm_judge_import_accepts_single_annotator(tmp_path):
+    dataset = tmp_path / "dataset.jsonl"
+    _small_dataset(dataset)
+    annotations = tmp_path / "annotations.csv"
+    _write_annotations(
+        annotations,
+        [
+            _annotation("llm-judge", "c1", (3, 2, 2)),
+            _annotation("llm-judge", "c2", (2, 2, 2)),
+        ],
+    )
+    output = tmp_path / "llm.jsonl"
+    report = import_annotations(
+        dataset,
+        annotations,
+        output,
+        label_source="llm_judge_v1",
+        min_annotators=1,
+    )
+    assert report["labelSource"] == "llm_judge_v1"
+    assert report["annotators"] == 1
+    assert report["pairwiseOverallAgreement"] == 1.0
+    imported = [json.loads(line) for line in output.read_text().splitlines()]
+    assert all(row["labelSource"] == "llm_judge_v1" for row in imported)
+
+
+def test_human_source_rejects_single_annotator_and_unknown_source(tmp_path):
+    dataset = tmp_path / "dataset.jsonl"
+    _small_dataset(dataset)
+    annotations = tmp_path / "annotations.csv"
+    _write_annotations(
+        annotations,
+        [
+            _annotation("llm-judge", "c1", (3, 2, 2)),
+            _annotation("llm-judge", "c2", (2, 2, 2)),
+        ],
+    )
+    with pytest.raises(ValueError, match="at least two annotators"):
+        import_annotations(dataset, annotations, tmp_path / "out.jsonl", min_annotators=1)
+    with pytest.raises(ValueError, match="label_source"):
+        import_annotations(
+            dataset,
+            annotations,
+            tmp_path / "out.jsonl",
+            label_source="gpt_vibes",
+            min_annotators=1,
+        )
+
+
 def test_adjudicator_rows_are_rejected_when_annotators_agree(tmp_path):
     dataset = tmp_path / "dataset.jsonl"
     _small_dataset(dataset)

@@ -230,7 +230,7 @@ LTR-контур работает как production-safe shadow/hybrid:
 
 `evaluation/data/gold*.jsonl` — **controlled-synthetic benchmark**, а не человеческий gold. Потребности основаны на небольшой атрибутированной выборке открытых вакансий, кандидаты вымышлены, метки независимы от rules. Набор проверяет pipeline и ловит регрессии, но не доказывает production uplift. Карточка и provenance: [`evaluation/data/README.md`](evaluation/data/README.md), [`evaluation/data/SOURCES.json`](evaluation/data/SOURCES.json).
 
-Training metadata содержит `productionApproved=false`. Обычный runtime не даст такому артефакту влиять на выдачу: запрос `hybrid`/`ltr` будет понижен до `shadow`. Готовый demo-образ намеренно задаёт `RANKING_ALLOW_UNAPPROVED_MODEL=true`, поэтому сразу показывает hybrid; `/health` честно сохраняет `productionApproved=false` и `unapprovedOverride=true`. Флаг `--production-approved` принимается только для `human_double_annotation_v1`.
+Training metadata содержит `productionApproved=false`. Обычный runtime не даст такому артефакту влиять на выдачу: запрос `hybrid`/`ltr` будет понижен до `shadow`. Готовый demo-образ намеренно задаёт `RANKING_ALLOW_UNAPPROVED_MODEL=true`, поэтому сразу показывает hybrid; `/health` честно сохраняет `productionApproved=false` и `unapprovedOverride=true`. Флаг `--production-approved` принимается только для `human_double_annotation_v1`; отдельный, более слабый флаг `--llm-approved` принимает только `llm_judge_v1` (явный llm-тир, `approvalSource` в metadata) — см. `evaluation/annotation/README.md` и `evaluation/artifacts/ltr-v1.3.0-llm/`.
 
 Режимы `RANKING_MODE`:
 

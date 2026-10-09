@@ -11,9 +11,10 @@
 
 ## Батчи
 
-| Батч        | Датасет                      | Формат                          | Статус                         |
-| ----------- | ---------------------------- | ------------------------------- | ------------------------------ |
-| `batch-001` | `evaluation/data/gold.jsonl` | 168 пар: 21 need × 8 кандидатов | ждёт разметки двумя экспертами |
+| Батч                 | Датасет                      | Формат                           | Статус                                             |
+| -------------------- | ---------------------------- | -------------------------------- | -------------------------------------------------- |
+| `batch-001`          | `evaluation/data/gold.jsonl` | 168 пар: 21 need × 8 кандидатов  | LLM-судья разметил; human-разметка открыта         |
+| llm-проход batch-001 | тот же                       | `evaluation/data/llm_gold.jsonl` | готов, `labelSource: llm_judge_v1` (не human gold) |
 
 `batch-001` построен на controlled-synthetic gold: вакансии реальные
 («Работы России»), кандидаты вымышленные, сценарные метки эксперту не
@@ -119,6 +120,26 @@ python evaluation/human_labels.py import \
    human-calibration split);
 4. прогнать held-out gate (`scripts/check_ml.sh`, `evaluation/benchmark.py`)
    и только после него менять артефакт в runtime.
+
+## LLM-судья (сделано на batch-001)
+
+Параллельно с human-разметкой batch-001 был проведен blind-проход LLM-судьи
+(один аннотатор `llm-judge`, метки и scenario перед разметкой вырезаны):
+
+```bash
+python evaluation/human_labels.py import evaluation/data/gold.jsonl <annotations.csv> \
+  evaluation/data/llm_gold.jsonl --label-source llm_judge_v1 --min-annotators 1
+```
+
+Результат: `evaluation/data/llm_gold.jsonl` + сплиты `llm_gold_*` (зеркалят
+need-принадлежность `gold_*`), провенанс и сверка со сценариями —
+`evaluation/data/llm_gold_provenance.json`. Итог честный: llm-порядок внутри
+групп совпал со сценарным (mean Kendall tau 1.0) — такая разметка проверяет
+пайплайн и порог шкалы, но не добавляет внешнего сигнала. Модель на llm-метках
+учится и открывает замок только через `train_ltr.py --llm-approved`
+(`approvalSource: llm_judge_v1`); human-путь (`--production-approved`) остаётся
+отдельным и более строгим. Готовый бандл: `evaluation/artifacts/ltr-v1.3.0-llm/`
+(дефолтинг образа не менял — serving по-прежнему `ltr-v1.2.0`).
 
 ## Экспорт нового батча
 

@@ -37,6 +37,10 @@ ESCO/O\*NET полезны для таксономии и hard-negative generati
 - не коммитим реальные резюме, ФИО, телефоны, email, точные адреса, документы;
 - не используем пол, возраст, национальность и другие protected attributes;
 - не называем synthetic labels «человеческим gold»;
+- не называем llm_judge_v1 «человеческим gold»: LLM-разметка — отдельный,
+  честно помеченный провенанс; она открывает production lock только через
+  явный `train_ltr.py --llm-approved` (metadata `approvalSource: llm_judge_v1`)
+  и не заменяет двойную human-разметку;
 - не обучаем на кликах без debiasing позиции/экспозиции и без legal basis.
 
 ## Как получить действительно хороший gold

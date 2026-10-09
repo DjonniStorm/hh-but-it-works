@@ -1,0 +1,51 @@
+{
+  "dataset": "evaluation/data/llm_gold_test.jsonl",
+  "modelVersion": "ltr-v1.3.0-llm-calibrated",
+  "rules": {
+    "groups": 3.0,
+    "ndcg@5": 0.9876322084609285,
+    "ndcg@10": 0.9866946979422028,
+    "precision@5": 0.6,
+    "mrr": 1.0
+  },
+  "ltr": {
+    "groups": 3.0,
+    "ndcg@5": 1.0,
+    "ndcg@10": 1.0,
+    "precision@5": 0.6,
+    "mrr": 1.0
+  },
+  "hybrid": {
+    "groups": 3.0,
+    "ndcg@5": 1.0,
+    "ndcg@10": 1.0,
+    "precision@5": 0.6,
+    "mrr": 1.0
+  },
+  "delta": {
+    "ltr": {
+      "ndcg@5": 0.012367791539071527,
+      "ndcg@10": 0.01330530205779723,
+      "precision@5": 0.0,
+      "mrr": 0.0
+    },
+    "hybrid": {
+      "ndcg@5": 0.012367791539071527,
+      "ndcg@10": 0.01330530205779723,
+      "precision@5": 0.0,
+      "mrr": 0.0
+    }
+  },
+  "relevanceCalibration": {
+    "rules": {
+      "mae": 0.261707,
+      "rmse": 0.31830057469334094,
+      "ece": 0.26170699999999997
+    },
+    "ltr": {
+      "mae": 2.0833333334163706e-07,
+      "rmse": 2.635231383578684e-07,
+      "ece": 2.0833333334163706e-07
+    }
+  }
+}

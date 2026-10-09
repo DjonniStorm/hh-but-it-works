@@ -20,3 +20,12 @@ adjudication и group-disjoint holdout. Шаблон готовит `human_label
 Ограничения: небольшой размер, вакансии 2021 года, синтетические кандидаты,
 нет причинно-следственных данных о найме, возможен selection bias источника.
 Protected attributes не генерируются и не используются.
+
+`llm_gold*.jsonl` — те же 168 пар, размеченные **одним LLM-судьёй**
+(`labelSource: llm_judge_v1`, blind: scenario и синтетические метки перед
+разметкой вырезаны). Сплиты зеркалят need-принадлежность `gold_*`-сплитов.
+Провенанс, условия импорта и честная сверка со сценариями (exact match 87.5 %,
+mean Kendall tau 1.0 — llm-порядок внутри групп совпал со сценарным) —
+`llm_gold_provenance.json`. Это **не human gold**: бандл на этих метках
+открывает замок только через явный `train_ltr.py --llm-approved`
+(`approvalSource: llm_judge_v1` в metadata).

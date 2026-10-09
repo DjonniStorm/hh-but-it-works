@@ -30,6 +30,9 @@ FIELDS = [
 ADJUDICATOR_PREFIX = "adjudicator:"
 SCALE_VERSION = "labels-v1"
 LABEL_VALUES = {0, 1, 2, 3}
+HUMAN_SOURCE = "human_double_annotation_v1"
+LLM_SOURCE = "llm_judge_v1"
+KNOWN_SOURCES = {HUMAN_SOURCE, LLM_SOURCE}
 
 
 def dataset_digest(dataset: Path) -> str:
@@ -106,9 +109,17 @@ def import_annotations(
     annotations: Path,
     output: Path,
     min_agreement: float = 0.6,
+    label_source: str = HUMAN_SOURCE,
+    min_annotators: int = 2,
 ) -> dict[str, Any]:
     if not 0.0 <= min_agreement <= 1.0:
         raise ValueError("min_agreement must be within [0, 1]")
+    if label_source not in KNOWN_SOURCES:
+        raise ValueError(f"label_source must be one of {sorted(KNOWN_SOURCES)}")
+    if min_annotators < 1:
+        raise ValueError("min_annotators must be at least 1")
+    if label_source == HUMAN_SOURCE and min_annotators < 2:
+        raise ValueError(f"{HUMAN_SOURCE} requires at least two annotators per pair")
     base = {(row["need"]["id"], row["candidate"]["id"]): row for row in load_jsonl(dataset)}
     if not base:
         raise ValueError(f"{dataset} has no pairs")
@@ -142,8 +153,8 @@ def import_annotations(
         adjudicators = [
             row for row in pair_judgments if row["annotator_id"].strip().startswith(ADJUDICATOR_PREFIX)
         ]
-        if len(annotators) < 2:
-            raise ValueError(f"pair {key} needs at least two independent judgments")
+        if len(annotators) < min_annotators:
+            raise ValueError(f"pair {key} needs at least {min_annotators} independent judgments")
         annotator_names = [row["annotator_id"].strip() for row in annotators]
         if len(set(annotator_names)) != len(annotator_names):
             raise ValueError(f"pair {key} has duplicate annotator_id")
@@ -182,7 +193,7 @@ def import_annotations(
                 "qualificationLabel": final[1],
                 "intentLabel": final[2],
                 "labelConfidence": confidence,
-                "labelSource": "human_double_annotation_v1",
+                "labelSource": label_source,
                 "annotationCount": len(pair_judgments),
                 "adjudicated": bool(adjudicators),
             }
@@ -205,6 +216,7 @@ def import_annotations(
         "needs": len(group_sizes),
         "annotators": len(annotator_ids),
         "adjudicatedPairs": adjudicated_pairs,
+        "labelSource": label_source,
         "pairwiseOverallAgreement": mean_agreement,
         "labelHistogram": {str(value): label_histogram.get(value, 0) for value in sorted(LABEL_VALUES)},
     }
@@ -221,6 +233,8 @@ def main() -> None:  # pragma: no cover - CLI wrapper
     ingest.add_argument("annotations", type=Path)
     ingest.add_argument("output", type=Path)
     ingest.add_argument("--min-agreement", type=float, default=0.6)
+    ingest.add_argument("--label-source", default=HUMAN_SOURCE, choices=sorted(KNOWN_SOURCES))
+    ingest.add_argument("--min-annotators", type=int, default=2)
     args = parser.parse_args()
     if args.command == "export":
         print(json.dumps(export_template(args.dataset, args.output), indent=2))
@@ -230,6 +244,8 @@ def main() -> None:  # pragma: no cover - CLI wrapper
             args.annotations,
             args.output,
             min_agreement=args.min_agreement,
+            label_source=args.label_source,
+            min_annotators=args.min_annotators,
         )
         print(json.dumps(report, indent=2))
 
