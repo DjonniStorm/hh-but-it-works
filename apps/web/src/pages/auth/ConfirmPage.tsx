@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { notifier } from "@/app/store/notifier";
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
+import { ArtBackdrop } from "@/shared/decor/ui/ArtBackdrop";
 import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
 import { Center, Paper, Stack, Text, Title } from "@mantine/core";
@@ -36,6 +37,8 @@ export const ConfirmPage = observer(() => {
 
   return (
     <Center mih="100vh" p="md">
+      {/* Токен уникален на каждое письмо: фон подтверждения индивидуален, как и почта. */}
+      <ArtBackdrop seed={token || "guest"} />
       <Paper withBorder p="xl" w={420}>
         <Stack>
           <Title order={2}>Подтверждение почты</Title>

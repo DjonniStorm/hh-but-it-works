@@ -4,6 +4,8 @@ import { notifier } from "@/app/store/notifier";
 import { RequestFailed } from "@/app/store/request";
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
+import { useSettledValue } from "@/shared/decor/model/use-settled-value";
+import { ArtBackdrop } from "@/shared/decor/ui/ArtBackdrop";
 import { focusFirstError } from "@/shared/lib/focus-first-error";
 import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
@@ -36,6 +38,11 @@ export const LoginPage = observer(() => {
   });
   // Почта, на которой вход упал с «Почта не подтверждена»: для неё предлагаем письмо ещё раз.
   const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
+  // Фон собирается по хешу почты: у каждого человека своя раскладка картинок.
+  // Ждём, пока ввод успокоится, иначе фон дёргался бы за каждую букву.
+  // Хук возвращает значение, без деструктуризации — иначе это разбор строки.
+  const settledEmail = useSettledValue(form.values.email);
+  const backdropSeed = settledEmail.includes("@") ? settledEmail : "guest";
 
   if (auth.accessToken) {
     return <Navigate to={returnPath} replace />;
@@ -74,6 +81,7 @@ export const LoginPage = observer(() => {
 
   return (
     <Center mih="100vh" p="md">
+      <ArtBackdrop seed={backdropSeed} />
       {/* noValidate: ошибки показывает форма, а не всплывашка браузера на type="email". */}
       <Paper
         component="form"
