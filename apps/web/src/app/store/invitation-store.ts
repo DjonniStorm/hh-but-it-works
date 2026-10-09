@@ -44,10 +44,10 @@ export class InvitationStore {
   hasActive(candidateId: string): boolean {
     return this.items.some((invitation) => {
       return (
-        (invitation.candidateId === candidateId &&
-          invitation.status === InvitationStatus.Sent) ||
-        invitation.status === InvitationStatus.Viewed ||
-        invitation.status === InvitationStatus.Accepted
+        invitation.candidateId === candidateId &&
+        (invitation.status === InvitationStatus.Sent ||
+          invitation.status === InvitationStatus.Viewed ||
+          invitation.status === InvitationStatus.Accepted)
       );
     });
   }
