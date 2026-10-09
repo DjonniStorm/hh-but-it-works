@@ -56,12 +56,10 @@ services:
       timeout: 3s
       retries: 5
 
-  # Готовый образ из GHCR (ranking-image.yml), без него — сборка из apps/ranking.
-  # Healthcheck описан в самом образе.
+  # Собираем из исходников. Сборка не обучает модель, а копирует готовую
+  # из apps/ranking/evaluation/artifacts. Healthcheck описан в Dockerfile ranking.
   ranking:
-    image: ${RANKING_IMAGE:-ghcr.io/djonnistorm/hh-but-it-works-ranking:dev}
     build: ../../apps/ranking
-    pull_policy: missing
     restart: unless-stopped
     logging: *logging
 
