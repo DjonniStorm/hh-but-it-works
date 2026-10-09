@@ -277,6 +277,15 @@ sh scripts/check.sh    # compileall + pytest ≥90% + gold + benchmark + perform
 sh scripts/check_ml.sh # детерминизм gold + bundle + ml-тесты + promote + smoke + held-out гейты
 ```
 
+E2E последняя сессия (2026-10-09): `docker build` → `/health` отдаёт
+`hybrid-v1.2.0-ltr0.25`, `modelLoaded: true`; `/rank` по `examples/rank-request.json`
+ранжирует middle-4y > junior-1.1y > junior-0.4y (порядок по опыту виден);
+`/career/analyze` и 422 на мусорном теле — работают; compose-путь
+`infra/dev` поднимает ranking с той же моделью. CI на PR: полный
+`check.sh` + `verify_artifacts` + smoke-run собранного образа
+(`/health` + `/rank` внутри контейнера) + публикация тега `pr-<номер>`
+для PR из этого репо (fork PR — только тесты).
+
 Из известного «не доделано» осознанно:
 
 - `reasons`/`warnings` сортируются порядком построения, а не по вкладу (§6.9) — кандидат №36 §5;

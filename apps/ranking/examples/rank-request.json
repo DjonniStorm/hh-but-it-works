@@ -68,6 +68,115 @@
       },
       "availability": "actively_looking",
       "profileFreshness": 0.95
+    },
+    {
+      "id": "candidate-2",
+      "specialization": "backend",
+      "claimedGrade": "middle",
+      "verifiedGrade": "middle",
+      "gradeConfidence": 0.95,
+      "experienceYears": 4.0,
+      "skills": [
+        {
+          "id": "python",
+          "verified": true,
+          "verificationState": "verified",
+          "level": 0.95,
+          "confidence": 0.95
+        },
+        {
+          "id": "fastapi",
+          "verified": true,
+          "verificationState": "verified",
+          "level": 0.9,
+          "confidence": 0.95
+        },
+        {
+          "id": "postgresql",
+          "verified": true,
+          "verificationState": "verified",
+          "level": 0.88,
+          "confidence": 0.9
+        },
+        {
+          "id": "docker",
+          "verified": true,
+          "verificationState": "verified",
+          "level": 0.8,
+          "confidence": 0.9
+        },
+        {
+          "id": "redis",
+          "verified": true,
+          "verificationState": "verified",
+          "level": 0.75,
+          "confidence": 0.85
+        }
+      ],
+      "competencies": {
+        "databases": 0.9,
+        "testing": 0.82
+      },
+      "assessmentScore": 0.88,
+      "fspEvidence": [
+        {
+          "language": "python",
+          "title": "Открытый чемпионат",
+          "year": 2025,
+          "score": 0.9
+        }
+      ],
+      "preferences": {
+        "salaryMin": 180000,
+        "workModes": ["remote"],
+        "targetSpecializations": ["backend"]
+      },
+      "availability": "open_to_offers",
+      "profileFreshness": 0.7
+    },
+    {
+      "id": "candidate-3",
+      "specialization": "backend",
+      "claimedGrade": "junior",
+      "verifiedGrade": "junior",
+      "gradeConfidence": 0.8,
+      "experienceYears": 0.4,
+      "skills": [
+        {
+          "id": "python",
+          "verified": true,
+          "verificationState": "verified",
+          "level": 0.7,
+          "confidence": 0.8
+        },
+        {
+          "id": "fastapi",
+          "verified": false,
+          "verificationState": "self_declared",
+          "level": 0.5,
+          "confidence": 0.5
+        },
+        {
+          "id": "postgresql",
+          "verified": false,
+          "verificationState": "self_declared",
+          "level": 0.45,
+          "confidence": 0.5
+        }
+      ],
+      "competencies": {
+        "databases": 0.5,
+        "testing": 0.4
+      },
+      "assessmentScore": 0.55,
+      "fspEvidence": [],
+      "preferences": {
+        "salaryMin": 140000,
+        "workModes": ["remote"],
+        "targetSpecializations": ["backend"]
+      },
+      "availability": "actively_looking",
+      "profileFreshness": 0.95
     }
   ]
 }

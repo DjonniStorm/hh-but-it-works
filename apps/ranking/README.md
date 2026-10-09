@@ -18,7 +18,9 @@ training и scikit-learn при сборке/запуске не выполня�
 docker pull ghcr.io/djonnistorm/hh-but-it-works-ranking:dev
 docker run --rm -p 8000:8000 \
   ghcr.io/djonnistorm/hh-but-it-works-ranking:dev
-curl -s localhost:8000/health
+curl -s localhost:8000/health   # modelLoaded: true, modelVersion: hybrid-v1.2.0-ltr0.25
+curl -s -X POST localhost:8000/rank -H 'content-type: application/json' \
+  --data @apps/ranking/examples/rank-request.json
 ```
 
 Или весь dev stack из клона: `docker compose --env-file infra/dev/.env.example
@@ -26,6 +28,35 @@ curl -s localhost:8000/health
 локальная сборка всё равно копирует committed artifacts без обучения. Для
 private GHCR один раз нужен `docker login ghcr.io`; package можно сделать public
 в GitHub Packages.
+
+### Ревью PR: проверка за минуту
+
+Workflow гоняет на каждом PR полный `check.sh` + `verify_artifacts`, собирает
+образ, **запускает его и бьёт в `/health` и `/rank`**, и для PR из этого же
+репозитория публикует тег `pr-<номер PR>`:
+
+```bash
+docker pull ghcr.io/djonnistorm/hh-but-it-works-ranking:pr-42
+docker run --rm -p 8000:8000 ghcr.io/djonnistorm/hh-but-it-works-ranking:pr-42
+curl -s localhost:8000/health
+curl -s -X POST localhost:8000/rank -H 'content-type: application/json' \
+  --data @apps/ranking/examples/rank-request.json
+```
+
+Демо-запрос содержит трёх кандидатов: middle с 4 годами опыта должен идти
+первым, junior с 1.1 года — вторым, junior ниже `experienceMin` — третьим с
+пониженным компонентом `experience`. PR из форка тег не публикует (токен
+read-only), но тесты и smoke-run образа всё равно проходят.
+
+### Локальный запуск без Docker
+
+```bash
+pip install -r apps/ranking/requirements-runtime-ml.txt
+cd apps/ranking && uvicorn main:app --port 8000   # hybrid + committed bundle
+```
+
+Без артефактов сервис честно откатывается на pure rules (`rules-v1.2.0`) —
+`/health` покажет `modelLoaded: false`.
 
 ## Контекст продукта
 
