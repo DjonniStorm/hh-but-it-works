@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, OnModuleInit } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { In, Repository } from "typeorm";
 
@@ -25,7 +25,7 @@ import { NeedFavorite } from "./need-favorite.entity";
 import { RankingClient } from "./ranking.client";
 
 @Injectable()
-export class EmployersService {
+export class EmployersService implements OnModuleInit {
   constructor(
     @InjectRepository(CompanyProfile)
     private readonly companies: Repository<CompanyProfile>,
@@ -38,6 +38,17 @@ export class EmployersService {
     private readonly pool: CandidatePoolService,
     private readonly ranking: RankingClient,
   ) {}
+
+  // Потребности, созданные с одним форматом, переносим в список. Повторный запуск ничего не меняет.
+  async onModuleInit(): Promise<void> {
+    if (process.env.OPENAPI_EXPORT === "1") {
+      return;
+    }
+    await this.needs.query(
+      `UPDATE hiring_needs SET "workFormats" = ARRAY["workFormat"::text]
+       WHERE "workFormat" IS NOT NULL AND cardinality("workFormats") = 0`,
+    );
+  }
 
   async getCompany(userId: string): Promise<CompanyResponse> {
     const company = await this.companies.findOne({ where: { userId } });
@@ -283,7 +294,7 @@ export class EmployersService {
       gradeTo: need.gradeTo,
       mustSkills: need.mustSkills,
       niceSkills: need.niceSkills,
-      workFormat: need.workFormat,
+      workFormats: need.workFormats,
       salaryFrom: need.salaryFrom,
       salaryTo: need.salaryTo,
       description: need.description,

@@ -276,7 +276,10 @@ const hiringNeedShape = {
     "Добавьте хотя бы один обязательный навык",
   ),
   niceSkills: skillListSchema,
-  workFormat: workFormatSchema,
+  workFormats: z
+    .array(workFormatSchema)
+    .min(1, "Выберите хотя бы один формат работы")
+    .max(3),
   ...salaryShape,
   description: z.string().trim().max(2000, "Слишком длинное описание"),
 };

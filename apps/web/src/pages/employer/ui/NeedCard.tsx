@@ -1,6 +1,6 @@
 import { formatGradeRange } from "@/pages/employer/model/grade-range";
 import { formatDate } from "@/shared/lib/format";
-import { specializationLabel, workFormatLabel } from "@/shared/lib/labels";
+import { formatWorkFormats, specializationLabel } from "@/shared/lib/labels";
 import { needPath } from "@/shared/router/routes";
 import {
   Badge,
@@ -27,7 +27,7 @@ export const NeedCard = ({ need }: { need: HiringNeed }) => {
               <Text size="sm" c="dimmed">
                 {specializationLabel[need.specialization]} ·{" "}
                 {formatGradeRange(need.gradeFrom, need.gradeTo)} ·{" "}
-                {workFormatLabel[need.workFormat]}
+                {formatWorkFormats(need.workFormats)}
               </Text>
             </Stack>
             <Stack gap={0} align="flex-end">

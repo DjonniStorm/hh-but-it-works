@@ -191,7 +191,7 @@ export function toRankRequest(
       ]),
       salaryMin: need.salaryFrom,
       salaryMax: need.salaryTo,
-      workModes: [need.workFormat],
+      workModes: need.workFormats,
       text: need.description,
       // Бюджет и формат работы в потребности жёсткие: без совпадения кандидат
       // остаётся в подборке, но уходит в конец с причиной в «рисках».

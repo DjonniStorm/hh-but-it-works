@@ -1,5 +1,5 @@
 import { formatYears } from "@/shared/lib/format";
-import { workFormatLabel } from "@/shared/lib/labels";
+import { formatWorkFormats } from "@/shared/lib/labels";
 
 import { type CandidateSnapshot, formatSalaryFrom } from "@hh/contracts";
 
@@ -11,11 +11,7 @@ export function candidateMeta(candidate: CandidateSnapshot): string {
     preferences.desiredSalaryFrom === null
       ? null
       : formatSalaryFrom(preferences.desiredSalaryFrom),
-    preferences.workFormats
-      .map((format) => {
-        return workFormatLabel[format];
-      })
-      .join(", ") || null,
+    formatWorkFormats(preferences.workFormats) || null,
   ];
   return (
     parts

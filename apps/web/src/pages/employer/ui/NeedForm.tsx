@@ -10,6 +10,7 @@ import {
 import {
   Button,
   Group,
+  MultiSelect,
   Paper,
   Select,
   SimpleGrid,
@@ -103,12 +104,12 @@ export const NeedForm = ({
         />
 
         <SimpleGrid cols={{ base: 1, sm: 3 }}>
-          <Select
+          <MultiSelect
             label="Формат работы"
             withAsterisk
+            description="Можно выбрать несколько."
             data={workFormatOptions}
-            allowDeselect={false}
-            {...form.getInputProps("workFormat")}
+            {...form.getInputProps("workFormats")}
           />
           <SalaryFields
             fromProps={form.getInputProps("salaryFrom")}
