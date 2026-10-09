@@ -5,6 +5,7 @@ import { Grade, SkillLevel, SkillVerification } from "@hh/types";
 
 type ContactForm = {
   setFieldValue: (path: string, value: unknown) => void;
+  getValues: () => { softSkills: string[] };
 };
 
 export function draftHasFields(draft: ResumeDraft): boolean {
@@ -13,13 +14,15 @@ export function draftHasFields(draft: ResumeDraft): boolean {
     draft.specialization !== null ||
     draft.experienceYears !== null ||
     draft.claimedGrade !== null ||
+    draft.phone !== null ||
     draft.telegram !== null ||
     draft.github !== null ||
     draft.linkedin !== null ||
     draft.website !== null ||
     draft.desiredSalaryFrom !== null ||
     draft.workFormats.length > 0 ||
-    draft.skills.length > 0
+    draft.skills.length > 0 ||
+    draft.softSkills.length > 0
   );
 }
 
@@ -27,6 +30,7 @@ export function draftHasFields(draft: ResumeDraft): boolean {
 const textFields = [
   "displayName",
   "specialization",
+  "phone",
   "telegram",
   "github",
   "linkedin",
@@ -54,6 +58,16 @@ export function applyContactDraft(
   }
   if (draft.workFormats.length > 0) {
     form.setFieldValue("workFormats", draft.workFormats.slice());
+  }
+  // Свои качества кандидата не стираем, найденные в резюме дописываем в конец.
+  if (draft.softSkills.length > 0) {
+    const current = form.getValues().softSkills;
+    form.setFieldValue("softSkills", [
+      ...current,
+      ...draft.softSkills.filter((skill) => {
+        return !current.includes(skill);
+      }),
+    ]);
   }
   if (!verifiedGrade && draft.claimedGrade) {
     form.setFieldValue("claimedGrade", draft.claimedGrade);

@@ -67,10 +67,12 @@ export type CandidateProfileDtoOutput = {
     specialization: 'backend' | 'frontend' | 'data' | 'security' | null;
     claimedGrade: 'junior' | 'middle' | 'senior' | null;
     fspId: string | null;
+    phone: string | null;
     telegram: string | null;
     github: string | null;
     linkedin: string | null;
     website: string | null;
+    softSkills: Array<string>;
     desiredSalaryFrom: number | null;
     experienceYears: number | null;
     education: Array<{
@@ -112,7 +114,6 @@ export type ResumeDraftDtoOutput = {
     specialization: 'backend' | 'frontend' | 'data' | 'security' | null;
     experienceYears: number | null;
     claimedGrade: 'junior' | 'middle' | 'senior' | null;
-    email: string | null;
     phone: string | null;
     telegram: string | null;
     github: string | null;
@@ -133,10 +134,12 @@ export type SaveProfileDto = {
     specialization: 'backend' | 'frontend' | 'data' | 'security';
     claimedGrade: 'junior' | 'middle' | 'senior';
     fspId: string;
+    phone: string;
     telegram: string;
     github: string;
     linkedin: string;
     website: string;
+    softSkills: Array<string>;
     desiredSalaryFrom: '' | number | null;
     experienceYears: '' | number | null;
     education: Array<{

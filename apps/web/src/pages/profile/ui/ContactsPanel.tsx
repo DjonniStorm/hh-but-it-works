@@ -16,6 +16,7 @@ import {
   Paper,
   Select,
   Stack,
+  TagsInput,
   Text,
   TextInput,
   Title,
@@ -77,6 +78,13 @@ export const ContactsPanel = ({
           {...form.getInputProps("fspId")}
         />
         <TextInput
+          label="Телефон"
+          type="tel"
+          autoComplete="tel"
+          placeholder="+7 (900) 000-00-00"
+          {...form.getInputProps("phone")}
+        />
+        <TextInput
           label="Telegram"
           placeholder="@username или t.me/..."
           leftSection={<ContactIcon kind="telegram" />}
@@ -99,6 +107,12 @@ export const ContactsPanel = ({
           placeholder="https://"
           leftSection={<ContactIcon kind="website" />}
           {...form.getInputProps("website")}
+        />
+        <TagsInput
+          label="Софт-скиллы"
+          description="Enter после каждого качества. Подборка их не учитывает."
+          maxTags={20}
+          {...form.getInputProps("softSkills")}
         />
         <VisibilityFields form={form} />
         <Text>

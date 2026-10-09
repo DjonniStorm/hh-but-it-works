@@ -6,10 +6,9 @@ import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { applyContactDraft } from "@/pages/profile/model/apply-resume-draft";
 import {
-  educationFromProfile,
-  experienceFromProfile,
-} from "@/pages/profile/model/resume-history";
-import { contactInput } from "@/pages/profile/model/save-contacts";
+  contactInput,
+  contactsFromProfile,
+} from "@/pages/profile/model/save-contacts";
 import {
   assessedFromProfile,
   saveSkills,
@@ -45,27 +44,7 @@ export function useProfileForm({
   const profiles = useStore(StoreKey.Profile);
   const seenDraft = useRef<number | null>(null);
   const form = useForm<ContactValues>({
-    initialValues: {
-      displayName: profile.displayName,
-      specialization: profile.specialization ?? "",
-      claimedGrade: profile.claimedGrade ?? "",
-      fspId: profile.fspId ?? "",
-      telegram: profile.telegram ?? "",
-      github: profile.github ?? "",
-      linkedin: profile.linkedin ?? "",
-      website: profile.website ?? "",
-      desiredSalaryFrom: profile.desiredSalaryFrom ?? "",
-      experienceYears: profile.experienceYears ?? "",
-      education: educationFromProfile(profile.education),
-      experience: experienceFromProfile(profile.experience),
-      // Обычный массив: у observable klona уходит в символ MobX и зацикливается.
-      workFormats: profile.workFormats.slice(),
-      searchStatus: profile.searchStatus,
-      showExperience: profile.showExperience,
-      showSalary: profile.showSalary,
-      showFsp: profile.showFsp,
-      showUnverifiedSkills: profile.showUnverifiedSkills,
-    },
+    initialValues: contactsFromProfile(profile),
     validate: schemaResolver(saveContactsSchema, { sync: true }),
   });
 

@@ -75,7 +75,6 @@ export function draftFromText(
     specialization: specializationFrom(lines),
     experienceYears: experienceYears(whole, textOf(lines, Section.Experience)),
     claimedGrade: gradeFrom(lines),
-    email: emailFrom(whole),
     phone: phoneFrom(whole),
     telegram: telegramFrom(whole),
     github: githubFrom(whole),
@@ -249,11 +248,6 @@ function nameCase(word: string): string {
     return word.charAt(0) + word.slice(1).toLowerCase();
   }
   return word;
-}
-
-function emailFrom(text: string): string | null {
-  const match = /[\w.+-]+@[\w-]+(?:\.[\w-]+)*\.[a-z]{2,}/i.exec(text);
-  return match ? match[0].toLowerCase() : null;
 }
 
 function phoneFrom(text: string): string | null {

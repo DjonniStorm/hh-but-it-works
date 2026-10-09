@@ -2607,6 +2607,11 @@
             "maxLength": 64,
             "nullable": true
           },
+          "phone": {
+            "type": "string",
+            "maxLength": 40,
+            "nullable": true
+          },
           "telegram": {
             "type": "string",
             "maxLength": 120,
@@ -2626,6 +2631,12 @@
             "type": "string",
             "maxLength": 120,
             "nullable": true
+          },
+          "softSkills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "desiredSalaryFrom": {
             "type": "integer",
@@ -2799,10 +2810,12 @@
           "specialization",
           "claimedGrade",
           "fspId",
+          "phone",
           "telegram",
           "github",
           "linkedin",
           "website",
+          "softSkills",
           "desiredSalaryFrom",
           "experienceYears",
           "education",
@@ -2844,11 +2857,6 @@
           "claimedGrade": {
             "type": "string",
             "enum": ["junior", "middle", "senior", null],
-            "nullable": true
-          },
-          "email": {
-            "type": "string",
-            "maxLength": 120,
             "nullable": true
           },
           "phone": {
@@ -2922,7 +2930,6 @@
           "specialization",
           "experienceYears",
           "claimedGrade",
-          "email",
           "phone",
           "telegram",
           "github",
@@ -2955,6 +2962,10 @@
             "type": "string",
             "maxLength": 64
           },
+          "phone": {
+            "type": "string",
+            "maxLength": 40
+          },
           "telegram": {
             "type": "string",
             "maxLength": 120
@@ -2970,6 +2981,15 @@
           "website": {
             "type": "string",
             "maxLength": 120
+          },
+          "softSkills": {
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            }
           },
           "desiredSalaryFrom": {
             "anyOf": [
@@ -3152,10 +3172,12 @@
           "specialization",
           "claimedGrade",
           "fspId",
+          "phone",
           "telegram",
           "github",
           "linkedin",
           "website",
+          "softSkills",
           "desiredSalaryFrom",
           "experienceYears",
           "education",

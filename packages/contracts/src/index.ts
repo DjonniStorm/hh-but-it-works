@@ -184,10 +184,12 @@ export const candidateProfileSchema = z.object({
   specialization: specializationSchema.nullable(),
   claimedGrade: gradeSchema.nullable(),
   fspId: z.string().max(64).nullable(),
+  phone: z.string().max(40).nullable(),
   telegram: z.string().max(120).nullable(),
   github: z.string().max(120).nullable(),
   linkedin: z.string().max(120).nullable(),
   website: z.string().max(120).nullable(),
+  softSkills: z.array(z.string()),
   // Ожидания кандидата: по ним подборка сверяет вилку и формат работодателя.
   desiredSalaryFrom: z.number().int().positive().nullable(),
   experienceYears: z.number().min(0).nullable(),
@@ -241,10 +243,14 @@ export const saveContactsSchema = z.object({
   specialization: specializationSchema,
   claimedGrade: gradeSchema,
   fspId: z.string().trim().max(64, "Слишком длинный ID"),
+  phone: z.string().trim().max(40, "Слишком длинный номер"),
   telegram: linkField,
   github: linkField,
   linkedin: linkField,
   website: linkField,
+  softSkills: z
+    .array(z.string().trim().min(1).max(60, "Слишком длинное качество"))
+    .max(20, "Не больше 20 качеств"),
   desiredSalaryFrom: optionalSalarySchema,
   experienceYears: optionalYearsSchema,
   education: z.array(saveEducationEntrySchema).max(8),
@@ -281,13 +287,11 @@ export const saveProfileSchema = saveContactsSchema.extend({
 });
 
 // Черновик из текста резюме. В профиль не пишется, пока кандидат не сохранит форму.
-// Почты, телефона и софт-скиллов в анкете нет: их форма только показывает.
 export const resumeDraftSchema = z.object({
   displayName: z.string().max(80).nullable(),
   specialization: specializationSchema.nullable(),
   experienceYears: z.number().min(0).max(40).nullable(),
   claimedGrade: gradeSchema.nullable(),
-  email: z.string().max(120).nullable(),
   phone: z.string().max(40).nullable(),
   telegram: z.string().max(120).nullable(),
   github: z.string().max(120).nullable(),
