@@ -22,6 +22,18 @@ export type PublicUserDtoOutput = {
     emailVerifiedAt: string | null;
 };
 
+export type ApiErrorDto = {
+    statusCode: number;
+    message: string;
+    error?: string;
+    errors?: Array<{
+        code: string;
+        path: Array<string | number>;
+        message: string;
+        [key: string]: unknown;
+    }>;
+};
+
 export type ConfirmEmailDto = {
     token: string;
 };
@@ -506,6 +518,19 @@ export type AuthControllerRegisterData = {
     url: '/auth/register';
 };
 
+export type AuthControllerRegisterErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors
+     */
+    400: ApiErrorDto;
+    /**
+     * Пользователь с такой почтой уже есть
+     */
+    409: ApiErrorDto;
+};
+
+export type AuthControllerRegisterError = AuthControllerRegisterErrors[keyof AuthControllerRegisterErrors];
+
 export type AuthControllerRegisterResponses = {
     201: PublicUserDtoOutput;
 };
@@ -518,6 +543,19 @@ export type AuthControllerConfirmData = {
     query?: never;
     url: '/auth/confirm';
 };
+
+export type AuthControllerConfirmErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors
+     */
+    400: ApiErrorDto;
+    /**
+     * Ссылка подтверждения недействительна или уже использована
+     */
+    401: ApiErrorDto;
+};
+
+export type AuthControllerConfirmError = AuthControllerConfirmErrors[keyof AuthControllerConfirmErrors];
 
 export type AuthControllerConfirmResponses = {
     200: PublicUserDtoOutput;
@@ -534,10 +572,16 @@ export type AuthControllerResendConfirmationData = {
 
 export type AuthControllerResendConfirmationErrors = {
     /**
-     * Письмо уже отправлено
+     * Тело запроса не прошло валидацию, замечания в поле errors
      */
-    429: unknown;
+    400: ApiErrorDto;
+    /**
+     * Письмо на этот адрес уже отправлено, повторная отправка доступна через минуту
+     */
+    429: ApiErrorDto;
 };
+
+export type AuthControllerResendConfirmationError = AuthControllerResendConfirmationErrors[keyof AuthControllerResendConfirmationErrors];
 
 export type AuthControllerResendConfirmationResponses = {
     204: void;
@@ -552,6 +596,23 @@ export type AuthControllerLoginData = {
     url: '/auth/login';
 };
 
+export type AuthControllerLoginErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors
+     */
+    400: ApiErrorDto;
+    /**
+     * Неверная почта или пароль
+     */
+    401: ApiErrorDto;
+    /**
+     * Почта не подтверждена
+     */
+    403: ApiErrorDto;
+};
+
+export type AuthControllerLoginError = AuthControllerLoginErrors[keyof AuthControllerLoginErrors];
+
 export type AuthControllerLoginResponses = {
     200: SessionDtoOutput;
 };
@@ -564,6 +625,19 @@ export type AuthControllerRefreshData = {
     query?: never;
     url: '/auth/refresh';
 };
+
+export type AuthControllerRefreshErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors
+     */
+    400: ApiErrorDto;
+    /**
+     * Refresh-токен недействителен, истёк или уже использован
+     */
+    401: ApiErrorDto;
+};
+
+export type AuthControllerRefreshError = AuthControllerRefreshErrors[keyof AuthControllerRefreshErrors];
 
 export type AuthControllerRefreshResponses = {
     200: SessionDtoOutput;
@@ -578,6 +652,19 @@ export type AuthControllerLogoutData = {
     url: '/auth/logout';
 };
 
+export type AuthControllerLogoutErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors
+     */
+    400: ApiErrorDto;
+    /**
+     * Refresh-токен недействителен или истёк
+     */
+    401: ApiErrorDto;
+};
+
+export type AuthControllerLogoutError = AuthControllerLogoutErrors[keyof AuthControllerLogoutErrors];
+
 export type AuthControllerLogoutResponses = {
     204: void;
 };
@@ -590,6 +677,15 @@ export type AuthControllerMeData = {
     query?: never;
     url: '/auth/me';
 };
+
+export type AuthControllerMeErrors = {
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+};
+
+export type AuthControllerMeError = AuthControllerMeErrors[keyof AuthControllerMeErrors];
 
 export type AuthControllerMeResponses = {
     200: PublicUserDtoOutput;
@@ -604,6 +700,19 @@ export type ProfilesControllerGetData = {
     url: '/profile';
 };
 
+export type ProfilesControllerGetErrors = {
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли candidate
+     */
+    403: ApiErrorDto;
+};
+
+export type ProfilesControllerGetError = ProfilesControllerGetErrors[keyof ProfilesControllerGetErrors];
+
 export type ProfilesControllerGetResponses = {
     200: CandidateProfileDtoOutput;
 };
@@ -616,6 +725,23 @@ export type ProfilesControllerSaveData = {
     query?: never;
     url: '/profile';
 };
+
+export type ProfilesControllerSaveErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors. Также: пустое название навыка, неизвестный skillId или превышен лимит собственных навыков
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли candidate
+     */
+    403: ApiErrorDto;
+};
+
+export type ProfilesControllerSaveError = ProfilesControllerSaveErrors[keyof ProfilesControllerSaveErrors];
 
 export type ProfilesControllerSaveResponses = {
     200: CandidateProfileDtoOutput;
@@ -632,6 +758,27 @@ export type ProfilesControllerResumeDraftData = {
     url: '/profile/resume-draft';
 };
 
+export type ProfilesControllerResumeDraftErrors = {
+    /**
+     * Файл не передан, не является PDF, больше 5 МБ или 10 страниц либо не читается
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли candidate
+     */
+    403: ApiErrorDto;
+    /**
+     * В PDF нет текста для заполнения анкеты
+     */
+    422: ApiErrorDto;
+};
+
+export type ProfilesControllerResumeDraftError = ProfilesControllerResumeDraftErrors[keyof ProfilesControllerResumeDraftErrors];
+
 export type ProfilesControllerResumeDraftResponses = {
     200: ResumeDraftDtoOutput;
 };
@@ -644,6 +791,23 @@ export type ProfilesControllerExportPdfData = {
     query?: never;
     url: '/profile/export.pdf';
 };
+
+export type ProfilesControllerExportPdfErrors = {
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли candidate
+     */
+    403: ApiErrorDto;
+    /**
+     * Анкета ещё не сохранена
+     */
+    404: ApiErrorDto;
+};
+
+export type ProfilesControllerExportPdfError = ProfilesControllerExportPdfErrors[keyof ProfilesControllerExportPdfErrors];
 
 export type ProfilesControllerExportPdfResponses = {
     200: Blob | File;
@@ -658,6 +822,27 @@ export type AssessmentsControllerStartData = {
     url: '/assessment/attempts';
 };
 
+export type AssessmentsControllerStartErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors. Также: анкета не сохранена или для её навыков нет вопросов
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли candidate
+     */
+    403: ApiErrorDto;
+    /**
+     * Есть незавершённая попытка или смена грейда пока недоступна
+     */
+    409: ApiErrorDto;
+};
+
+export type AssessmentsControllerStartError = AssessmentsControllerStartErrors[keyof AssessmentsControllerStartErrors];
+
 export type AssessmentsControllerStartResponses = {
     201: ActiveAttemptDtoOutput;
 };
@@ -670,6 +855,19 @@ export type AssessmentsControllerCurrentData = {
     query?: never;
     url: '/assessment/attempts/current';
 };
+
+export type AssessmentsControllerCurrentErrors = {
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли candidate
+     */
+    403: ApiErrorDto;
+};
+
+export type AssessmentsControllerCurrentError = AssessmentsControllerCurrentErrors[keyof AssessmentsControllerCurrentErrors];
 
 export type AssessmentsControllerCurrentResponses = {
     200: CurrentAttemptDtoOutput;
@@ -684,6 +882,27 @@ export type AssessmentsControllerAnswerData = {
     url: '/assessment/attempts/answer';
 };
 
+export type AssessmentsControllerAnswerErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors. Также: попытка не найдена, завершена или время истекло
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли candidate
+     */
+    403: ApiErrorDto;
+    /**
+     * Вопрос уже закрыт или на все вопросы даны ответы
+     */
+    409: ApiErrorDto;
+};
+
+export type AssessmentsControllerAnswerError = AssessmentsControllerAnswerErrors[keyof AssessmentsControllerAnswerErrors];
+
 export type AssessmentsControllerAnswerResponses = {
     200: ActiveAttemptDtoOutput;
 };
@@ -696,6 +915,23 @@ export type AssessmentsControllerEventsData = {
     query?: never;
     url: '/assessment/attempts/events';
 };
+
+export type AssessmentsControllerEventsErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors. Также: попытка не найдена
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли candidate
+     */
+    403: ApiErrorDto;
+};
+
+export type AssessmentsControllerEventsError = AssessmentsControllerEventsErrors[keyof AssessmentsControllerEventsErrors];
 
 export type AssessmentsControllerEventsResponses = {
     200: AssessmentEventsAcceptedDtoOutput;
@@ -710,6 +946,27 @@ export type AssessmentsControllerFinishData = {
     url: '/assessment/attempts/finish';
 };
 
+export type AssessmentsControllerFinishErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors. Также: попытка не найдена, уже завершена или время истекло
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли candidate
+     */
+    403: ApiErrorDto;
+    /**
+     * Специализация в анкете изменилась во время теста
+     */
+    409: ApiErrorDto;
+};
+
+export type AssessmentsControllerFinishError = AssessmentsControllerFinishErrors[keyof AssessmentsControllerFinishErrors];
+
 export type AssessmentsControllerFinishResponses = {
     200: AssessmentResultDtoOutput;
 };
@@ -722,6 +979,19 @@ export type AssessmentsControllerHistoryData = {
     query?: never;
     url: '/assessment/attempts/history';
 };
+
+export type AssessmentsControllerHistoryErrors = {
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли candidate
+     */
+    403: ApiErrorDto;
+};
+
+export type AssessmentsControllerHistoryError = AssessmentsControllerHistoryErrors[keyof AssessmentsControllerHistoryErrors];
 
 export type AssessmentsControllerHistoryResponses = {
     200: AssessmentHistoryDtoOutput;
@@ -736,6 +1006,19 @@ export type EmployersControllerGetCompanyData = {
     url: '/employer/company';
 };
 
+export type EmployersControllerGetCompanyErrors = {
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+};
+
+export type EmployersControllerGetCompanyError = EmployersControllerGetCompanyErrors[keyof EmployersControllerGetCompanyErrors];
+
 export type EmployersControllerGetCompanyResponses = {
     200: CompanyResponseDtoOutput;
 };
@@ -748,6 +1031,23 @@ export type EmployersControllerSaveCompanyData = {
     query?: never;
     url: '/employer/company';
 };
+
+export type EmployersControllerSaveCompanyErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+};
+
+export type EmployersControllerSaveCompanyError = EmployersControllerSaveCompanyErrors[keyof EmployersControllerSaveCompanyErrors];
 
 export type EmployersControllerSaveCompanyResponses = {
     200: CompanyProfileDtoOutput;
@@ -762,6 +1062,19 @@ export type EmployersControllerListNeedsData = {
     url: '/employer/needs';
 };
 
+export type EmployersControllerListNeedsErrors = {
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+};
+
+export type EmployersControllerListNeedsError = EmployersControllerListNeedsErrors[keyof EmployersControllerListNeedsErrors];
+
 export type EmployersControllerListNeedsResponses = {
     200: HiringNeedListDtoOutput;
 };
@@ -774,6 +1087,23 @@ export type EmployersControllerCreateNeedData = {
     query?: never;
     url: '/employer/needs';
 };
+
+export type EmployersControllerCreateNeedErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+};
+
+export type EmployersControllerCreateNeedError = EmployersControllerCreateNeedErrors[keyof EmployersControllerCreateNeedErrors];
 
 export type EmployersControllerCreateNeedResponses = {
     201: HiringNeedDtoOutput;
@@ -790,6 +1120,27 @@ export type EmployersControllerDeleteNeedData = {
     url: '/employer/needs/{id}';
 };
 
+export type EmployersControllerDeleteNeedErrors = {
+    /**
+     * Параметр id в пути не является UUID
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+    /**
+     * Потребность не найдена или принадлежит другому работодателю
+     */
+    404: ApiErrorDto;
+};
+
+export type EmployersControllerDeleteNeedError = EmployersControllerDeleteNeedErrors[keyof EmployersControllerDeleteNeedErrors];
+
 export type EmployersControllerDeleteNeedResponses = {
     204: void;
 };
@@ -804,6 +1155,27 @@ export type EmployersControllerGetNeedData = {
     query?: never;
     url: '/employer/needs/{id}';
 };
+
+export type EmployersControllerGetNeedErrors = {
+    /**
+     * Параметр id в пути не является UUID
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+    /**
+     * Потребность не найдена или принадлежит другому работодателю
+     */
+    404: ApiErrorDto;
+};
+
+export type EmployersControllerGetNeedError = EmployersControllerGetNeedErrors[keyof EmployersControllerGetNeedErrors];
 
 export type EmployersControllerGetNeedResponses = {
     200: HiringNeedDtoOutput;
@@ -820,6 +1192,27 @@ export type EmployersControllerUpdateNeedData = {
     url: '/employer/needs/{id}';
 };
 
+export type EmployersControllerUpdateNeedErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors. Также: параметр id в пути не является UUID
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+    /**
+     * Потребность не найдена или принадлежит другому работодателю
+     */
+    404: ApiErrorDto;
+};
+
+export type EmployersControllerUpdateNeedError = EmployersControllerUpdateNeedErrors[keyof EmployersControllerUpdateNeedErrors];
+
 export type EmployersControllerUpdateNeedResponses = {
     200: HiringNeedDtoOutput;
 };
@@ -834,6 +1227,31 @@ export type EmployersControllerShortlistData = {
     query?: never;
     url: '/employer/needs/{id}/shortlist';
 };
+
+export type EmployersControllerShortlistErrors = {
+    /**
+     * Параметр id в пути не является UUID
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+    /**
+     * Потребность не найдена или принадлежит другому работодателю
+     */
+    404: ApiErrorDto;
+    /**
+     * Сервис ранжирования недоступен
+     */
+    503: ApiErrorDto;
+};
+
+export type EmployersControllerShortlistError = EmployersControllerShortlistErrors[keyof EmployersControllerShortlistErrors];
 
 export type EmployersControllerShortlistResponses = {
     200: ShortlistDtoOutput;
@@ -851,6 +1269,31 @@ export type EmployersControllerRestoreData = {
     url: '/employer/needs/{id}/dismissed/{candidateId}';
 };
 
+export type EmployersControllerRestoreErrors = {
+    /**
+     * Параметр id в пути не является UUID
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+    /**
+     * Потребность не найдена или принадлежит другому работодателю
+     */
+    404: ApiErrorDto;
+    /**
+     * Сервис ранжирования недоступен
+     */
+    503: ApiErrorDto;
+};
+
+export type EmployersControllerRestoreError = EmployersControllerRestoreErrors[keyof EmployersControllerRestoreErrors];
+
 export type EmployersControllerRestoreResponses = {
     200: ShortlistDtoOutput;
 };
@@ -866,6 +1309,31 @@ export type EmployersControllerDismissData = {
     query?: never;
     url: '/employer/needs/{id}/dismissed/{candidateId}';
 };
+
+export type EmployersControllerDismissErrors = {
+    /**
+     * Параметр id в пути не является UUID
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+    /**
+     * Потребность не найдена или принадлежит другому работодателю
+     */
+    404: ApiErrorDto;
+    /**
+     * Сервис ранжирования недоступен
+     */
+    503: ApiErrorDto;
+};
+
+export type EmployersControllerDismissError = EmployersControllerDismissErrors[keyof EmployersControllerDismissErrors];
 
 export type EmployersControllerDismissResponses = {
     200: ShortlistDtoOutput;
@@ -883,6 +1351,31 @@ export type EmployersControllerUnfavoriteData = {
     url: '/employer/needs/{id}/favorites/{candidateId}';
 };
 
+export type EmployersControllerUnfavoriteErrors = {
+    /**
+     * Параметр id в пути не является UUID
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+    /**
+     * Потребность не найдена или принадлежит другому работодателю
+     */
+    404: ApiErrorDto;
+    /**
+     * Сервис ранжирования недоступен
+     */
+    503: ApiErrorDto;
+};
+
+export type EmployersControllerUnfavoriteError = EmployersControllerUnfavoriteErrors[keyof EmployersControllerUnfavoriteErrors];
+
 export type EmployersControllerUnfavoriteResponses = {
     200: ShortlistDtoOutput;
 };
@@ -899,6 +1392,31 @@ export type EmployersControllerFavoriteData = {
     url: '/employer/needs/{id}/favorites/{candidateId}';
 };
 
+export type EmployersControllerFavoriteErrors = {
+    /**
+     * Параметр id в пути не является UUID
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+    /**
+     * Потребность не найдена или принадлежит другому работодателю
+     */
+    404: ApiErrorDto;
+    /**
+     * Сервис ранжирования недоступен
+     */
+    503: ApiErrorDto;
+};
+
+export type EmployersControllerFavoriteError = EmployersControllerFavoriteErrors[keyof EmployersControllerFavoriteErrors];
+
 export type EmployersControllerFavoriteResponses = {
     200: ShortlistDtoOutput;
 };
@@ -911,6 +1429,23 @@ export type EmployersControllerSearchCandidatesData = {
     query?: never;
     url: '/employer/candidates/search';
 };
+
+export type EmployersControllerSearchCandidatesErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+};
+
+export type EmployersControllerSearchCandidatesError = EmployersControllerSearchCandidatesErrors[keyof EmployersControllerSearchCandidatesErrors];
 
 export type EmployersControllerSearchCandidatesResponses = {
     200: CandidateSearchResultDtoOutput;
@@ -925,6 +1460,19 @@ export type EmployersControllerListInvitationsData = {
     url: '/employer/invitations';
 };
 
+export type EmployersControllerListInvitationsErrors = {
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+};
+
+export type EmployersControllerListInvitationsError = EmployersControllerListInvitationsErrors[keyof EmployersControllerListInvitationsErrors];
+
 export type EmployersControllerListInvitationsResponses = {
     200: InvitationListDtoOutput;
 };
@@ -937,6 +1485,31 @@ export type EmployersControllerCreateInvitationData = {
     query?: never;
     url: '/employer/invitations';
 };
+
+export type EmployersControllerCreateInvitationErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors. Также: профиль компании не заполнен
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+    /**
+     * Кандидат не найден на бирже или потребность не найдена
+     */
+    404: ApiErrorDto;
+    /**
+     * У кандидата уже есть активное приглашение от компании
+     */
+    409: ApiErrorDto;
+};
+
+export type EmployersControllerCreateInvitationError = EmployersControllerCreateInvitationErrors[keyof EmployersControllerCreateInvitationErrors];
 
 export type EmployersControllerCreateInvitationResponses = {
     201: InvitationDtoOutput;
@@ -953,6 +1526,31 @@ export type EmployersControllerWithdrawData = {
     url: '/employer/invitations/{id}/withdraw';
 };
 
+export type EmployersControllerWithdrawErrors = {
+    /**
+     * Параметр id в пути не является UUID
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+    /**
+     * Приглашение не найдено или принадлежит другой компании
+     */
+    404: ApiErrorDto;
+    /**
+     * Кандидат уже ответил на приглашение или оно отозвано
+     */
+    409: ApiErrorDto;
+};
+
+export type EmployersControllerWithdrawError = EmployersControllerWithdrawErrors[keyof EmployersControllerWithdrawErrors];
+
 export type EmployersControllerWithdrawResponses = {
     200: InvitationDtoOutput;
 };
@@ -966,6 +1564,19 @@ export type CandidateInvitationsControllerListData = {
     url: '/candidate/invitations';
 };
 
+export type CandidateInvitationsControllerListErrors = {
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли candidate
+     */
+    403: ApiErrorDto;
+};
+
+export type CandidateInvitationsControllerListError = CandidateInvitationsControllerListErrors[keyof CandidateInvitationsControllerListErrors];
+
 export type CandidateInvitationsControllerListResponses = {
     200: CandidateInvitationListDtoOutput;
 };
@@ -978,6 +1589,23 @@ export type CandidateInvitationsControllerMarkViewedData = {
     query?: never;
     url: '/candidate/invitations/viewed';
 };
+
+export type CandidateInvitationsControllerMarkViewedErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли candidate
+     */
+    403: ApiErrorDto;
+};
+
+export type CandidateInvitationsControllerMarkViewedError = CandidateInvitationsControllerMarkViewedErrors[keyof CandidateInvitationsControllerMarkViewedErrors];
 
 export type CandidateInvitationsControllerMarkViewedResponses = {
     204: void;
@@ -994,6 +1622,31 @@ export type CandidateInvitationsControllerAcceptData = {
     url: '/candidate/invitations/{id}/accept';
 };
 
+export type CandidateInvitationsControllerAcceptErrors = {
+    /**
+     * Параметр id в пути не является UUID
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли candidate
+     */
+    403: ApiErrorDto;
+    /**
+     * Приглашение не найдено или адресовано другому кандидату
+     */
+    404: ApiErrorDto;
+    /**
+     * Кандидат уже ответил на приглашение
+     */
+    409: ApiErrorDto;
+};
+
+export type CandidateInvitationsControllerAcceptError = CandidateInvitationsControllerAcceptErrors[keyof CandidateInvitationsControllerAcceptErrors];
+
 export type CandidateInvitationsControllerAcceptResponses = {
     200: CandidateInvitationDtoOutput;
 };
@@ -1008,6 +1661,31 @@ export type CandidateInvitationsControllerDeclineData = {
     query?: never;
     url: '/candidate/invitations/{id}/decline';
 };
+
+export type CandidateInvitationsControllerDeclineErrors = {
+    /**
+     * Параметр id в пути не является UUID
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли candidate
+     */
+    403: ApiErrorDto;
+    /**
+     * Приглашение не найдено или адресовано другому кандидату
+     */
+    404: ApiErrorDto;
+    /**
+     * Кандидат уже ответил на приглашение
+     */
+    409: ApiErrorDto;
+};
+
+export type CandidateInvitationsControllerDeclineError = CandidateInvitationsControllerDeclineErrors[keyof CandidateInvitationsControllerDeclineErrors];
 
 export type CandidateInvitationsControllerDeclineResponses = {
     200: CandidateInvitationDtoOutput;

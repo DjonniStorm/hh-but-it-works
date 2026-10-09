@@ -1,18 +1,6 @@
-import { ConfirmPage } from "@/pages/auth/ConfirmPage";
-import { LoginPage } from "@/pages/auth/LoginPage";
-import { RegisterPage } from "@/pages/auth/RegisterPage";
-import { CompanyPage } from "@/pages/employer/ui/CompanyPage";
+import type { ComponentType } from "react";
+
 import { EmployerLayout } from "@/pages/employer/ui/EmployerLayout";
-import { InvitationsPage } from "@/pages/employer/ui/InvitationsPage";
-import { NeedEditPage } from "@/pages/employer/ui/NeedEditPage";
-import { NeedNewPage } from "@/pages/employer/ui/NeedNewPage";
-import { NeedPage } from "@/pages/employer/ui/NeedPage";
-import { NeedsPage } from "@/pages/employer/ui/NeedsPage";
-import { SearchPage } from "@/pages/employer/ui/SearchPage";
-import { HomePage } from "@/pages/home/HomePage";
-import { CandidateInvitationsPage } from "@/pages/invitations/ui/CandidateInvitationsPage";
-import { ProfilePage } from "@/pages/profile/ui/ProfilePage";
-import { TestPage } from "@/pages/test/TestPage";
 import { Navigate, createBrowserRouter } from "react-router";
 
 import { AuthLayout } from "./AuthLayout";
@@ -21,7 +9,34 @@ import { EmployerRoute } from "./EmployerRoute";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { QueryState } from "./QueryState";
 import { RouteError } from "./RouteError";
+import { RouteFallback } from "./RouteFallback";
 import { ROUTES } from "./routes";
+
+// observer() возвращает React.memo: у него $$typeof, а typeof — "object".
+function isPageComponent(value: unknown): value is ComponentType {
+  if (typeof value === "function") {
+    return true;
+  }
+  return typeof value === "object" && value !== null && "$$typeof" in value;
+}
+
+// Литерал import() остаётся на вызове: Vite видит путь и кладёт страницу в свой чанк.
+function lazyPage<T extends Record<string, unknown>>(
+  load: () => Promise<T>,
+  exportName: keyof T & string,
+) {
+  return async () => {
+    const module = await load();
+    const Component = module[exportName];
+    if (!isPageComponent(Component)) {
+      throw new Error(`В модуле маршрута нет компонента ${exportName}`);
+    }
+    return { Component };
+  };
+}
+
+const pageFallback = <RouteFallback />;
+const screenFallback = <RouteFallback fullScreen />;
 
 export const router = createBrowserRouter([
   {
@@ -31,14 +46,30 @@ export const router = createBrowserRouter([
       {
         element: <ProtectedRoute />,
         children: [
-          { index: true, element: <HomePage /> },
+          {
+            index: true,
+            lazy: lazyPage(() => import("@/pages/home/HomePage"), "HomePage"),
+            hydrateFallbackElement: pageFallback,
+          },
           {
             element: <CandidateRoute />,
             children: [
-              { path: ROUTES.PROFILE, element: <ProfilePage /> },
+              {
+                path: ROUTES.PROFILE,
+                lazy: lazyPage(
+                  () => import("@/pages/profile/ui/ProfilePage"),
+                  "ProfilePage",
+                ),
+                hydrateFallbackElement: pageFallback,
+              },
               {
                 path: ROUTES.INVITATIONS,
-                element: <CandidateInvitationsPage />,
+                lazy: lazyPage(
+                  () =>
+                    import("@/pages/invitations/ui/CandidateInvitationsPage"),
+                  "CandidateInvitationsPage",
+                ),
+                hydrateFallbackElement: pageFallback,
               },
             ],
           },
@@ -53,19 +84,62 @@ export const router = createBrowserRouter([
                     index: true,
                     element: <Navigate to={ROUTES.EMPLOYER.NEEDS} replace />,
                   },
-                  { path: ROUTES.EMPLOYER.NEEDS, element: <NeedsPage /> },
-                  { path: ROUTES.EMPLOYER.NEED_NEW, element: <NeedNewPage /> },
-                  { path: ROUTES.EMPLOYER.NEED, element: <NeedPage /> },
+                  {
+                    path: ROUTES.EMPLOYER.NEEDS,
+                    lazy: lazyPage(
+                      () => import("@/pages/employer/ui/NeedsPage"),
+                      "NeedsPage",
+                    ),
+                    hydrateFallbackElement: pageFallback,
+                  },
+                  {
+                    path: ROUTES.EMPLOYER.NEED_NEW,
+                    lazy: lazyPage(
+                      () => import("@/pages/employer/ui/NeedNewPage"),
+                      "NeedNewPage",
+                    ),
+                    hydrateFallbackElement: pageFallback,
+                  },
+                  {
+                    path: ROUTES.EMPLOYER.NEED,
+                    lazy: lazyPage(
+                      () => import("@/pages/employer/ui/NeedPage"),
+                      "NeedPage",
+                    ),
+                    hydrateFallbackElement: pageFallback,
+                  },
                   {
                     path: ROUTES.EMPLOYER.NEED_EDIT,
-                    element: <NeedEditPage />,
+                    lazy: lazyPage(
+                      () => import("@/pages/employer/ui/NeedEditPage"),
+                      "NeedEditPage",
+                    ),
+                    hydrateFallbackElement: pageFallback,
                   },
-                  { path: ROUTES.EMPLOYER.SEARCH, element: <SearchPage /> },
+                  {
+                    path: ROUTES.EMPLOYER.SEARCH,
+                    lazy: lazyPage(
+                      () => import("@/pages/employer/ui/SearchPage"),
+                      "SearchPage",
+                    ),
+                    hydrateFallbackElement: pageFallback,
+                  },
                   {
                     path: ROUTES.EMPLOYER.INVITATIONS,
-                    element: <InvitationsPage />,
+                    lazy: lazyPage(
+                      () => import("@/pages/employer/ui/InvitationsPage"),
+                      "InvitationsPage",
+                    ),
+                    hydrateFallbackElement: pageFallback,
                   },
-                  { path: ROUTES.EMPLOYER.COMPANY, element: <CompanyPage /> },
+                  {
+                    path: ROUTES.EMPLOYER.COMPANY,
+                    lazy: lazyPage(
+                      () => import("@/pages/employer/ui/CompanyPage"),
+                      "CompanyPage",
+                    ),
+                    hydrateFallbackElement: pageFallback,
+                  },
                 ],
               },
             ],
@@ -75,12 +149,34 @@ export const router = createBrowserRouter([
       {
         element: <AuthLayout />,
         children: [
-          { path: ROUTES.AUTH.LOGIN, element: <LoginPage /> },
-          { path: ROUTES.AUTH.REGISTER, element: <RegisterPage /> },
-          { path: ROUTES.AUTH.CONFIRM, element: <ConfirmPage /> },
+          {
+            path: ROUTES.AUTH.LOGIN,
+            lazy: lazyPage(() => import("@/pages/auth/LoginPage"), "LoginPage"),
+            hydrateFallbackElement: screenFallback,
+          },
+          {
+            path: ROUTES.AUTH.REGISTER,
+            lazy: lazyPage(
+              () => import("@/pages/auth/RegisterPage"),
+              "RegisterPage",
+            ),
+            hydrateFallbackElement: screenFallback,
+          },
+          {
+            path: ROUTES.AUTH.CONFIRM,
+            lazy: lazyPage(
+              () => import("@/pages/auth/ConfirmPage"),
+              "ConfirmPage",
+            ),
+            hydrateFallbackElement: screenFallback,
+          },
         ],
       },
-      { path: ROUTES.TEST, element: <TestPage /> },
+      {
+        path: ROUTES.TEST,
+        lazy: lazyPage(() => import("@/pages/test/TestPage"), "TestPage"),
+        hydrateFallbackElement: screenFallback,
+      },
     ],
   },
 ]);

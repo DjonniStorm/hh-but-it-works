@@ -6,17 +6,19 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
-  UseGuards,
 } from "@nestjs/common";
-import { ApiBearerAuth, ApiNoContentResponse } from "@nestjs/swagger";
+import { ApiNoContentResponse } from "@nestjs/swagger";
 import { ZodResponse } from "nestjs-zod";
 
 import { InvitationStatus, Role } from "@hh/types";
 
+import { Auth } from "../../common/auth/auth.decorator";
 import { CurrentUser } from "../../common/auth/current-user.decorator";
-import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
-import { Roles } from "../../common/auth/roles.decorator";
-import { RolesGuard } from "../../common/auth/roles.guard";
+import {
+  ApiErrors,
+  invalidBody,
+  invalidId,
+} from "../../common/openapi/api-errors.decorator";
 import { User } from "../users/user.entity";
 import {
   CandidateInvitationDto,
@@ -25,10 +27,14 @@ import {
 } from "./dto";
 import { InvitationsService } from "./invitations.service";
 
+const answerErrors = {
+  400: invalidId,
+  404: "Приглашение не найдено или адресовано другому кандидату",
+  409: "Кандидат уже ответил на приглашение",
+};
+
 @Controller("candidate/invitations")
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.Candidate)
+@Auth(Role.Candidate)
 export class CandidateInvitationsController {
   constructor(private readonly invitations: InvitationsService) {}
 
@@ -42,6 +48,7 @@ export class CandidateInvitationsController {
   @Post("viewed")
   @HttpCode(204)
   @ApiNoContentResponse()
+  @ApiErrors({ 400: invalidBody })
   markViewed(
     @CurrentUser() user: User,
     @Body() body: MarkInvitationsViewedDto,
@@ -53,6 +60,7 @@ export class CandidateInvitationsController {
   @Post(":id/accept")
   @HttpCode(200)
   @ZodResponse({ status: 200, type: CandidateInvitationDto })
+  @ApiErrors(answerErrors)
   accept(
     @CurrentUser() user: User,
     @Param("id", new ParseUUIDPipe()) id: string,
@@ -63,6 +71,7 @@ export class CandidateInvitationsController {
   @Post(":id/decline")
   @HttpCode(200)
   @ZodResponse({ status: 200, type: CandidateInvitationDto })
+  @ApiErrors(answerErrors)
   decline(
     @CurrentUser() user: User,
     @Param("id", new ParseUUIDPipe()) id: string,

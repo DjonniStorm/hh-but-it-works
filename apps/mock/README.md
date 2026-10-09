@@ -2,6 +2,8 @@
 
 Мок реестра ФСП на Bun и Elysia. `GET /participants/:fspId` отдаёт достижения. Если истории нет — `404`. Известный id для проверки: `fsp-demo`.
 
+Swagger UI: `http://localhost:3001/docs`, спецификация — `/docs/json`. Её собирает `@elysiajs/openapi` из схем `t.Object` на ручках: новая ручка или поле — схема в `response`, иначе в Swagger его не будет.
+
 ```bash
 pnpm --filter @hh/mock dev     # bun --watch src/index.ts
 pnpm --filter @hh/mock start

@@ -7,24 +7,20 @@ import {
   StreamableFile,
   UploadedFile,
   UseFilters,
-  UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiConsumes,
-  ApiOkResponse,
-} from "@nestjs/swagger";
+import { ApiBody, ApiConsumes, ApiOkResponse } from "@nestjs/swagger";
 import { ZodResponse } from "nestjs-zod";
 
 import { Role } from "@hh/types";
 
+import { Auth } from "../../common/auth/auth.decorator";
 import { CurrentUser } from "../../common/auth/current-user.decorator";
-import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
-import { Roles } from "../../common/auth/roles.decorator";
-import { RolesGuard } from "../../common/auth/roles.guard";
+import {
+  ApiErrors,
+  invalidBody,
+} from "../../common/openapi/api-errors.decorator";
 import { User } from "../users/user.entity";
 import { CandidateProfileDto, ResumeDraftDto, SaveProfileDto } from "./dto";
 import { PdfUploadFilter } from "./pdf-upload.filter";
@@ -34,9 +30,7 @@ import { ResumeDraftService } from "./resume-draft.service";
 import { maxPdfBytes } from "./resume-text";
 
 @Controller("profile")
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.Candidate)
+@Auth(Role.Candidate)
 export class ProfilesController {
   constructor(
     private readonly profiles: ProfilesService,
@@ -64,6 +58,10 @@ export class ProfilesController {
     },
   })
   @ZodResponse({ status: 200, type: ResumeDraftDto })
+  @ApiErrors({
+    400: "Файл не передан, не является PDF, больше 5 МБ или 10 страниц либо не читается",
+    422: "В PDF нет текста для заполнения анкеты",
+  })
   resumeDraft(
     @UploadedFile() file: Express.Multer.File | undefined,
   ): Promise<ResumeDraftDto> {
@@ -76,6 +74,7 @@ export class ProfilesController {
       "application/pdf": { schema: { type: "string", format: "binary" } },
     },
   })
+  @ApiErrors({ 404: "Анкета ещё не сохранена" })
   async exportPdf(@CurrentUser() user: User): Promise<StreamableFile> {
     const bytes = await this.pdf.render(user.id);
     return new StreamableFile(bytes, {
@@ -86,6 +85,9 @@ export class ProfilesController {
 
   @Put()
   @ZodResponse({ status: 200, type: CandidateProfileDto })
+  @ApiErrors({
+    400: `${invalidBody}. Также: пустое название навыка, неизвестный skillId или превышен лимит собственных навыков`,
+  })
   save(@CurrentUser() user: User, @Body() body: SaveProfileDto) {
     return this.profiles.save(user.id, body);
   }
