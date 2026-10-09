@@ -8,6 +8,21 @@ import {
 
 import { Grade, SearchStatus, Specialization, WorkFormat } from "@hh/types";
 
+type EducationRow = {
+  school: string;
+  program: string;
+  fromYear: number;
+  toYear: number | null;
+};
+
+type ExperienceRow = {
+  company: string;
+  role: string;
+  fromYear: number;
+  toYear: number | null;
+  summary: string;
+};
+
 @Entity("candidate_profiles")
 export class CandidateProfile {
   @PrimaryGeneratedColumn("uuid")
@@ -110,6 +125,13 @@ export class CandidateProfile {
 
   @Column({ type: "real", nullable: true })
   experienceYears!: number | null;
+
+  /** Блоки резюме. В подборку не входят, только анкета и PDF. */
+  @Column({ type: "jsonb", default: () => "'[]'::jsonb" })
+  education!: EducationRow[];
+
+  @Column({ type: "jsonb", default: () => "'[]'::jsonb" })
+  experience!: ExperienceRow[];
 
   /** На биржу выводит подтверждение, не сохранение анкеты. */
   @Column({ default: false })

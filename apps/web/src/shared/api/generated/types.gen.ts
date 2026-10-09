@@ -61,6 +61,19 @@ export type CandidateProfileDtoOutput = {
     website: string | null;
     desiredSalaryFrom: number | null;
     experienceYears: number | null;
+    education: Array<{
+        school: string;
+        program: string;
+        fromYear: number;
+        toYear: number | null;
+    }>;
+    experience: Array<{
+        company: string;
+        role: string;
+        fromYear: number;
+        toYear: number | null;
+        summary: string;
+    }>;
     workFormats: Array<'office' | 'hybrid' | 'remote'>;
     searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden';
     showExperience: boolean;
@@ -105,6 +118,19 @@ export type SaveProfileDto = {
     website: string;
     desiredSalaryFrom: '' | number | null;
     experienceYears: '' | number | null;
+    education: Array<{
+        school: string;
+        program: string;
+        fromYear: number;
+        toYear: '' | number | null;
+    }>;
+    experience: Array<{
+        company: string;
+        role: string;
+        fromYear: number;
+        toYear: '' | number | null;
+        summary: string;
+    }>;
     workFormats: Array<'office' | 'hybrid' | 'remote'>;
     searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden';
     showExperience: boolean;

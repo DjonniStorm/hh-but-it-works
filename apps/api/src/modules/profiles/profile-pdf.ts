@@ -144,6 +144,37 @@ async function renderProfilePdf(
     ink,
     12,
   );
+  write(pen, "Образование", 14, accent, 8);
+  if (profile.education.length === 0) {
+    write(pen, "не указано", 11, muted, 12);
+  } else {
+    for (const item of profile.education) {
+      write(
+        pen,
+        `${item.school} — ${item.program}, ${yearRange(item.fromYear, item.toYear)}`,
+        11,
+        ink,
+        4,
+      );
+    }
+    pen.y -= 8;
+  }
+  write(pen, "Опыт", 14, accent, 8);
+  if (profile.experience.length === 0) {
+    write(pen, "не указано", 11, muted, 12);
+  } else {
+    for (const item of profile.experience) {
+      write(
+        pen,
+        `${item.company} — ${item.role}, ${yearRange(item.fromYear, item.toYear)}`,
+        11,
+        ink,
+        4,
+      );
+      write(pen, item.summary, 11, muted, 8);
+    }
+    pen.y -= 4;
+  }
   write(pen, "Навыки", 14, accent, 8);
   const lines = skillLines(rows, skills);
   if (lines.length === 0) {
@@ -237,6 +268,13 @@ function write(
 }
 
 // Та же форма, что formatYears на вебе: дробное число — «года».
+function yearRange(fromYear: number, toYear: number | null): string {
+  if (toYear === null) {
+    return `${fromYear} — н. в.`;
+  }
+  return `${fromYear}–${toYear}`;
+}
+
 function formatYears(value: number): string {
   const shown = new Intl.NumberFormat("ru-RU", {
     maximumFractionDigits: 1,

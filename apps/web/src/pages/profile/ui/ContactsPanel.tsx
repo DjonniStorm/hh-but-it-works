@@ -8,6 +8,10 @@ import {
   gradeOptions,
   specializationOptions,
 } from "@/pages/profile/model/options";
+import {
+  educationFromProfile,
+  experienceFromProfile,
+} from "@/pages/profile/model/resume-history";
 import { contactInput } from "@/pages/profile/model/save-contacts";
 import {
   assessedFromProfile,
@@ -18,7 +22,9 @@ import type {
   ResumeDraftHit,
 } from "@/pages/profile/model/types";
 import { ContactIcon } from "@/pages/profile/ui/ContactIcon";
+import { EducationFields } from "@/pages/profile/ui/EducationFields";
 import { ExpectationsFields } from "@/pages/profile/ui/ExpectationsFields";
+import { ExperienceFields } from "@/pages/profile/ui/ExperienceFields";
 import { ProfileDownload } from "@/pages/profile/ui/ProfileDownload";
 import { ResumeUpload } from "@/pages/profile/ui/ResumeUpload";
 import { VisibilityFields } from "@/pages/profile/ui/VisibilityFields";
@@ -60,6 +66,8 @@ export const ContactsPanel = ({
       website: profile.website ?? "",
       desiredSalaryFrom: profile.desiredSalaryFrom ?? "",
       experienceYears: profile.experienceYears ?? "",
+      education: educationFromProfile(profile.education),
+      experience: experienceFromProfile(profile.experience),
       // Обычный массив: у observable klona уходит в символ MobX и зацикливается.
       workFormats: profile.workFormats.slice(),
       searchStatus: profile.searchStatus,
@@ -176,6 +184,8 @@ export const ContactsPanel = ({
           {...form.getInputProps("website")}
         />
         <ExpectationsFields form={form} />
+        <EducationFields form={form} />
+        <ExperienceFields form={form} />
         <VisibilityFields form={form} />
         <Text>
           {profile.listed
