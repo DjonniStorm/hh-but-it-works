@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import {
   headerHeight,
@@ -10,6 +10,7 @@ import { RequestOverlay } from "@/app/store/request-overlay";
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { waitingInvitations } from "@/pages/invitations/model/answer";
+import { RouteFallback } from "@/shared/router/RouteFallback";
 import { ROUTES } from "@/shared/router/routes";
 import { currentPath, returnTo } from "@/shared/router/use-return-path";
 import {
@@ -160,7 +161,9 @@ export const AuthedShell = observer(() => {
       </AppShell.Navbar>
       <AppShell.Main>
         <RequestOverlay>
-          <Outlet />
+          <Suspense fallback={<RouteFallback />}>
+            <Outlet />
+          </Suspense>
         </RequestOverlay>
       </AppShell.Main>
     </AppShell>
