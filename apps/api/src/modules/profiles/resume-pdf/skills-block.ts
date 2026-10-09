@@ -1,3 +1,5 @@
+import type { RGB } from "pdf-lib";
+
 import {
   heading,
   levelBar,
@@ -13,11 +15,11 @@ import {
   levelLabel,
   levelRank,
   levelSteps,
+  palette,
   rhythm,
   sectionTitle,
   size,
   text,
-  toneColors,
 } from "./theme";
 
 const columnGap = 12;
@@ -27,6 +29,12 @@ const itemHeight = rhythm.line * 2 + rhythm.smallLine + 3 + levelBarHeight;
 const sourceIcon: Record<SkillSource, IconName> = {
   [SkillSource.Test]: "sealCheck",
   [SkillSource.Fsp]: "medal",
+};
+
+// Цвета как у бейджей навыков на сайте: тест — основной, ФСП — акцент, заявленный — серый.
+const sourceColor: Record<SkillSource, RGB> = {
+  [SkillSource.Test]: palette.primary,
+  [SkillSource.Fsp]: palette.accent,
 };
 
 const sourceCaption: Record<SkillSource, string> = {
@@ -67,11 +75,11 @@ function skillItem(
   width: number,
 ): void {
   const { canvas } = col;
-  const colors = toneColors[col.tone];
   let top = col.y;
   const icon = skill.source ? sourceIcon[skill.source] : "code";
+  const color = skill.source ? sourceColor[skill.source] : palette.neutral;
   const iconTop = top - (rhythm.line - size.icon) / 2;
-  canvas.icon(col.index, icon, x, iconTop, size.icon, colors.icon);
+  canvas.icon(col.index, icon, x, iconTop, size.icon, color);
   const strong = textStyle(col, "semibold");
   const name = canvas.clip(skill.title, strong, width - textX);
   const nameY = baseline(top, rhythm.line, size.body);
@@ -94,7 +102,7 @@ function skillItem(
   top -= rhythm.smallLine + 3;
 
   const filled = levelRank[skill.level];
-  levelBar(canvas, col.index, x, top, width, filled, levelSteps);
+  levelBar(canvas, col.index, x, top, width, filled, levelSteps, color);
 }
 
 function caption(skill: ResumeSkill): string {

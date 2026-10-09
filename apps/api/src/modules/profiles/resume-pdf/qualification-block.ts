@@ -4,12 +4,12 @@ import type { Column } from "./column";
 import type { ResumeQualification } from "./resume-data";
 import {
   gradeLabel,
+  palette,
   phrase,
   rhythm,
   sectionTitle,
   size,
   text,
-  toneColors,
 } from "./theme";
 
 const textX = size.icon + rhythm.iconGap;
@@ -20,12 +20,12 @@ export function qualificationBlock(
   value: ResumeQualification,
 ): void {
   heading(col, sectionTitle.qualification, rhythm.line * 3);
-  const colors = toneColors[col.tone];
   const grade = gradeLabel[value.verified ?? value.claimed];
   col.reserve(rhythm.line);
   const iconTop = col.y - (rhythm.line - size.icon) / 2;
   const icon = value.verified ? "sealCheck" : "code";
-  col.canvas.icon(col.index, icon, col.x, iconTop, size.icon, colors.icon);
+  const color = value.verified ? palette.primary : palette.neutral;
+  col.canvas.icon(col.index, icon, col.x, iconTop, size.icon, color);
   const y = baseline(col.y, rhythm.line, size.body);
   col.canvas.text(
     col.index,

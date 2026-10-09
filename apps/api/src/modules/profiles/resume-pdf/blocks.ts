@@ -1,3 +1,5 @@
+import type { RGB } from "pdf-lib";
+
 import { type Canvas, type TextStyle, baseline } from "./canvas";
 import type { Column } from "./column";
 import type { ResumeEntry, ResumeFact } from "./resume-data";
@@ -64,28 +66,15 @@ export function levelBar(
   width: number,
   filled: number,
   steps: number,
+  color: RGB = palette.primary,
 ): void {
   const step = width / steps;
   for (let item = 0; item < steps; item += 1) {
     const left = x + item * step;
     if (item < filled) {
-      canvas.rect(
-        index,
-        left,
-        top - barHeight,
-        step,
-        barHeight,
-        palette.primary,
-      );
+      canvas.rect(index, left, top - barHeight, step, barHeight, color);
     }
-    canvas.frame(
-      index,
-      left,
-      top - barHeight,
-      step,
-      barHeight,
-      palette.primary,
-    );
+    canvas.frame(index, left, top - barHeight, step, barHeight, color);
   }
 }
 

@@ -48,9 +48,9 @@ const ditto: Layout = (doc, fonts, data) => {
   const band = 63.5;
   const side = 100;
   const tileTop = H - 24;
-  canvas.rect(0, 0, H - band, W, band, palette.block);
+  canvas.rect(0, 0, H - band, W, band, palette.primary);
   monogram(canvas, (mainX - side) / 2, tileTop, side, data.initials, {
-    fill: palette.tint,
+    fill: palette.primarySoft,
     ink: palette.primary,
     radius: 0,
   });
@@ -110,12 +110,12 @@ const gengar: Layout = (doc, fonts, data) => {
 
   const canvas = new Canvas(doc, fonts, (index) => {
     const height = index === 0 ? H - tile : H;
-    canvas.rect(index, 0, 0, S, height, palette.tint);
+    canvas.rect(index, 0, 0, S, height, palette.primarySoft);
   });
-  canvas.rect(0, 0, H - tile, S, tile, palette.block);
-  canvas.rect(0, S, H - strip, W - S, strip, palette.tint);
+  canvas.rect(0, 0, H - tile, S, tile, palette.primary);
+  canvas.rect(0, S, H - strip, W - S, strip, palette.primarySoft);
   monogram(canvas, P, H - P, side, data.initials, {
-    fill: palette.blockSoft,
+    fill: palette.primaryDark,
     ink: palette.white,
     radius: 0,
   });
@@ -175,10 +175,10 @@ const pikachu: Layout = (doc, fonts, data) => {
   const card = pad + nameLine + rhythm.line + 8 + 4.5 + row.height + pad;
   const top = H - P;
 
-  canvas.roundedRect(0, cardX, top, cardWidth, card, 6, palette.block);
+  canvas.roundedRect(0, cardX, top, cardWidth, card, 6, palette.primary);
   const side = Math.min(card, left);
   monogram(canvas, P + (left - side) / 2, top, side, data.initials, {
-    fill: palette.tint,
+    fill: palette.primarySoft,
     ink: palette.primary,
     radius: 6,
   });
