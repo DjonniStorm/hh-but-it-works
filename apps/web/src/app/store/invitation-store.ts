@@ -1,13 +1,15 @@
 import {
   employersControllerCreateInvitation,
+  employersControllerInvitationResume,
   employersControllerListInvitations,
   employersControllerWithdraw,
 } from "@/shared/api/generated/sdk.gen";
 import { mapInvitation } from "@/shared/api/map-employer";
+import { saveFile } from "@/shared/lib/save-file";
 import { makeAutoObservable, runInAction } from "mobx";
 
 import type { Invitation, InvitationInput } from "@hh/contracts";
-import { InvitationStatus } from "@hh/types";
+import { InvitationStatus, type ResumeTemplate } from "@hh/types";
 
 import { type RequestOptions, loadRetry, readData, request } from "./request";
 import type { RootStore } from "./root-store";
@@ -106,6 +108,26 @@ export class InvitationStore {
           });
         });
         return invitation;
+      },
+      { loader: true, ...options },
+    );
+  }
+
+  // PDF-резюме кандидата. Сервер отдаёт его только по принятому приглашению.
+  downloadResume(
+    id: string,
+    template: ResumeTemplate,
+    options?: CallOptions<void>,
+  ) {
+    return request(
+      this.root,
+      async () => {
+        const result = await employersControllerInvitationResume({
+          path: { id },
+          query: { template },
+          parseAs: "blob",
+        });
+        saveFile(readData(result), "resume.pdf");
       },
       { loader: true, ...options },
     );

@@ -534,7 +534,18 @@
     "/profile/export.pdf": {
       "get": {
         "operationId": "ProfilesController_exportPdf",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "template",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "ditto",
+              "type": "string",
+              "enum": ["ditto", "gengar", "pikachu"]
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -546,6 +557,16 @@
               }
             },
             "description": ""
+          },
+          "400": {
+            "description": "Неизвестный шаблон",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Access-токен отсутствует, истёк или пользователь удалён",
@@ -2006,6 +2027,90 @@
           },
           "409": {
             "description": "У кандидата уже есть активное приглашение от компании",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      }
+    },
+    "/employer/invitations/{id}/resume.pdf": {
+      "get": {
+        "operationId": "EmployersController_invitationResume",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "template",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "ditto",
+              "type": "string",
+              "enum": ["ditto", "gengar", "pikachu"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "description": "Параметр id в пути не является UUID или неизвестный шаблон",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли employer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Приглашение не найдено, ещё не принято или принадлежит другой компании",
             "content": {
               "application/json": {
                 "schema": {

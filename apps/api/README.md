@@ -36,6 +36,7 @@ src/
   common/auth/             @Auth (guard'ы + их ошибки в Swagger), JWT guard, roles guard, @CurrentUser, @Roles
   common/openapi/          @ApiErrors и ApiErrorDto: коды ошибок ручек в Swagger
   common/mail/             MailService (nodemailer) и шаблоны писем в letters/
+  common/fsp/              FspClient: достижения из реестра ФСП (подборка и PDF-профиль)
   modules/
     users/                 User entity
     auth/                  register, confirm, confirm/resend, login, refresh, logout, me + session store в Redis
@@ -58,6 +59,15 @@ src/
 | `candidate/invitations` | `GET`, `POST viewed`, `POST :id/accept`, `POST :id/decline`                                                                                                                                                                                |
 
 Роли: `GET /assessment/*` — кандидат, `employer/*` — работодатель.
+
+## PDF-профиль
+
+- `GET /profile/export.pdf?template=ditto|gengar|pikachu` — кандидат скачивает свою анкету. Без `template` — Ditto.
+- `GET /employer/invitations/:id/resume.pdf?template=…` — то же резюме для работодателя, только по его принятому приглашению. До принятия — `404`.
+
+Рисует `profiles/resume-pdf` на pdf-lib + fontkit, без браузера. Раскладки повторяют шаблоны Ditto, Gengar и Pikachu из [Reactive Resume](https://github.com/AmruthPillai/Reactive-Resume) (MIT), цвета — графит и красный ФСП. Шрифты Inter и JetBrains Mono (OFL) лежат в `src/assets`. Фото в анкете нет: на его месте квадрат с инициалами.
+
+Флаги `show*` действуют так же, как в подборке: скрытые стаж, зарплата, достижения ФСП и неподтверждённые навыки в PDF не попадают. Имя и контакты печатаются: PDF отдаёт сам кандидат или работодатель получает его после принятия. Блоки «Опыт работы» и «Образование» уже рисуются, когда в `ResumeData` есть записи. Полей в анкете для них пока нет.
 
 ## Подборка и рекомендательная система
 

@@ -4,6 +4,7 @@ import {
   Get,
   Post,
   Put,
+  Query,
   StreamableFile,
   UploadedFile,
   UseFilters,
@@ -22,9 +23,14 @@ import {
   invalidBody,
 } from "../../common/openapi/api-errors.decorator";
 import { User } from "../users/user.entity";
-import { CandidateProfileDto, ResumeDraftDto, SaveProfileDto } from "./dto";
+import {
+  CandidateProfileDto,
+  ResumeDraftDto,
+  ResumePdfQueryDto,
+  SaveProfileDto,
+} from "./dto";
 import { PdfUploadFilter } from "./pdf-upload.filter";
-import { ProfilePdfService } from "./profile-pdf";
+import { ProfilePdfService, pdfFile } from "./profile-pdf";
 import { ProfilesService } from "./profiles.service";
 import { ResumeDraftService } from "./resume-draft.service";
 import { maxPdfBytes } from "./resume-text";
@@ -74,13 +80,13 @@ export class ProfilesController {
       "application/pdf": { schema: { type: "string", format: "binary" } },
     },
   })
-  @ApiErrors({ 404: "Анкета ещё не сохранена" })
-  async exportPdf(@CurrentUser() user: User): Promise<StreamableFile> {
-    const bytes = await this.pdf.render(user.id);
-    return new StreamableFile(bytes, {
-      type: "application/pdf",
-      disposition: 'attachment; filename="profile.pdf"',
-    });
+  @ApiErrors({ 400: "Неизвестный шаблон", 404: "Анкета ещё не сохранена" })
+  async exportPdf(
+    @CurrentUser() user: User,
+    @Query() query: ResumePdfQueryDto,
+  ): Promise<StreamableFile> {
+    const bytes = await this.pdf.renderOwn(user.id, query.template);
+    return pdfFile(bytes);
   }
 
   @Put()

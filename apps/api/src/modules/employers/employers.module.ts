@@ -1,9 +1,11 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
+import { FspModule } from "../../common/fsp/fsp.module";
 import { MailModule } from "../../common/mail/mail.module";
 import { CandidateProfile } from "../profiles/candidate-profile.entity";
 import { CandidateSkill } from "../profiles/candidate-skill.entity";
+import { ProfilesModule } from "../profiles/profiles.module";
 import { Skill } from "../profiles/skill.entity";
 import { User } from "../users/user.entity";
 import { CandidateInvitationsController } from "./candidate-invitations.controller";
@@ -11,7 +13,6 @@ import { CandidatePoolService } from "./candidate-pool.service";
 import { CompanyProfile } from "./company-profile.entity";
 import { EmployersController } from "./employers.controller";
 import { EmployersService } from "./employers.service";
-import { FspClient } from "./fsp.client";
 import { HiringNeed } from "./hiring-need.entity";
 import { Invitation } from "./invitation.entity";
 import { InvitationsService } from "./invitations.service";
@@ -34,6 +35,9 @@ import { RankingClient } from "./ranking.client";
       User,
     ]),
     MailModule,
+    FspModule,
+    // PDF-резюме принятого кандидата рисует модуль профилей.
+    ProfilesModule,
   ],
   // Ответ кандидата живёт рядом с приглашениями: те же сущности и правила статусов.
   controllers: [EmployersController, CandidateInvitationsController],
@@ -41,7 +45,6 @@ import { RankingClient } from "./ranking.client";
     EmployersService,
     InvitationsService,
     CandidatePoolService,
-    FspClient,
     RankingClient,
   ],
 })
