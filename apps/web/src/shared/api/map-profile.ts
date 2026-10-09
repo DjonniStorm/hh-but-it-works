@@ -19,6 +19,19 @@ export function mapCandidateProfile(profile: {
   website: string | null;
   desiredSalaryFrom: number | null;
   experienceYears: number | null;
+  education: {
+    school: string;
+    program: string;
+    fromYear: number;
+    toYear: number | null;
+  }[];
+  experience: {
+    company: string;
+    role: string;
+    fromYear: number;
+    toYear: number | null;
+    summary: string;
+  }[];
   workFormats: string[];
   searchStatus: string;
   showExperience: boolean;
@@ -50,6 +63,12 @@ export function mapCandidateProfile(profile: {
     website: profile.website,
     desiredSalaryFrom: profile.desiredSalaryFrom,
     experienceYears: profile.experienceYears,
+    education: profile.education.map((item) => {
+      return { ...item };
+    }),
+    experience: profile.experience.map((item) => {
+      return { ...item };
+    }),
     workFormats: profile.workFormats.map(mapWorkFormat),
     searchStatus: mapSearchStatus(profile.searchStatus),
     showExperience: profile.showExperience,

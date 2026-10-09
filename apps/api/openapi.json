@@ -2638,6 +2638,68 @@
             "minimum": 0,
             "nullable": true
           },
+          "education": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "school": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "program": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "fromYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035
+                },
+                "toYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035,
+                  "nullable": true
+                }
+              },
+              "required": ["school", "program", "fromYear", "toYear"],
+              "additionalProperties": false
+            }
+          },
+          "experience": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "company": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "role": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "fromYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035
+                },
+                "toYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035,
+                  "nullable": true
+                },
+                "summary": {
+                  "type": "string",
+                  "maxLength": 280
+                }
+              },
+              "required": ["company", "role", "fromYear", "toYear", "summary"],
+              "additionalProperties": false
+            }
+          },
           "workFormats": {
             "type": "array",
             "items": {
@@ -2743,6 +2805,8 @@
           "website",
           "desiredSalaryFrom",
           "experienceYears",
+          "education",
+          "experience",
           "workFormats",
           "searchStatus",
           "showExperience",
@@ -2878,6 +2942,89 @@
             ],
             "nullable": true
           },
+          "education": {
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "school": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "program": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "fromYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035
+                },
+                "toYear": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [""]
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 1950,
+                      "maximum": 2035
+                    }
+                  ],
+                  "nullable": true
+                }
+              },
+              "required": ["school", "program", "fromYear", "toYear"]
+            }
+          },
+          "experience": {
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "company": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "role": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "fromYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035
+                },
+                "toYear": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [""]
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 1950,
+                      "maximum": 2035
+                    }
+                  ],
+                  "nullable": true
+                },
+                "summary": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 280
+                }
+              },
+              "required": ["company", "role", "fromYear", "toYear", "summary"]
+            }
+          },
           "workFormats": {
             "maxItems": 3,
             "type": "array",
@@ -2953,6 +3100,8 @@
           "website",
           "desiredSalaryFrom",
           "experienceYears",
+          "education",
+          "experience",
           "workFormats",
           "searchStatus",
           "showExperience",

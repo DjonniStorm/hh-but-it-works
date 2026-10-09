@@ -1,3 +1,7 @@
+import {
+  educationFromProfile,
+  experienceFromProfile,
+} from "@/pages/profile/model/resume-history";
 import type { ContactValues } from "@/pages/profile/model/types";
 
 import type { CandidateProfile, SaveProfileInput } from "@hh/contracts";
@@ -15,6 +19,8 @@ export function contactsFromProfile(profile: CandidateProfile): ContactValues {
     website: profile.website ?? "",
     desiredSalaryFrom: profile.desiredSalaryFrom ?? "",
     experienceYears: profile.experienceYears ?? "",
+    education: educationFromProfile(profile.education),
+    experience: experienceFromProfile(profile.experience),
     workFormats: profile.workFormats.slice(),
     searchStatus: profile.searchStatus,
     showExperience: profile.showExperience,
@@ -40,6 +46,23 @@ export function contactInput(
       values.desiredSalaryFrom === "" ? null : values.desiredSalaryFrom,
     experienceYears:
       values.experienceYears === "" ? null : values.experienceYears,
+    education: values.education.map((item) => {
+      return {
+        school: item.school,
+        program: item.program,
+        fromYear: item.fromYear,
+        toYear: item.toYear === "" ? null : item.toYear,
+      };
+    }),
+    experience: values.experience.map((item) => {
+      return {
+        company: item.company,
+        role: item.role,
+        fromYear: item.fromYear,
+        toYear: item.toYear === "" ? null : item.toYear,
+        summary: item.summary,
+      };
+    }),
     workFormats: values.workFormats as WorkFormat[],
     searchStatus: values.searchStatus as SearchStatus,
     showExperience: values.showExperience,
