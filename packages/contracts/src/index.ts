@@ -59,6 +59,23 @@ export const healthSchema = z.object({
   status: z.literal("ok"),
 });
 
+// Замечание Zod: что не так и в каком поле. Остальные поля зависят от code.
+// В path имена полей и индексы массивов.
+export const validationIssueSchema = z.looseObject({
+  code: z.string(),
+  path: z.array(z.union([z.string(), z.number().int().nonnegative()])),
+  message: z.string(),
+});
+
+// Тело ошибки Nest. error — название статуса, его нет у 401 из guard и у 429.
+// errors приходят только с 400, когда тело запроса не прошло схему.
+export const apiErrorSchema = z.object({
+  statusCode: z.number().int().min(400).max(599),
+  message: z.string(),
+  error: z.string().optional(),
+  errors: z.array(validationIssueSchema).optional(),
+});
+
 export const specializationSchema = z.enum(Specialization);
 export const gradeSchema = z.enum(Grade);
 export const skillLevelSchema = z.enum(SkillLevel);
@@ -414,6 +431,37 @@ export const candidateSnapshotSchema = z.object({
   preferences: candidatePreferencesSchema,
 });
 
+// Подтверждение от ФСП: история в реестре или навык, подтверждённый ФСП.
+// Одно правило для фильтра поиска на сервере и уточнения подборки в вебе.
+export function hasFspEvidence(candidate: {
+  fspAchievements: unknown[];
+  skills: { verification: SkillVerification }[];
+}): boolean {
+  return (
+    candidate.fspAchievements.length > 0 ||
+    candidate.skills.some((skill) => {
+      return skill.verification === SkillVerification.VerifiedExternal;
+    })
+  );
+}
+
+// Поиск по банку кандидатов без потребности. Пустой фильтр не ограничивает.
+// Навыки нужны все сразу, регистр не важен.
+export const candidateSearchSchema = z.object({
+  specialization: specializationSchema.nullable(),
+  grades: z.array(gradeSchema),
+  skills: skillListSchema,
+  fspOnly: z.boolean(),
+});
+
+// Выдача ограничена: total — сколько подошло всего, items — первые candidateSearchLimit.
+export const candidateSearchLimit = 50;
+
+export const candidateSearchResultSchema = z.object({
+  items: z.array(candidateSnapshotSchema),
+  total: z.number().int().min(0),
+});
+
 export const matchGroupSchema = z.enum([
   "category",
   "skills",
@@ -441,9 +489,21 @@ export const matchSchema = z.object({
   favorite: z.boolean(),
 });
 
+// Категория — специализация потребности и один подтверждённый грейд.
+// exact — грейд в диапазоне потребности, adjacent — ступень вокруг, её подборка тоже берёт.
+export const categoryMatchSchema = z.enum(["exact", "adjacent"]);
+
+// candidateCount — кандидаты этой категории в подборке без отклонённых.
+export const shortlistCategorySchema = z.object({
+  grade: gradeSchema,
+  match: categoryMatchSchema,
+  candidateCount: z.number().int().min(0),
+});
+
 export const shortlistSchema = z.object({
   needId: z.string(),
   modelVersion: z.string(),
+  categories: z.array(shortlistCategorySchema),
   items: z.array(matchSchema),
 });
 
@@ -638,6 +698,8 @@ export type RefreshInput = z.infer<typeof refreshSchema>;
 export type PublicUser = z.infer<typeof publicUserSchema>;
 export type Session = z.infer<typeof sessionSchema>;
 export type Health = z.infer<typeof healthSchema>;
+export type ValidationIssue = z.infer<typeof validationIssueSchema>;
+export type ApiError = z.infer<typeof apiErrorSchema>;
 export type CandidateProfile = z.infer<typeof candidateProfileSchema>;
 export type EducationEntry = z.infer<typeof educationEntrySchema>;
 export type ExperienceEntry = z.infer<typeof experienceEntrySchema>;
@@ -652,9 +714,13 @@ export type CandidateSkill = z.infer<typeof candidateSkillSchema>;
 export type FspAchievement = z.infer<typeof fspAchievementSchema>;
 export type CandidatePreferences = z.infer<typeof candidatePreferencesSchema>;
 export type CandidateSnapshot = z.infer<typeof candidateSnapshotSchema>;
+export type CandidateSearch = z.infer<typeof candidateSearchSchema>;
+export type CandidateSearchResult = z.infer<typeof candidateSearchResultSchema>;
 export type MatchGroup = z.infer<typeof matchGroupSchema>;
 export type MatchBreakdown = z.infer<typeof matchBreakdownSchema>;
 export type Match = z.infer<typeof matchSchema>;
+export type CategoryMatch = z.infer<typeof categoryMatchSchema>;
+export type ShortlistCategory = z.infer<typeof shortlistCategorySchema>;
 export type Shortlist = z.infer<typeof shortlistSchema>;
 export type InvitationInput = z.infer<typeof invitationInputSchema>;
 export type Invitation = z.infer<typeof invitationSchema>;

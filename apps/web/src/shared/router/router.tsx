@@ -109,6 +109,22 @@ export const router = createBrowserRouter([
                     hydrateFallbackElement: pageFallback,
                   },
                   {
+                    path: ROUTES.EMPLOYER.NEED_EDIT,
+                    lazy: lazyPage(
+                      () => import("@/pages/employer/ui/NeedEditPage"),
+                      "NeedEditPage",
+                    ),
+                    hydrateFallbackElement: pageFallback,
+                  },
+                  {
+                    path: ROUTES.EMPLOYER.SEARCH,
+                    lazy: lazyPage(
+                      () => import("@/pages/employer/ui/SearchPage"),
+                      "SearchPage",
+                    ),
+                    hydrateFallbackElement: pageFallback,
+                  },
+                  {
                     path: ROUTES.EMPLOYER.INVITATIONS,
                     lazy: lazyPage(
                       () => import("@/pages/employer/ui/InvitationsPage"),

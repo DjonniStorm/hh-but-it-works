@@ -308,7 +308,11 @@ export class InvitationsService implements OnModuleInit {
     if (ids.length === 0) {
       return new Map();
     }
-    const needs = await this.needs.find({ where: { id: In(ids) } });
+    // Удалённая потребность тоже: приглашение по ней уже ушло и остаётся в силе.
+    const needs = await this.needs.find({
+      where: { id: In(ids) },
+      withDeleted: true,
+    });
     return new Map(
       needs.map((need) => {
         return [need.id, need.title] as const;

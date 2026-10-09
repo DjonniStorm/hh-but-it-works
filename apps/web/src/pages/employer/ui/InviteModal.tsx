@@ -11,7 +11,8 @@ type Props = {
   // Кандидат остаётся заданным и после закрытия: модалка доигрывает анимацию с тем же содержимым.
   candidate: CandidateSnapshot | null;
   opened: boolean;
-  need: HiringNeed;
+  // Из поиска по банку зовут без потребности (ТЗ 2.1).
+  need: HiringNeed | null;
   onClose: () => void;
 };
 
