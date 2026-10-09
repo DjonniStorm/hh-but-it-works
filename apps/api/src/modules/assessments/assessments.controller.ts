@@ -1,21 +1,14 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Headers,
-  Ip,
-  Post,
-  UseGuards,
-} from "@nestjs/common";
-import { ApiBearerAuth } from "@nestjs/swagger";
+import { Body, Controller, Get, Headers, Ip, Post } from "@nestjs/common";
 import { ZodResponse } from "nestjs-zod";
 
 import { Role } from "@hh/types";
 
+import { Auth } from "../../common/auth/auth.decorator";
 import { CurrentUser } from "../../common/auth/current-user.decorator";
-import { JwtAuthGuard } from "../../common/auth/jwt-auth.guard";
-import { Roles } from "../../common/auth/roles.decorator";
-import { RolesGuard } from "../../common/auth/roles.guard";
+import {
+  ApiErrors,
+  invalidBody,
+} from "../../common/openapi/api-errors.decorator";
 import { User } from "../users/user.entity";
 import { AssessmentsService } from "./assessments.service";
 import {
@@ -31,14 +24,16 @@ import {
 } from "./dto";
 
 @Controller("assessment")
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.Candidate)
+@Auth(Role.Candidate)
 export class AssessmentsController {
   constructor(private readonly assessments: AssessmentsService) {}
 
   @Post("attempts")
   @ZodResponse({ status: 201, type: ActiveAttemptDto })
+  @ApiErrors({
+    400: `${invalidBody}. Также: анкета не сохранена или для её навыков нет вопросов`,
+    409: "Есть незавершённая попытка или смена грейда пока недоступна",
+  })
   start(
     @CurrentUser() user: User,
     @Body() body: StartAssessmentDto,
@@ -59,6 +54,10 @@ export class AssessmentsController {
 
   @Post("attempts/answer")
   @ZodResponse({ status: 200, type: ActiveAttemptDto })
+  @ApiErrors({
+    400: `${invalidBody}. Также: попытка не найдена, завершена или время истекло`,
+    409: "Вопрос уже закрыт или на все вопросы даны ответы",
+  })
   answer(
     @CurrentUser() user: User,
     @Body() body: AnswerAssessmentDto,
@@ -70,12 +69,17 @@ export class AssessmentsController {
 
   @Post("attempts/events")
   @ZodResponse({ status: 200, type: AssessmentEventsAcceptedDto })
+  @ApiErrors({ 400: `${invalidBody}. Также: попытка не найдена` })
   events(@CurrentUser() user: User, @Body() body: AssessmentEventsDto) {
     return this.assessments.events(user.id, body);
   }
 
   @Post("attempts/finish")
   @ZodResponse({ status: 200, type: AssessmentResultDto })
+  @ApiErrors({
+    400: `${invalidBody}. Также: попытка не найдена, уже завершена или время истекло`,
+    409: "Специализация в анкете изменилась во время теста",
+  })
   finish(@CurrentUser() user: User, @Body() body: FinishAssessmentDto) {
     return this.assessments.finish(user.id, body.attemptId);
   }
