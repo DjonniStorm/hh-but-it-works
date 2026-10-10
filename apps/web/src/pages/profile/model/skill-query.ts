@@ -1,4 +1,4 @@
-import { type Specialization, skillCatalog } from "@hh/types";
+import { Specialization, skillCatalog } from "@hh/types";
 
 export type CatalogSkill = {
   skillId: string;
