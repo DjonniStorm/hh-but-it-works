@@ -78,7 +78,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "nodejs",
     title: "Node.js",
-    tested: false,
+    tested: true,
     specializations: [backend, frontend],
   },
   {
@@ -126,13 +126,13 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "spring",
     title: "Spring",
-    tested: false,
+    tested: true,
     specializations: [backend],
   },
   {
     slug: "django",
     title: "Django",
-    tested: false,
+    tested: true,
     specializations: [backend],
   },
   {
@@ -282,7 +282,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "dotnet",
     title: ".NET",
-    tested: false,
+    tested: true,
     specializations: [backend],
   },
   {
@@ -644,13 +644,9 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
 // Своего банка нет: навык добавляет в попытку секцию этого банка. Результат получает только навык банка,
 // этот остаётся заявленным. SQL здесь нет: у SQL свой банк, он не сводится к PostgreSQL.
 export const relatedSkillSlug: Readonly<Record<string, string>> = {
-  dotnet: "csharp",
   nextjs: "react",
-  nodejs: "typescript",
   nestjs: "typescript",
-  django: "python",
   fastapi: "python",
-  spring: "java",
 };
 
 // Ядро специализации входит в каждую попытку. Лежит здесь, а не в пакете тестов: веб читает его для лобби.

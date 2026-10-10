@@ -7,18 +7,22 @@ import {
 
 import type { Template } from "../types";
 import { csharp } from "./csharp";
+import { django } from "./django";
 import { docker } from "./docker";
+import { dotnet } from "./dotnet";
 import { go } from "./go";
 import { httpApi } from "./http-api";
 import { java } from "./java";
 import { kafka } from "./kafka";
 import { linux } from "./linux";
+import { nodejs } from "./nodejs";
 import { owasp } from "./owasp";
 import { pandas } from "./pandas";
 import { postgresql } from "./postgresql";
 import { python } from "./python";
 import { react } from "./react";
 import { redis } from "./redis";
+import { spring } from "./spring";
 import { sql } from "./sql";
 import { testing } from "./testing";
 import { typescript } from "./typescript";
@@ -40,6 +44,10 @@ const bySkill = {
   owasp,
   kafka,
   pandas,
+  dotnet,
+  spring,
+  django,
+  nodejs,
 };
 
 export type CatalogSlug = keyof typeof bySkill;
@@ -50,7 +58,7 @@ export function isCatalogSlug(slug: string): slug is CatalogSlug {
   return slug in bySkill;
 }
 
-// Свой банк, если он есть. Иначе вопросы родственника: .NET отвечает как C#.
+// Свой банк, если он есть. Иначе вопросы родственника: NestJS отвечает как TypeScript.
 export function bankSlugFor(slug: string): CatalogSlug | null {
   if (isCatalogSlug(slug)) {
     return slug;

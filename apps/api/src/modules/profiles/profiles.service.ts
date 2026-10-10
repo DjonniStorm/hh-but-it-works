@@ -184,7 +184,7 @@ export class ProfilesService implements OnModuleInit {
         ),
       },
     });
-    // Секция — банк ядра или навыка анкеты. .NET даёт секцию C#, и результат получает только C#.
+    // Секция — банк ядра или навыка анкеты. NestJS даёт секцию TypeScript, и результат получает только TypeScript.
     const banks = new Set<string>(coreSkills[profile.specialization]);
     for (const skill of own) {
       const bankSlug = bankSlugFor(skill.slug);
