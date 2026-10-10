@@ -8,11 +8,7 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { EntityManager, In, Repository } from "typeorm";
 
-import {
-  bankSlugFor,
-  coreSkills,
-  coveredSkillSlugs,
-} from "@hh/assessment-engine";
+import { bankSlugFor, coreSkills } from "@hh/assessment-engine";
 import type {
   CandidateProfile as CandidateProfileView,
   FspHistory as FspHistoryView,
@@ -188,45 +184,23 @@ export class ProfilesService implements OnModuleInit {
         ),
       },
     });
-    const core = await this.skills.find({
-      where: { slug: In(coreSkills[profile.specialization]) },
-    });
-    // Один банк — одна секция. Свой навык важнее родственника: C# не подменяется .NET.
-    const chosen = new Map<
-      string,
-      { id: string; slug: string; title: string; bankSlug: string }
-    >();
-    const consider = (skill: { id: string; slug: string; title: string }) => {
+    // Секция — банк ядра или навыка анкеты. .NET даёт секцию C#, и результат получает только C#.
+    const banks = new Set<string>(coreSkills[profile.specialization]);
+    for (const skill of own) {
       const bankSlug = bankSlugFor(skill.slug);
-      if (!bankSlug) {
-        return;
+      if (bankSlug) {
+        banks.add(bankSlug);
       }
-      const current = chosen.get(bankSlug);
-      if (current && !(skill.slug === bankSlug && current.slug !== bankSlug)) {
-        return;
-      }
-      chosen.set(bankSlug, {
-        id: skill.id,
-        slug: skill.slug,
-        title: skill.title,
-        bankSlug,
-      });
-    };
-    for (const skill of core) {
-      consider(skill);
     }
-    const orderedOwn = [...own].sort((left, right) => {
-      return left.title.localeCompare(right.title, "ru");
+    const skills = await this.skills.find({
+      where: { slug: In([...banks]) },
     });
-    for (const skill of orderedOwn) {
-      consider(skill);
-    }
     return {
       specialization: profile.specialization,
-      skills: [...chosen.values()].map((skill) => {
+      skills: skills.map((skill) => {
         return {
           skillId: skill.id,
-          slug: skill.bankSlug,
+          slug: skill.slug,
           title: skill.title,
         };
       }),
@@ -262,29 +236,25 @@ export class ProfilesService implements OnModuleInit {
     }
 
     const confirmedAt = new Date();
-    const saveOutcome = async (
-      skillId: string,
-      section: { score: number; passed: boolean },
-      createIfMissing: boolean,
-    ): Promise<void> => {
+    for (const section of result.sections) {
       const row = await this.candidateSkills.findOne({
-        where: { profileId: profile.id, skillId },
+        where: { profileId: profile.id, skillId: section.skillId },
       });
-      if (!row && section.passed && createIfMissing) {
+      if (!row && section.passed) {
         await this.candidateSkills.save(
           this.candidateSkills.create({
             profileId: profile.id,
-            skillId,
+            skillId: section.skillId,
             level: levelByGrade[result.grade],
             verification: SkillVerification.Verified,
             score: section.score,
             verifiedAt: confirmedAt,
           }),
         );
-        return;
+        continue;
       }
       if (!row) {
-        return;
+        continue;
       }
       row.verification = section.passed
         ? SkillVerification.Verified
@@ -292,35 +262,6 @@ export class ProfilesService implements OnModuleInit {
       row.score = section.passed ? section.score : null;
       row.verifiedAt = section.passed ? confirmedAt : null;
       await this.candidateSkills.save(row);
-    };
-    for (const section of result.sections) {
-      await saveOutcome(section.skillId, section, true);
-      const skill = await this.skills.findOne({
-        where: { id: section.skillId },
-      });
-      if (!skill) {
-        continue;
-      }
-      // Секция C# закрывает и .NET, если он есть в анкете. Новый навык при этом не создаём.
-      const bankSlug = bankSlugFor(skill.slug);
-      if (!bankSlug) {
-        continue;
-      }
-      const slugs = coveredSkillSlugs(bankSlug).filter((slug) => {
-        return slug !== skill.slug;
-      });
-      if (slugs.length === 0) {
-        continue;
-      }
-      const covered = await this.skills.find({
-        where: { slug: In(slugs) },
-      });
-      for (const extra of covered) {
-        if (extra.id === section.skillId) {
-          continue;
-        }
-        await saveOutcome(extra.id, section, false);
-      }
     }
 
     if (result.status !== AttemptStatus.Passed) {

@@ -3,7 +3,7 @@ import { Specialization } from "./specialization";
 export type SkillCatalogItem = {
   slug: string;
   title: string;
-  // Свой банк вопросов. Без банка навык закрывается тестом, только если он есть в relatedSkillSlug.
+  // Свой банк вопросов. Без банка тест навык не подтверждает, даже если он есть в relatedSkillSlug.
   tested: boolean;
   specializations: readonly Specialization[];
 };
@@ -641,8 +641,8 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   },
 ];
 
-// Своего банка нет: попытка берёт вопросы этого слага и этой секцией навык подтверждается.
-// SQL здесь нет: у SQL свой банк, он не сводится к PostgreSQL.
+// Своего банка нет: навык добавляет в попытку секцию этого банка. Результат получает только навык банка,
+// этот остаётся заявленным. SQL здесь нет: у SQL свой банк, он не сводится к PostgreSQL.
 export const relatedSkillSlug: Readonly<Record<string, string>> = {
   dotnet: "csharp",
   nextjs: "react",
@@ -652,3 +652,11 @@ export const relatedSkillSlug: Readonly<Record<string, string>> = {
   fastapi: "python",
   spring: "java",
 };
+
+// Ядро специализации входит в каждую попытку. Лежит здесь, а не в пакете тестов: веб читает его для лобби.
+export const coreSkillSlugs = {
+  [Specialization.Backend]: ["http-api", "postgresql"],
+  [Specialization.Frontend]: ["typescript", "http-api"],
+  [Specialization.Data]: ["postgresql"],
+  [Specialization.Security]: ["http-api", "docker"],
+} as const satisfies Record<Specialization, readonly string[]>;

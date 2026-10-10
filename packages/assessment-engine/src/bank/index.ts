@@ -1,4 +1,9 @@
-import { Grade, Specialization, relatedSkillSlug } from "@hh/types";
+import {
+  Grade,
+  Specialization,
+  coreSkillSlugs,
+  relatedSkillSlug,
+} from "@hh/types";
 
 import type { Template } from "../types";
 import { csharp } from "./csharp";
@@ -57,16 +62,6 @@ export function bankSlugFor(slug: string): CatalogSlug | null {
   return null;
 }
 
-// Навыки анкеты, которые подтверждает секция этого банка. Свой банк сюда не входит.
-export function coveredSkillSlugs(bankSlug: string): string[] {
-  return Object.entries(relatedSkillSlug).flatMap(([source, target]) => {
-    if (target !== bankSlug || isCatalogSlug(source)) {
-      return [];
-    }
-    return [source];
-  });
-}
-
 // Банк в разрезе навык × грейд: из ячейки попытка берёт задания секции.
 export const bank: Record<
   CatalogSlug,
@@ -91,9 +86,6 @@ export const bank: Record<
 ) as Record<CatalogSlug, Record<Grade, Template[]>>;
 
 // Ядро специализации входит в каждую попытку, даже если навыка нет в анкете.
-export const coreSkills: Record<Specialization, CatalogSlug[]> = {
-  [Specialization.Backend]: ["http-api", "postgresql"],
-  [Specialization.Frontend]: ["typescript", "http-api"],
-  [Specialization.Data]: ["postgresql"],
-  [Specialization.Security]: ["http-api", "docker"],
-};
+// Список общий с вебом, тип проверяет, что у каждого слага ядра есть банк.
+export const coreSkills: Record<Specialization, readonly CatalogSlug[]> =
+  coreSkillSlugs;

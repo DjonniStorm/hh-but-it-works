@@ -108,5 +108,9 @@ export function gradeIndex(grade: Grade): number {
   return gradeOrder.indexOf(grade);
 }
 
-export { relatedSkillSlug, skillCatalog } from "./skill-catalog";
+export {
+  coreSkillSlugs,
+  relatedSkillSlug,
+  skillCatalog,
+} from "./skill-catalog";
 export type { SkillCatalogItem } from "./skill-catalog";
