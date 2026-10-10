@@ -1,4 +1,4 @@
-import { Grade, Specialization } from "@hh/types";
+import { Grade, Specialization, relatedSkillSlug } from "@hh/types";
 
 import type { Template } from "../types";
 import { csharp } from "./csharp";
@@ -6,14 +6,21 @@ import { docker } from "./docker";
 import { go } from "./go";
 import { httpApi } from "./http-api";
 import { java } from "./java";
+import { kafka } from "./kafka";
+import { linux } from "./linux";
+import { owasp } from "./owasp";
+import { pandas } from "./pandas";
 import { postgresql } from "./postgresql";
 import { python } from "./python";
 import { react } from "./react";
+import { redis } from "./redis";
+import { sql } from "./sql";
 import { testing } from "./testing";
 import { typescript } from "./typescript";
 
 const bySkill = {
   postgresql,
+  sql,
   "http-api": httpApi,
   typescript,
   docker,
@@ -23,6 +30,11 @@ const bySkill = {
   react,
   go,
   java,
+  linux,
+  redis,
+  owasp,
+  kafka,
+  pandas,
 };
 
 export type CatalogSlug = keyof typeof bySkill;
@@ -31,6 +43,28 @@ export const catalogSlugs = Object.keys(bySkill) as CatalogSlug[];
 
 export function isCatalogSlug(slug: string): slug is CatalogSlug {
   return slug in bySkill;
+}
+
+// Свой банк, если он есть. Иначе вопросы родственника: .NET отвечает как C#.
+export function bankSlugFor(slug: string): CatalogSlug | null {
+  if (isCatalogSlug(slug)) {
+    return slug;
+  }
+  const target = relatedSkillSlug[slug];
+  if (target && isCatalogSlug(target)) {
+    return target;
+  }
+  return null;
+}
+
+// Навыки анкеты, которые подтверждает секция этого банка. Свой банк сюда не входит.
+export function coveredSkillSlugs(bankSlug: string): string[] {
+  return Object.entries(relatedSkillSlug).flatMap(([source, target]) => {
+    if (target !== bankSlug || isCatalogSlug(source)) {
+      return [];
+    }
+    return [source];
+  });
 }
 
 // Банк в разрезе навык × грейд: из ячейки попытка берёт задания секции.

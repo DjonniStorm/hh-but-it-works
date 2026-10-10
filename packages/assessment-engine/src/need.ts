@@ -4,7 +4,13 @@ import { type CatalogSlug, coreSkills } from "./bank";
 
 // Как работодатели пишут навык в вакансии → навык каталога.
 const aliases: Record<CatalogSlug, string[]> = {
-  postgresql: ["postgresql", "postgres", "pg", "sql", "базы данных"],
+  postgresql: ["postgresql", "postgres", "pg", "базы данных"],
+  sql: ["sql"],
+  linux: ["linux"],
+  redis: ["redis"],
+  owasp: ["owasp"],
+  kafka: ["kafka"],
+  pandas: ["pandas"],
   "http-api": ["http", "rest", "api", "rest api", "http api", "openapi"],
   typescript: ["typescript", "ts", "javascript", "js", "node.js", "nodejs"],
   docker: ["docker", "контейнеры", "docker compose", "kubernetes"],

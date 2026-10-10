@@ -3,7 +3,7 @@ import { Specialization } from "./specialization";
 export type SkillCatalogItem = {
   slug: string;
   title: string;
-  // В банке тестов есть задания. Остальные навыки анкеты остаются неподтверждёнными.
+  // Свой банк вопросов. Без банка навык закрывается тестом, только если он есть в relatedSkillSlug.
   tested: boolean;
   specializations: readonly Specialization[];
 };
@@ -13,7 +13,7 @@ const frontend = Specialization.Frontend;
 const data = Specialization.Data;
 const security = Specialization.Security;
 
-// Каталог профиля. Навык с tested: false нельзя закрыть тестом.
+// Каталог профиля. tested — свой банк. Родственники без банка — в relatedSkillSlug.
 export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "postgresql",
@@ -96,13 +96,13 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "redis",
     title: "Redis",
-    tested: false,
+    tested: true,
     specializations: [backend],
   },
   {
     slug: "kafka",
     title: "Kafka",
-    tested: false,
+    tested: true,
     specializations: [backend, data],
   },
   {
@@ -120,7 +120,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "sql",
     title: "SQL",
-    tested: false,
+    tested: true,
     specializations: [backend, data],
   },
   {
@@ -234,7 +234,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "linux",
     title: "Linux",
-    tested: false,
+    tested: true,
     specializations: [backend, security],
   },
   {
@@ -486,7 +486,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "pandas",
     title: "Pandas",
-    tested: false,
+    tested: true,
     specializations: [data],
   },
   {
@@ -576,7 +576,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "owasp",
     title: "OWASP",
-    tested: false,
+    tested: true,
     specializations: [security],
   },
   {
@@ -640,3 +640,15 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
     specializations: [security, backend],
   },
 ];
+
+// Своего банка нет: попытка берёт вопросы этого слага и этой секцией навык подтверждается.
+// SQL здесь нет: у SQL свой банк, он не сводится к PostgreSQL.
+export const relatedSkillSlug: Readonly<Record<string, string>> = {
+  dotnet: "csharp",
+  nextjs: "react",
+  nodejs: "typescript",
+  nestjs: "typescript",
+  django: "python",
+  fastapi: "python",
+  spring: "java",
+};
