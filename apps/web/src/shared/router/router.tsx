@@ -74,6 +74,14 @@ export const router = createBrowserRouter([
             ],
           },
           {
+            path: ROUTES.SETTINGS,
+            lazy: lazyPage(
+              () => import("@/pages/settings/ui/SettingsPage"),
+              "SettingsPage",
+            ),
+            hydrateFallbackElement: pageFallback,
+          },
+          {
             element: <EmployerRoute />,
             children: [
               {
@@ -171,6 +179,14 @@ export const router = createBrowserRouter([
             hydrateFallbackElement: screenFallback,
           },
         ],
+      },
+      {
+        path: ROUTES.LEGAL.CONSENT,
+        lazy: lazyPage(
+          () => import("@/pages/legal/ui/ConsentPage"),
+          "ConsentPage",
+        ),
+        hydrateFallbackElement: screenFallback,
       },
       {
         path: ROUTES.TEST,

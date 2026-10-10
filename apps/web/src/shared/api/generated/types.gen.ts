@@ -20,6 +20,7 @@ export type PublicUserDtoOutput = {
     email: string;
     role: 'candidate' | 'employer';
     emailVerifiedAt: string | null;
+    consentAt: string | null;
 };
 
 export type ApiErrorDto = {
@@ -55,6 +56,7 @@ export type SessionDtoOutput = {
         email: string;
         role: 'candidate' | 'employer';
         emailVerifiedAt: string | null;
+        consentAt: string | null;
     };
 };
 

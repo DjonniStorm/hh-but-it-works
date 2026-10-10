@@ -1,4 +1,4 @@
-import { skillSuggestions } from "@/pages/employer/model/options";
+import { skillSuggestionsFor } from "@/pages/employer/model/options";
 import {
   type SearchParams,
   searchSkillLimit,
@@ -46,7 +46,7 @@ export const SearchFilters = ({ value, onChange, onReset }: Props) => {
             // Подсказка под полем: иначе поле ниже соседнего селекта в том же ряду.
             inputWrapperOrder={["label", "input", "description", "error"]}
             placeholder="Например, React"
-            data={skillSuggestions}
+            data={skillSuggestionsFor(value.specialization)}
             maxTags={searchSkillLimit}
             clearable
             value={value.skills}

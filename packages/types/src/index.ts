@@ -3,18 +3,7 @@ export enum Role {
   Employer = "employer",
 }
 
-/* подтверждаемые ФСП специализации
-  Ну то есть их основные специализации
-  Использование их оптимально, но дизайнеров и прочих не указанных
-  мы не сможем нанять по таким специализациям :(
-*/
-
-export enum Specialization {
-  Backend = "backend",
-  Frontend = "frontend",
-  Data = "data",
-  Security = "security",
-}
+export { Specialization } from "./specialization";
 
 export enum Grade {
   Junior = "junior",
@@ -89,3 +78,6 @@ export const gradeOrder: readonly Grade[] = [
 export function gradeIndex(grade: Grade): number {
   return gradeOrder.indexOf(grade);
 }
+
+export { skillCatalog } from "./skill-catalog";
+export type { SkillCatalogItem } from "./skill-catalog";

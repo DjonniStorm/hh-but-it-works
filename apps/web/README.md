@@ -29,6 +29,8 @@ src/
                         error, loading, notifier, request (обёртка всех запросов)
   pages/
     auth/               LoginPage, RegisterPage, ConfirmPage
+    legal/              текст согласия на обработку данных (152-ФЗ)
+    settings/           настройки: записанное согласие, для кандидата — ссылка в профиль
     home/               HomePage: hero с кольцом готовности анкеты, оффер приглашения,
                         PrepCard (слайд подготовки, ссылки по hover) и виджеты
                         навыков/тестирования/чек-листа, в конце — MaterialsSection
@@ -70,7 +72,7 @@ src/
 
 ## Роуты
 
-`ROUTES` в `shared/router/routes.ts`: `/`, `/profile`, `/invitations`, `/auth/{login,register,confirm}`, `/employer`, `/employer/needs`, `/employer/needs/new`, `/employer/needs/:needId`, `/employer/needs/:needId/edit`, `/employer/search`, `/employer/invitations`, `/employer/company`, `/test`.
+`ROUTES` в `shared/router/routes.ts`: `/`, `/profile`, `/invitations`, `/settings`, `/legal/consent`, `/auth/{login,register,confirm}`, `/employer`, `/employer/needs`, `/employer/needs/new`, `/employer/needs/:needId`, `/employer/needs/:needId/edit`, `/employer/search`, `/employer/invitations`, `/employer/company`, `/test`.
 
 `ProtectedRoute` пускает только с токеном, `CandidateRoute`/`EmployerRoute` — по `role`.
 

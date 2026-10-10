@@ -14,6 +14,7 @@ import {
 } from "@/pages/profile/model/options";
 import { startAttempt } from "@/pages/profile/model/run-attempt";
 import { assessedFromProfile } from "@/pages/profile/model/save-skills";
+import { skillIsTested } from "@/pages/profile/model/skill-query";
 import { CategoryCard } from "@/pages/profile/ui/CategoryCard";
 import { SkillStatusBadge } from "@/pages/profile/ui/SkillStatusBadge";
 import { TestingRules } from "@/pages/profile/ui/TestingRules";
@@ -79,6 +80,7 @@ export const TestingLobby = ({
                   level={skill.level}
                   verification={skill.verification}
                   verifiedAt={skill.verifiedAt}
+                  tested={skillIsTested(skill.title)}
                 />
               </Group>
             );

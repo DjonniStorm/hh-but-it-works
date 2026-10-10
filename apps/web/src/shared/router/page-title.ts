@@ -15,5 +15,7 @@ export const pageTitle = {
   search: "Поиск кандидатов",
   employerInvitations: "Приглашения",
   company: "Компания",
+  settings: "Настройки",
+  consent: "Согласие на обработку данных",
   error: "Ошибка",
 } as const;

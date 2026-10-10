@@ -12,6 +12,10 @@ import {
   assessedFromProfile,
   saveSkills,
 } from "@/pages/profile/model/save-skills";
+import {
+  profileCatalog,
+  skillIsTested,
+} from "@/pages/profile/model/skill-query";
 import type {
   ResumeDraftHit,
   SkillRow,
@@ -103,9 +107,8 @@ export const SkillsPanel = ({
             <Accordion.Control>Добавить навык</Accordion.Control>
             <Accordion.Panel>
               <SkillSearch
-                catalog={profile.skills.map((skill) => {
-                  return { skillId: skill.skillId, title: skill.title };
-                })}
+                catalog={profileCatalog(profile.skills)}
+                specialization={profile.specialization}
                 takenTitles={form.values.skills.map((skill) => {
                   return skill.title;
                 })}
@@ -145,6 +148,7 @@ export const SkillsPanel = ({
                       }
                     : skill
                 }
+                tested={skillIsTested(skill.title)}
                 levelProps={form.getInputProps(`skills.${index}.level`)}
                 onRemove={() => {
                   form.removeListItem("skills", index);

@@ -9,6 +9,7 @@ export function mapSession(session: {
     email: string;
     role: string;
     emailVerifiedAt: string | null;
+    consentAt?: string | null;
   };
 }): Session {
   return {
@@ -23,12 +24,14 @@ export function mapPublicUser(user: {
   email: string;
   role: string;
   emailVerifiedAt: string | null;
+  consentAt?: string | null;
 }): PublicUser {
   return {
     id: user.id,
     email: user.email,
     role: mapRole(user.role),
     emailVerifiedAt: user.emailVerifiedAt,
+    consentAt: typeof user.consentAt === "string" ? user.consentAt : null,
   };
 }
 

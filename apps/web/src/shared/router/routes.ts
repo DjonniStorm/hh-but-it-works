@@ -3,6 +3,10 @@ export const ROUTES = {
   PROFILE: "/profile",
   INVITATIONS: "/invitations",
   ABOUT: "/about",
+  SETTINGS: "/settings",
+  LEGAL: {
+    CONSENT: "/legal/consent",
+  },
   AUTH: {
     LOGIN: "/auth/login",
     REGISTER: "/auth/register",
