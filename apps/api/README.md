@@ -24,7 +24,7 @@ Swagger у запущенного Nest: `http://localhost:3000/docs`. В SPA е�
 - `@Auth(...roles)` из `common/auth` вешает guard'ы, `ApiBearerAuth` и описывает их ошибки: `401` всегда, `403` если указаны роли. Guard'ы руками на контроллер не ставить.
 - `@ApiErrors({ 404: "…", 409: "…" })` из `common/openapi` — коды самой ручки с пояснением, когда она их отдаёт. Новое исключение в сервисе — строка здесь.
 
-Переменные окружения — в `.env.example`: `PORT`, `DATABASE_URL`, `REDIS_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `WEB_URL`, `FSP_URL` (`mock:3001`), `RANKING_URL` (`ranking:8000`). `SEED_CANDIDATE_PASSWORD` — пароль сид-кандидатов вида `seed.b101@candidates.hh.test`, в production (`NODE_ENV=production`) игнорируется.
+Переменные окружения — в `.env.example`: `PORT`, `DATABASE_URL`, `REDIS_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `WEB_URL`, `FSP_URL` (`mock:3001`), `RANKING_URL` (`ranking:8000`), `CORS_ORIGINS` (origin веба через запятую, по умолчанию `localhost:5173` и `5174`; на проде не нужен). `SEED_CANDIDATE_PASSWORD` — пароль сид-кандидатов вида `seed.b101@candidates.hh.test`, в production (`NODE_ENV=production`) игнорируется.
 
 ## Структура `src`
 

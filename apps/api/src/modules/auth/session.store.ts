@@ -1,4 +1,6 @@
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import { Injectable, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -12,21 +14,12 @@ const confirmResendCooldownSeconds = 60;
 const passwordResetTtlSeconds = 60 * 60;
 const passwordResetCooldownSeconds = 60;
 
-// Атомарно: забрать токен и оставить на него окно, либо найти токен в окне.
-// Отдельные GETDEL и SET дали бы второму из параллельных запросов промежуток,
-// где токена уже нет, а окна ещё нет.
-const rotateRefreshScript = `
-local userId = redis.call("GETDEL", KEYS[1])
-if userId then
-  redis.call("SET", KEYS[2], userId, "EX", ARGV[1])
-  return {userId, "rotated"}
-end
-local graced = redis.call("GET", KEYS[2])
-if graced then
-  return {graced, "grace"}
-end
-return nil
-`;
+// Атомарный обмен refresh-токена, см. rotateRefresh. Скрипт лежит рядом,
+// nest-cli копирует его в dist вместе с modules/**/*.lua.
+const rotateRefreshScript = readFileSync(
+  join(__dirname, "rotate-refresh.lua"),
+  "utf8",
+);
 
 export type RefreshRotation = {
   userId: string;
