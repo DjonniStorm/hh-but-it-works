@@ -6,17 +6,21 @@ import {
 } from "@hh/types";
 
 import type { Template } from "../types";
+import { airflow } from "./airflow";
 import { csharp } from "./csharp";
+import { css } from "./css";
 import { docker } from "./docker";
 import { go } from "./go";
 import { httpApi } from "./http-api";
 import { java } from "./java";
+import { javascript } from "./javascript";
 import { kafka } from "./kafka";
 import { linux } from "./linux";
 import { owasp } from "./owasp";
 import { pandas } from "./pandas";
 import { postgresql } from "./postgresql";
 import { python } from "./python";
+import { pytorch } from "./pytorch";
 import { react } from "./react";
 import { redis } from "./redis";
 import { sql } from "./sql";
@@ -40,6 +44,10 @@ const bySkill = {
   owasp,
   kafka,
   pandas,
+  javascript,
+  css,
+  airflow,
+  pytorch,
 };
 
 export type CatalogSlug = keyof typeof bySkill;

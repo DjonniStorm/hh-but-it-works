@@ -12,7 +12,7 @@ const aliases: Record<CatalogSlug, string[]> = {
   kafka: ["kafka"],
   pandas: ["pandas"],
   "http-api": ["http", "rest", "api", "rest api", "http api", "openapi"],
-  typescript: ["typescript", "ts", "javascript", "js", "node.js", "nodejs"],
+  typescript: ["typescript", "ts", "node.js", "nodejs"],
   docker: ["docker", "контейнеры", "docker compose", "kubernetes"],
   testing: ["тестирование", "testing", "jest", "vitest", "unit-тесты", "qa"],
   python: ["python", "py", "django", "fastapi"],
@@ -20,6 +20,10 @@ const aliases: Record<CatalogSlug, string[]> = {
   react: ["react", "reactjs"],
   go: ["go", "golang"],
   java: ["java", "spring"],
+  javascript: ["javascript", "js"],
+  css: ["css", "css3"],
+  airflow: ["airflow", "apache airflow"],
+  pytorch: ["pytorch", "torch"],
 };
 
 export function slugForSkill(title: string): CatalogSlug | null {
