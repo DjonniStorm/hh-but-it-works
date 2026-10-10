@@ -127,89 +127,118 @@ test("breakdown exposes the exact v1.2 scoring weights", () => {
   );
 });
 
-test("shortlist preserves model version and orders candidates by ranking", async () => {
-  const need = {
-    id: "need-1",
-    userId: "employer-1",
-    specialization: "backend",
-  };
-  const candidates = [
-    { id: "candidate-low", assessmentScore: 99 },
-    { id: "candidate-high", assessmentScore: 60 },
-  ];
-  const listed = [{ id: "profile-1" }, { id: "profile-2" }];
-  const scores = new Map([
-    [
-      "candidate-low",
-      {
-        score: 35,
-        qualification: 40,
-        opportunityFit: 30,
-        reasons: ["must_skills_1_of_2"],
-        risks: ["skill_missing:sql"],
-        breakdown: [],
-      },
-    ],
-    [
-      "candidate-high",
-      {
-        score: 91,
-        qualification: 95,
-        opportunityFit: 84,
-        reasons: ["verified_grade_match"],
-        risks: [],
-        breakdown: [],
-      },
-    ],
-  ]);
-
-  const service = new EmployersService(
-    {},
-    {
-      findOne: async ({ where }) => {
-        assert.deepEqual(where, { id: "need-1", userId: "employer-1" });
-        return need;
-      },
-    },
-    {
-      find: async () => [
-        { needId: "need-1", candidateProfileId: "candidate-high" },
+  test("shortlist uses rawScore/rawQualification/tiebreak", async () => {
+    const need = { id: "need-1", userId: "employer-1", specialization: "backend" };
+    const candidates = [
+      { id: "candidate-low", assessmentScore: 99 },
+      { id: "candidate-high", assessmentScore: 60 },
+    ];
+    const listed = [{ id: "profile-1" }, { id: "profile-2" }];
+    const scores = new Map([
+      [
+        "candidate-low",
+        {
+          rawScore: 0.45,
+          qualification: 0.40,
+          opportunityFit: 0.30,
+          reasons: ["must_skills_1_of_2"],
+          risks: ["skill_missing:sql"],
+          breakdown: [],
+        },
       ],
-    },
-    // Избранное потребности (need_favorites, #40): пусто.
-    { find: async () => [] },
-    {
-      listed: async () => listed,
-      eligible: (actualNeed, actualListed) => {
-        assert.equal(actualNeed, need);
-        assert.equal(actualListed, listed);
-        return actualListed;
-      },
-      snapshots: async (profiles) => {
-        assert.equal(profiles, listed);
-        return candidates;
-      },
-    },
-    {
-      rank: async (actualNeed, actualCandidates) => {
-        assert.equal(actualNeed, need);
-        assert.equal(actualCandidates, candidates);
-        return { modelVersion: "hybrid-v1.2.0-ltr0.25", scores };
-      },
-    },
-  );
+      [
+        "candidate-high",
+        {
+          rawScore: 0.91,
+          qualification: 0.95,
+          opportunityFit: 0.84,
+          reasons: ["verified_grade_match"],
+          risks: [],
+          breakdown: [],
+        },
+      ],
+    ]);
 
-  const shortlist = await service.shortlist("employer-1", "need-1");
-  assert.equal(shortlist.modelVersion, "hybrid-v1.2.0-ltr0.25");
-  assert.deepEqual(
-    shortlist.items.map((item) => item.candidate.id),
-    ["candidate-high", "candidate-low"],
-  );
-  assert.equal(shortlist.items[0].dismissed, true);
-  assert.equal(shortlist.items[0].matchScore, 91);
-  assert.equal(shortlist.items[1].dismissed, false);
-  assert.deepEqual(shortlist.items[1].risks, ["skill_missing:sql"]);
-});
+    const service = new EmployersService(
+      {},
+      {
+        findOne: async ({ where }) => {
+          assert.deepEqual(where, { id: "need-1", userId: "employer-1" });
+          return need;
+        },
+      },
+      {
+        find: async () => [
+          { needId: "need-1", candidateProfileId: "candidate-high" },
+        ],
+      },
+      { find: async () => [] },
+      {
+        listed: async () => listed,
+        eligible: (actualNeed, actualListed) => {
+          assert.equal(actualNeed, need);
+          assert.equal(actualListed, listed);
+          return actualListed;
+        },
+        snapshots: async (profiles) => {
+          assert.equal(profiles, listed);
+          return candidates;
+        },
+      },
+      {
+        rank: async (actualNeed, actualCandidates) => {
+          assert.equal(actualNeed, need);
+          assert.equal(actualCandidates, candidates);
+          return {
+            modelVersion: "hybrid-v1.2.0-ltr0.25",
+            scores: new Map([
+              [
+                "candidate-low",
+                {
+                  score: 45,
+                  qualification: 40,
+                  opportunityFit: 30,
+                  reasons: ["must_skills_1_of_2"],
+                  risks: ["skill_missing:sql"],
+                  breakdown: [],
+                },
+              ],
+              [
+                "candidate-high",
+                {
+                  score: 91,
+                  qualification: 95,
+                  opportunityFit: 84,
+                  reasons: ["verified_grade_match"],
+                  risks: [],
+                  breakdown: [],
+                },
+              ],
+            ]),
+          };
+        },
+      },
+    );
+
+    const shortlist = await service.shortlist("employer-1", "need-1");
+    assert.equal(shortlist.modelVersion, "hybrid-v1.2.0-ltr0.25");
+    assert.deepEqual(
+      shortlist.items.map((item) => item.candidate.id),
+      ["candidate-high", "candidate-low"],
+    );
+    assert.deepEqual(
+      shortlist.items.map((item) => [
+        item.matchScore,
+        item.qualification,
+        item.opportunityFit,
+        item.dismissed,
+      ]),
+      [
+        [91, 95, 84, true],
+        [45, 40, 30, false],
+      ],
+    );
+  });
 
 test("profile freshness has stable six and twelve month boundaries", () => {
   const now = Date.UTC(2026, 9, 8);

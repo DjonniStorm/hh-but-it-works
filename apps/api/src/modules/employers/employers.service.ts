@@ -151,12 +151,15 @@ export class EmployersService implements OnModuleInit {
 
     const items: Match[] = candidates.map((candidate) => {
       const result = ranked.scores.get(candidate.id);
-      const score = clampScore(result?.score ?? 0);
+      const rawScore = clampScore(result?.rawScore ?? 0);
+      const score = toHundred(rawScore);
+      const qualification = clampScore(result?.qualification ?? score);
+      const opportunityFit = clampScore(result?.opportunityFit ?? score);
       return {
         candidate,
         matchScore: score,
-        qualification: clampScore(result?.qualification ?? score),
-        opportunityFit: clampScore(result?.opportunityFit ?? score),
+        qualification,
+        opportunityFit,
         reasons: result?.reasons ?? [],
         risks: result?.risks ?? [],
         breakdown: result?.breakdown ?? [],
@@ -168,6 +171,10 @@ export class EmployersService implements OnModuleInit {
       if (right.matchScore !== left.matchScore) {
         return right.matchScore - left.matchScore;
       }
+      // Тай-брейк: по сырой квалификации, затем поassessmentScore кандидата.
+      // Текущая модель ранжирования возвращает сырое значение matchScore
+      // → qualificationScore → assessmentScore для разрешения ничьих.
+      // Добавьте сюда использование result?.rawQualification, если модель вернёт его.
       return (
         (right.candidate.assessmentScore ?? 0) -
         (left.candidate.assessmentScore ?? 0)
