@@ -77,3 +77,18 @@ export function contactInput(
     showUnverifiedSkills: values.showUnverifiedSkills,
   };
 }
+
+// Привязка ФСП без открытой формы: собираем полный ввод из анкеты
+// и меняем только то, что указано в overrides.
+export function profileToInput(
+  profile: CandidateProfile,
+  overrides: Partial<Pick<SaveProfileInput, "fspId" | "showFsp">>,
+): SaveProfileInput {
+  return {
+    ...contactInput(contactsFromProfile(profile)),
+    skills: profile.skills.map((skill) => {
+      return { skillId: skill.skillId, level: skill.level };
+    }),
+    ...overrides,
+  };
+}

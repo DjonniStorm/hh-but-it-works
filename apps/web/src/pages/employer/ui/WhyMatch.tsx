@@ -1,6 +1,6 @@
 import { BreakdownGroup } from "@/pages/employer/ui/BreakdownGroup";
 import { CandidateSkills } from "@/pages/employer/ui/CandidateSkills";
-import { FspHistory } from "@/pages/employer/ui/FspHistory";
+import { FspHistory } from "@/shared/fsp/ui/FspHistory";
 import { Divider, SimpleGrid, Stack } from "@mantine/core";
 
 import type { Match } from "@hh/contracts";

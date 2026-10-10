@@ -2,6 +2,9 @@ import { z } from "zod";
 
 import {
   AttemptStatus,
+  FspAchievementKind,
+  FspAchievementLevel,
+  FspSportRank,
   Grade,
   IntegrityFlag,
   InvitationStatus,
@@ -437,10 +440,48 @@ export const candidateSkillSchema = z.object({
   verifiedAt: z.iso.datetime().nullable(),
 });
 
+// Достижение реестра ФСП: kind обязателен, level и organizer могут отсутствовать.
+// По kind/level веб собирает подписи, ранжирователю нужны только title/year/place.
+export const fspAchievementKindSchema = z.enum(FspAchievementKind);
+export const fspAchievementLevelSchema = z.enum(FspAchievementLevel);
+export const fspSportRankSchema = z.enum(FspSportRank);
+
 export const fspAchievementSchema = z.object({
   title: z.string(),
   year: z.number().int(),
   place: z.number().int().positive().nullable(),
+  kind: fspAchievementKindSchema,
+  level: fspAchievementLevelSchema.nullable(),
+  // Без max конвертер выдаёт type:[string,null], а hey-api из такой схемы
+  // делает unknown вместо string | null.
+  organizer: z.string().max(200).nullable(),
+});
+
+// Участник реестра: личные данные плюс история выступлений.
+export const fspParticipantSchema = z.object({
+  fspId: z.string(),
+  name: z.string(),
+  sportRank: fspSportRankSchema.nullable(),
+  rating: z.number().int().nullable(),
+  achievements: z.array(fspAchievementSchema),
+});
+
+// Статус поиска по почте: нашли, не нашли или реестр сейчас недоступен.
+export const fspLinkStatusSchema = z.enum([
+  "found",
+  "not-found",
+  "unavailable",
+]);
+
+// Превью привязки для кандидата: что реестр знает о человеке с его почтой.
+export const fspLinkPreviewSchema = z.object({
+  status: fspLinkStatusSchema,
+  participant: fspParticipantSchema.nullable(),
+});
+
+// Своя история ФСП: participant null, пока fspId не привязан или реестр не ответил.
+export const fspHistorySchema = z.object({
+  participant: fspParticipantSchema.nullable(),
 });
 
 export const candidatePreferencesSchema = z.object({
@@ -747,6 +788,10 @@ export type CompanyResponse = z.infer<typeof companyResponseSchema>;
 export type HiringNeedList = z.infer<typeof hiringNeedListSchema>;
 export type CandidateSkill = z.infer<typeof candidateSkillSchema>;
 export type FspAchievement = z.infer<typeof fspAchievementSchema>;
+export type FspParticipant = z.infer<typeof fspParticipantSchema>;
+export type FspLinkStatus = z.infer<typeof fspLinkStatusSchema>;
+export type FspLinkPreview = z.infer<typeof fspLinkPreviewSchema>;
+export type FspHistory = z.infer<typeof fspHistorySchema>;
 export type CandidatePreferences = z.infer<typeof candidatePreferencesSchema>;
 export type CandidateSnapshot = z.infer<typeof candidateSnapshotSchema>;
 export type CandidateSearch = z.infer<typeof candidateSearchSchema>;

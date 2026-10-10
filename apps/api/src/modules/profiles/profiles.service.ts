@@ -8,8 +8,12 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { EntityManager, In, Repository } from "typeorm";
 
 import { coreSkills } from "@hh/assessment-engine";
-import type { CandidateProfile as CandidateProfileView } from "@hh/contracts";
-import type { SaveProfileInput } from "@hh/contracts";
+import type {
+  CandidateProfile as CandidateProfileView,
+  FspHistory as FspHistoryView,
+  FspLinkPreview as FspLinkPreviewView,
+  SaveProfileInput,
+} from "@hh/contracts";
 import {
   AttemptStatus,
   Grade,
@@ -19,6 +23,8 @@ import {
   Specialization,
 } from "@hh/types";
 
+import { FspClient } from "../../common/fsp/fsp.client";
+import { UsersService } from "../users/users.service";
 import { CandidateProfile } from "./candidate-profile.entity";
 import { CandidateSkill } from "./candidate-skill.entity";
 import { skillCatalog, slugFromTitle } from "./skill-catalog";
@@ -80,6 +86,8 @@ export class ProfilesService implements OnModuleInit {
     private readonly skills: Repository<Skill>,
     @InjectRepository(CandidateSkill)
     private readonly candidateSkills: Repository<CandidateSkill>,
+    private readonly users: UsersService,
+    private readonly fsp: FspClient,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -95,6 +103,23 @@ export class ProfilesService implements OnModuleInit {
     const signals = await this.signalsOf(profile?.id);
     const catalog = await this.visibleSkills(profile?.id, signals);
     return this.toView(profile, catalog, signals);
+  }
+
+  // Превью привязки ФСП: почта из JWT, поэтому кандидат не может подставить чужую.
+  // Недоступный реестр — свой статус, а не «истории нет».
+  async fspLinkPreview(userId: string): Promise<FspLinkPreviewView> {
+    const user = await this.users.findById(userId);
+    if (!user) {
+      return { status: "unavailable", participant: null };
+    }
+    return this.fsp.findByEmail(user.email);
+  }
+
+  // Своя история ФСП: пока fspId не привязан, participant null.
+  async fspHistory(userId: string): Promise<FspHistoryView> {
+    const profile = await this.profiles.findOne({ where: { userId } });
+    const participant = await this.fsp.participant(profile?.fspId ?? null);
+    return { participant };
   }
 
   // Навыки анкеты из каталога и ядро специализации, даже если его в анкете нет.

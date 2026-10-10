@@ -25,6 +25,8 @@ import {
 import { User } from "../users/user.entity";
 import {
   CandidateProfileDto,
+  FspHistoryDto,
+  FspLinkPreviewDto,
   ResumeDraftDto,
   ResumePdfQueryDto,
   SaveProfileDto,
@@ -48,6 +50,21 @@ export class ProfilesController {
   @ZodResponse({ status: 200, type: CandidateProfileDto })
   get(@CurrentUser() user: User) {
     return this.profiles.get(user.id);
+  }
+
+  // Импорт ФСП: что реестр знает о человеке с почтой из токена.
+  // Статус found/not-found/unavailable возвращаем как есть, без интерпретации.
+  @Get("fsp-link/preview")
+  @ZodResponse({ status: 200, type: FspLinkPreviewDto })
+  fspLinkPreview(@CurrentUser() user: User) {
+    return this.profiles.fspLinkPreview(user.id);
+  }
+
+  // Своя история ФСП по привязанному fspId.
+  @Get("fsp-history")
+  @ZodResponse({ status: 200, type: FspHistoryDto })
+  fspHistory(@CurrentUser() user: User) {
+    return this.profiles.fspHistory(user.id);
   }
 
   @Post("resume-draft")

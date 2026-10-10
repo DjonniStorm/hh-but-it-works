@@ -1,3 +1,4 @@
+import { profileToInput } from "@/pages/profile/model/save-contacts";
 import type {
   ContactValues,
   ResumeDraftHit,
@@ -5,16 +6,21 @@ import type {
 } from "@/pages/profile/model/types";
 import {
   profilesControllerExportPdf,
+  profilesControllerFspHistory,
+  profilesControllerFspLinkPreview,
   profilesControllerGet,
   profilesControllerResumeDraft,
   profilesControllerSave,
 } from "@/shared/api/generated/sdk.gen";
+import { mapFspHistory, mapFspLinkPreview } from "@/shared/api/map-fsp";
 import { mapCandidateProfile, mapResumeDraft } from "@/shared/api/map-profile";
 import { saveFile } from "@/shared/lib/save-file";
 import { makeAutoObservable, runInAction } from "mobx";
 
 import type {
   CandidateProfile,
+  FspHistory,
+  FspLinkPreview,
   ResumeDraft,
   SaveProfileInput,
 } from "@hh/contracts";
@@ -33,6 +39,9 @@ export class ProfileStore {
   readonly key = StoreKey.Profile;
   profile: CandidateProfile | null = null;
   resumeDraft: ResumeDraftHit | null = null;
+  // Импорт ФСП: что реестр знает по почте кандидата и что знает по привязанному fspId.
+  fspPreview: FspLinkPreview | null = null;
+  fspHistory: FspHistory | null = null;
   // Текущие значения соседней формы. Не observable: запись не должна перерисовывать анкету.
   readContacts: (() => ContactValues) | null = null;
   readSkills: (() => SkillRow[]) | null = null;
@@ -75,6 +84,54 @@ export class ProfileStore {
       },
       { loader: true, ...options },
     );
+  }
+
+  // Превью привязки ФСП. Тихая загрузка: баннер на главной ждёт её без лоадера.
+  loadFspPreview(options?: CallOptions<FspLinkPreview>) {
+    return request(
+      this.root,
+      async () => {
+        const result = await profilesControllerFspLinkPreview();
+        const preview = mapFspLinkPreview(readData(result));
+        runInAction(() => {
+          this.fspPreview = preview;
+        });
+        return preview;
+      },
+      { loader: false, ...options },
+    );
+  }
+
+  // Своя история по привязанному fspId. Тихая: панель в анкете показывает её сама.
+  loadFspHistory(options?: CallOptions<FspHistory>) {
+    return request(
+      this.root,
+      async () => {
+        const result = await profilesControllerFspHistory();
+        const history = mapFspHistory(readData(result));
+        runInAction(() => {
+          this.fspHistory = history;
+        });
+        return history;
+      },
+      { loader: false, ...options },
+    );
+  }
+
+  // Привязка из баннера или модалки: форма анкеты не открыта, поэтому
+  // ввод собираем из сохранённого профиля и меняем только fspId и showFsp.
+  // Превью не чистим: баннер и так прячется по новому profile.fspId,
+  // а модалка успевает закрыться с содержимым.
+  linkFsp(
+    input: { fspId: string; showFsp: boolean },
+    options?: CallOptions<CandidateProfile>,
+  ) {
+    const profile = this.profile;
+    if (!profile) {
+      // Анкеты ещё нет — привязывать нечего, тишина вместо пустого тоста.
+      return Promise.resolve<CandidateProfile | null>(null);
+    }
+    return this.save(profileToInput(profile, input), options);
   }
 
   parseResume(file: File, options?: CallOptions<ResumeDraft>) {

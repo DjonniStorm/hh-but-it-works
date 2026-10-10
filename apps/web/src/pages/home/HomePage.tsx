@@ -5,6 +5,7 @@ import { StoreKey } from "@/app/store/store-key";
 import { profileProgress } from "@/pages/home/model/progress";
 import { AttemptWidget } from "@/pages/home/ui/AttemptWidget";
 import { ChecklistWidget } from "@/pages/home/ui/ChecklistWidget";
+import { FspImportBanner } from "@/pages/home/ui/FspImportBanner";
 import { HomeHero } from "@/pages/home/ui/HomeHero";
 import { HomeOffer } from "@/pages/home/ui/HomeOffer";
 import { MaterialsSection } from "@/pages/home/ui/MaterialsSection";
@@ -37,6 +38,18 @@ export const HomePage = observer(() => {
   }, [profiles]);
 
   const profile = profiles.profile;
+  const profileFspId = profile?.fspId ?? null;
+
+  // Импорт ФСП: пока ID не привязан, спрашиваем реестр о почте кандидата.
+  // Баннер сам покажет ответ found и спрячет остальные статусы.
+  useEffect(() => {
+    if (!profileFspId && auth.user?.role === Role.Candidate) {
+      void profiles.loadFspPreview().catch(() => {
+        return undefined;
+      });
+    }
+  }, [profiles, profileFspId, auth.user?.role]);
+
   const progress = profileProgress(profile);
 
   // На широких экранах контент занимает всю ширину main: maw ужимал страницу
@@ -47,6 +60,7 @@ export const HomePage = observer(() => {
       <HomeOffer />
       {profile ? (
         <>
+          <FspImportBanner profile={profile} />
           <PrepCard profile={profile} />
           <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
             <SkillsWidget profile={profile} />

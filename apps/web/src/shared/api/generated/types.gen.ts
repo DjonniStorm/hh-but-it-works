@@ -109,6 +109,41 @@ export type CandidateProfileDtoOutput = {
     }>;
 };
 
+export type FspLinkPreviewDtoOutput = {
+    status: 'found' | 'not-found' | 'unavailable';
+    participant: {
+        fspId: string;
+        name: string;
+        sportRank: 'rank3' | 'rank2' | 'rank1' | 'kms' | 'ms' | 'msmk' | null;
+        rating: number | null;
+        achievements: Array<{
+            title: string;
+            year: number;
+            place: number | null;
+            kind: 'competition' | 'cup' | 'olympiad' | 'hackathon' | 'diploma' | 'certificate';
+            level: 'regional' | 'interregional' | 'all_russia' | 'russia' | 'international' | null;
+            organizer: string | null;
+        }>;
+    } | null;
+};
+
+export type FspHistoryDtoOutput = {
+    participant: {
+        fspId: string;
+        name: string;
+        sportRank: 'rank3' | 'rank2' | 'rank1' | 'kms' | 'ms' | 'msmk' | null;
+        rating: number | null;
+        achievements: Array<{
+            title: string;
+            year: number;
+            place: number | null;
+            kind: 'competition' | 'cup' | 'olympiad' | 'hackathon' | 'diploma' | 'certificate';
+            level: 'regional' | 'interregional' | 'all_russia' | 'russia' | 'international' | null;
+            organizer: string | null;
+        }>;
+    } | null;
+};
+
 export type ResumeDraftDtoOutput = {
     displayName: string | null;
     specialization: 'backend' | 'frontend' | 'data' | 'security' | null;
@@ -408,6 +443,9 @@ export type ShortlistDtoOutput = {
                 title: string;
                 year: number;
                 place: number | null;
+                kind: 'competition' | 'cup' | 'olympiad' | 'hackathon' | 'diploma' | 'certificate';
+                level: 'regional' | 'interregional' | 'all_russia' | 'russia' | 'international' | null;
+                organizer: string | null;
             }>;
             preferences: {
                 desiredSalaryFrom: number | null;
@@ -460,6 +498,9 @@ export type CandidateSearchResultDtoOutput = {
             title: string;
             year: number;
             place: number | null;
+            kind: 'competition' | 'cup' | 'olympiad' | 'hackathon' | 'diploma' | 'certificate';
+            level: 'regional' | 'interregional' | 'all_russia' | 'russia' | 'international' | null;
+            organizer: string | null;
         }>;
         preferences: {
             desiredSalaryFrom: number | null;
@@ -799,6 +840,58 @@ export type ProfilesControllerSaveResponses = {
 };
 
 export type ProfilesControllerSaveResponse = ProfilesControllerSaveResponses[keyof ProfilesControllerSaveResponses];
+
+export type ProfilesControllerFspLinkPreviewData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/profile/fsp-link/preview';
+};
+
+export type ProfilesControllerFspLinkPreviewErrors = {
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли candidate
+     */
+    403: ApiErrorDto;
+};
+
+export type ProfilesControllerFspLinkPreviewError = ProfilesControllerFspLinkPreviewErrors[keyof ProfilesControllerFspLinkPreviewErrors];
+
+export type ProfilesControllerFspLinkPreviewResponses = {
+    200: FspLinkPreviewDtoOutput;
+};
+
+export type ProfilesControllerFspLinkPreviewResponse = ProfilesControllerFspLinkPreviewResponses[keyof ProfilesControllerFspLinkPreviewResponses];
+
+export type ProfilesControllerFspHistoryData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/profile/fsp-history';
+};
+
+export type ProfilesControllerFspHistoryErrors = {
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли candidate
+     */
+    403: ApiErrorDto;
+};
+
+export type ProfilesControllerFspHistoryError = ProfilesControllerFspHistoryErrors[keyof ProfilesControllerFspHistoryErrors];
+
+export type ProfilesControllerFspHistoryResponses = {
+    200: FspHistoryDtoOutput;
+};
+
+export type ProfilesControllerFspHistoryResponse = ProfilesControllerFspHistoryResponses[keyof ProfilesControllerFspHistoryResponses];
 
 export type ProfilesControllerResumeDraftData = {
     body: {

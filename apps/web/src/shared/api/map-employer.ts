@@ -28,6 +28,7 @@ import type {
   InvitationDtoOutput,
   ShortlistDtoOutput,
 } from "./generated/types.gen";
+import { mapFspAchievement } from "./map-fsp.ts";
 
 const categoryMatches: Record<CategoryMatch, CategoryMatch> = {
   exact: "exact",
@@ -135,7 +136,7 @@ function mapCandidate(
     }),
     assessmentScore: candidate.assessmentScore,
     profileFreshness: candidate.profileFreshness,
-    fspAchievements: candidate.fspAchievements,
+    fspAchievements: candidate.fspAchievements.map(mapFspAchievement),
     preferences: {
       desiredSalaryFrom: candidate.preferences.desiredSalaryFrom,
       workFormats: candidate.preferences.workFormats.map((format) => {

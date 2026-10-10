@@ -33,11 +33,15 @@ src/
                         PrepCard (слайд подготовки, ссылки по hover) и виджеты
                         навыков/тестирования/чек-листа, в конце — MaterialsSection
                         с карточками материалов по подтверждённым навыкам;
-                        расчёт готовности — model/progress, локальный каталог
-                        ссылок — model/materials, механика слайда — ui/SplitHoverCard
+                        сверху — FspImportBanner (реестр нашёл историю по почте,
+                        привязка через общую модалку); расчёт готовности —
+                        model/progress, локальный каталог ссылок — model/materials,
+                        механика слайда — ui/SplitHoverCard
     profile/            кабинет кандидата: анкета плитками (контакты, образование, опыт,
                         поиск работы — разделы добавляются кнопкой), навыки,
-                        тесты (TestingLobby/Run/Result)
+                        тесты (TestingLobby/Run/Result); в контактах под полем
+                        ID — FspPanel: история по привязанному fspId и поиск
+                        себя по почте в реестре ФСП
     invitations/        приглашения для кандидата
     employer/           компания, вакансии, подборка (MatchCard, WhyMatch, BreakdownGroup,
                         ReasonList, ScoreBar, ScoreRing), приглашения кандидатам
@@ -48,12 +52,16 @@ src/
                         (variant="auth") и основного приложения (variant="app": реже и
                         прозрачнее), набор и позиции собираются по хешу почты/токена
                         (model/art-layout.ts)
+    fsp/                блок ФСП общего назначения: ui/FspHistory (список достижений —
+                        у работодателя, в модалке и в анкете), ui/FspImportModal
+                        (подтверждение привязки), model/participant (шапка карточки)
     router/             routes, router, ProtectedRoute, CandidateRoute, EmployerRoute, RouteError
     error/              ErrorStore -> notifier; ErrorScreen — экран ошибки загрузки с одним
                         случайным артом из пула 5 шт. (ErrorArt), отдельный TypeErrorArt
                         лежит в RouteError — всё inline-SVG, без lazy
     loader/             LoadingStore -> RequestOverlay
-    lib/                labels.ts (локализация reason/warning/rejectedBy кодов), format.ts
+    lib/                labels.ts (локализация reason/warning/rejectedBy кодов и подписи
+                        ФСП: разряды, уровни, типы достижений), format.ts
     theme/              feedbackColor и тосты
 ```
 

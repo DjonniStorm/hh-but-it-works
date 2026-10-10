@@ -7,6 +7,7 @@ import type {
   ProfileSubmit,
 } from "@/pages/profile/model/use-profile-form";
 import { ContactIcon } from "@/pages/profile/ui/ContactIcon";
+import { FspPanel } from "@/pages/profile/ui/FspPanel";
 import { ProfileDownload } from "@/pages/profile/ui/ProfileDownload";
 import { ResumeUpload } from "@/pages/profile/ui/ResumeUpload";
 import { VisibilityFields } from "@/pages/profile/ui/VisibilityFields";
@@ -74,9 +75,10 @@ export const ContactsPanel = ({
         />
         <TextInput
           label="ID участника ФСП"
-          description="Сохраним здесь. Историю запросим при подтверждении перед биржей."
+          description="По нему показываем историю достижений. Найти себя по почте можно ниже."
           {...form.getInputProps("fspId")}
         />
+        <FspPanel profile={profile} />
         <TextInput
           label="Телефон"
           type="tel"
