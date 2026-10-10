@@ -63,7 +63,7 @@ export const MaterialsSection = ({
         ) : null}
       </Group>
       {visible.length > 0 ? (
-        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+        <SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing="md">
           {visible.map((card) => {
             return <MaterialCard key={card.skillId} skill={card} />;
           })}

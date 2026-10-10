@@ -61,32 +61,31 @@ export const HomeHero = ({
             </Text>
           )}
         </Stack>
-        <Group gap="xl" align="center">
-          {/* Пояснение рядом с кольцом: за что отвечает процент и где детали. */}
-          <Text size="sm" c="dimmed" maw={300}>
-            {profile
-              ? `Готовность — это доля заполненных разделов анкеты: сейчас ${done} из ${progress.steps.length}. Незаполненное собрано в чек-листе ниже.`
-              : "Анкета загружается: готовность посчитаем, как только она подгрузится."}
+        {/* Три зоны на всю ширину: имя слева, пояснение по центру, кольцо справа —
+            на широком экране пустота делится, а не копится одной кучей. */}
+        <Text size="sm" c="dimmed" maw={300}>
+          {profile
+            ? `Готовность — это доля заполненных разделов анкеты: сейчас ${done} из ${progress.steps.length}. Незаполненное собрано в чек-листе ниже.`
+            : "Анкета загружается: готовность посчитаем, как только она подгрузится."}
+        </Text>
+        <Stack align="center" gap={4}>
+          <RingProgress
+            size={120}
+            thickness={10}
+            roundCaps
+            sections={[
+              { value: progress.percent, color: scoreTone(progress.percent) },
+            ]}
+            label={
+              <Text ta="center" fw={700} size="xl">
+                {progress.percent}
+              </Text>
+            }
+          />
+          <Text size="xs" c="dimmed">
+            готовность анкеты
           </Text>
-          <Stack align="center" gap={4}>
-            <RingProgress
-              size={120}
-              thickness={10}
-              roundCaps
-              sections={[
-                { value: progress.percent, color: scoreTone(progress.percent) },
-              ]}
-              label={
-                <Text ta="center" fw={700} size="xl">
-                  {progress.percent}
-                </Text>
-              }
-            />
-            <Text size="xs" c="dimmed">
-              готовность анкеты
-            </Text>
-          </Stack>
-        </Group>
+        </Stack>
       </Group>
     </Paper>
   );

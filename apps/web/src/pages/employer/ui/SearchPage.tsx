@@ -59,7 +59,7 @@ export const SearchPage = observer(() => {
   }, [search]);
 
   return (
-    <Stack gap="lg" maw={1100}>
+    <Stack gap="lg" maw={1100} mx="auto">
       <Stack gap={4}>
         <Title order={2}>Поиск по банку кандидатов</Title>
         <Text c="dimmed" size="sm">

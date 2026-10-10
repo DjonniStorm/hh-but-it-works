@@ -64,7 +64,7 @@ export const InvitationsPage = observer(() => {
   });
 
   return (
-    <Stack gap="lg" maw={1100}>
+    <Stack gap="lg" maw={1100} mx="auto">
       <Stack gap={4}>
         <Title order={2}>Приглашения</Title>
         <Text c="dimmed" size="sm">

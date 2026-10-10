@@ -39,8 +39,10 @@ export const HomePage = observer(() => {
   const profile = profiles.profile;
   const progress = profileProgress(profile);
 
+  // На широких экранах контент занимает всю ширину main: maw ужимал страницу
+  // до 1000px и половина экрана пустовала.
   return (
-    <Stack maw={1000} gap="xl">
+    <Stack gap="xl">
       <HomeHero profile={profile} progress={progress} />
       <HomeOffer />
       {profile ? (
