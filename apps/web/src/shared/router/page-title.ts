@@ -20,4 +20,5 @@ export const pageTitle = {
   settings: "Настройки",
   consent: "Согласие на обработку данных",
   error: "Ошибка",
+  notFound: "Страница не найдена",
 } as const;
