@@ -10,8 +10,9 @@ cmp evaluation/data/gold_train.jsonl "$tmp_dir/generated/gold_train.jsonl"
 cmp evaluation/data/gold_calibration.jsonl "$tmp_dir/generated/gold_calibration.jsonl"
 cmp evaluation/data/gold_test.jsonl "$tmp_dir/generated/gold_test.jsonl"
 
-sh scripts/verify_artifacts.sh evaluation/artifacts/ltr-v1.2.0 evaluation/data/gold_test.jsonl
-sh scripts/verify_artifacts.sh evaluation/artifacts/ltr-v1.3.0-llm evaluation/data/llm_gold_test.jsonl
+# Legacy ltr-v1.2.0 is deliberately absent: it was trained under pre-embedding
+# feature code and now fails closed to rules (see test_pretrained_distribution).
+sh scripts/verify_artifacts.sh evaluation/artifacts/ltr-v1.4.0-llm evaluation/data/llm_gold_test.jsonl
 
 pytest -q -m ml
 sh scripts/promote_ml.sh "$tmp_dir/artifacts" > "$tmp_dir/promotion.log"
@@ -41,9 +42,9 @@ assert health["ranker"]["modelLoaded"] is True
 assert health["ranker"]["calibratorLoaded"] is True
 print(f"service smoke: {len(body['results'])} ranked, {body['modelVersion']}")
 PY
-RANKING_MODEL_PATH="evaluation/artifacts/ltr-v1.3.0-llm/model.txt" \
-RANKING_MODEL_METADATA_PATH="evaluation/artifacts/ltr-v1.3.0-llm/model.meta.json" \
-RANKING_CALIBRATOR_PATH="evaluation/artifacts/ltr-v1.3.0-llm/calibrator.json" \
+RANKING_MODEL_PATH="evaluation/artifacts/ltr-v1.4.0-llm/model.txt" \
+RANKING_MODEL_METADATA_PATH="evaluation/artifacts/ltr-v1.4.0-llm/model.meta.json" \
+RANKING_CALIBRATOR_PATH="evaluation/artifacts/ltr-v1.4.0-llm/calibrator.json" \
 RANKING_MODE="hybrid" \
 python - <<'PY'
 import json

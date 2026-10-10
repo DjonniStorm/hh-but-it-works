@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Sequence
 
 from calibration import IsotonicCalibrator
+from embedding_similarity import embedding_available
 from evaluation.features import FEATURE_ORDER, extract_features, model_code_sha256
 from schemas import CandidateSnapshot, HiringNeedSnapshot, RankingContext, RankItem
 from scoring import MODEL_VERSION as RULES_MODEL_VERSION
@@ -227,6 +228,7 @@ class LTRRanker:
             "artifactVersion": self.artifact_version,
             "productionApproved": self.production_approved,
             "unapprovedOverride": self.allow_unapproved,
+            "embeddingReady": embedding_available(),
             "blendWeight": self.blend_weight,
             "readyForRequestedMode": (
                 self.active_mode == self.requested_mode

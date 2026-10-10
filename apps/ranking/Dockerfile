@@ -1,7 +1,7 @@
 FROM python:3.12-slim
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG RANKING_ARTIFACT_DIR=evaluation/artifacts/ltr-v1.3.0-llm
+ARG RANKING_ARTIFACT_DIR=evaluation/artifacts/ltr-v1.4.0-llm
 
 WORKDIR /app
 RUN apt-get update \

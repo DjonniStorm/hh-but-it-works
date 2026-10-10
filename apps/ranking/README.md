@@ -118,7 +118,7 @@ Related technologies могут давать мягкий relevance, но **не
 - competency scores;
 - assessment;
 - experience (для Nest диапазон лет разворачивается из грейда вакансии, см. INTEGRATION);
-- precomputed semantic similarity или объяснимый lexical fallback по текстам;
+- precomputed semantic similarity, локальный ONNX-embedding в неоднозначном lexical band или объяснимый lexical fallback по текстам;
 - профильный FSP evidence bonus с силой и количеством достижений.
 
 ### OpportunityFit
@@ -204,9 +204,9 @@ LLM **не находится в hot path**.
 
 ## Semantic retrieval
 
-Если передан `semanticSimilarity`, сервис использует его как precomputed feature. Если embedding отсутствует, Nest передаёт описание потребности и обезличенный текст из специализации/навыков кандидата, а ranking считает детерминированный lexical coverage/Jaccard fallback и возвращает совпавшие термы в reason codes. Без обоих текстов остаётся нейтральный `0.65`.
+Если передан `semanticSimilarity`, сервис использует его как precomputed feature. Для пар без него Nest передаёт описание потребности и обезличенный текст из специализации/навыков кандидата, а ranking сначала считает детерминированный lexical coverage/Jaccard: при score вне band `[0.20, 0.60]` (явный match/mismatch) остаётся lexical, внутри band решение принимает локальный int8 ONNX-энкодер (`evaluation/models/embedder-int8.onnx`, `paraphrase-multilingual-MiniLM-L12-v2` с pinned revision) — cosine переводится в ту же шкалу `[0, 1]`. Сетевых вызовов и LLM нет; недоступность модели (`onnxruntime`/`tokenizers`, несовпадение sha с `embedder.meta.json`, `RANKING_EMBEDDINGS=off`) детектируется по `embeddingReady` в `/health` и молча возвращает lexical. Совпавшие lexical-термы по-прежнему уходят в reason codes (`semantic_overlap:*`), без обоих текстов остаётся нейтральный `0.65`.
 
-Рекомендованная интеграция позже:
+Рекомендованная интеграция позже (для масштаба, сейчас не требуется):
 
 - embeddings пересчитываются при изменении профиля/HiringNeed;
 - хранятся в Postgres/pgvector;
@@ -230,7 +230,7 @@ LTR-контур работает как production-safe shadow/hybrid:
 
 `evaluation/data/gold*.jsonl` — **controlled-synthetic benchmark**, а не человеческий gold. Потребности основаны на небольшой атрибутированной выборке открытых вакансий, кандидаты вымышлены, метки независимы от rules. Набор проверяет pipeline и ловит регрессии, но не доказывает production uplift. Карточка и provenance: [`evaluation/data/README.md`](evaluation/data/README.md), [`evaluation/data/SOURCES.json`](evaluation/data/SOURCES.json).
 
-Training metadata содержит `productionApproved` и `approvalSource`. Обычный runtime не даёт неутверждённому артефакту влиять на выдачу: запрос `hybrid`/`ltr` будет понижен до `shadow`. Готовый образ по умолчанию собирается с llm-approved бандлом `ltr-v1.3.0-llm` (`approvalSource: llm_judge_v1`), поэтому `/health` честно показывает `productionApproved=true`, `unapprovedOverride=false` без каких-либо override-переменных. Флаг `--production-approved` принимается только для `human_double_annotation_v1`; отдельный, более слабый флаг `--llm-approved` принимает только `llm_judge_v1` — см. `evaluation/annotation/README.md` и `evaluation/artifacts/`.
+Training metadata содержит `productionApproved` и `approvalSource`. Обычный runtime не даёт неутверждённому артефакту влиять на выдачу: запрос `hybrid`/`ltr` будет понижен до `shadow`. Готовый образ по умолчанию собирается с llm-approved бандлом `ltr-v1.4.0-llm` (`approvalSource: llm_judge_v1`), поэтому `/health` честно показывает `productionApproved=true`, `unapprovedOverride=false` без каких-либо override-переменных. Флаг `--production-approved` принимается только для `human_double_annotation_v1`; отдельный, более слабый флаг `--llm-approved` принимает только `llm_judge_v1` — см. `evaluation/annotation/README.md` и `evaluation/artifacts/`.
 
 Режимы `RANKING_MODE`:
 

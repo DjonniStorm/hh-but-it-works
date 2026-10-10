@@ -138,8 +138,8 @@ need-принадлежность `gold_*`), провенанс и сверка 
 пайплайн и порог шкалы, но не добавляет внешнего сигнала. Модель на llm-метках
 учится и открывает замок только через `train_ltr.py --llm-approved`
 (`approvalSource: llm_judge_v1`); human-путь (`--production-approved`) остаётся
-отдельным и более строгим. Готовый бандл: `evaluation/artifacts/ltr-v1.3.0-llm/`
-(дефолтинг образа не менял — serving по-прежнему `ltr-v1.2.0`).
+отдельным и более строгим. Готовый бандл: `evaluation/artifacts/ltr-v1.4.0-llm/`
+(с 2026-10-10 он же serving default образа; см. `evaluation/artifacts/README.md`).
 
 ## Экспорт нового батча
 

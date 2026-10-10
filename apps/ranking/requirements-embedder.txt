@@ -1,0 +1,10 @@
+# Dev-only: reproduces evaluation/models/embedder-int8.onnx via
+# scripts/build_embedder.py. Not installed by the serving image or tests.
+# Pinned build stack used for the committed artifact (see embedder.meta.json).
+-r requirements.txt
+torch==2.8.0
+transformers==4.57.6
+huggingface_hub>=0.27,<1
+tokenizers>=0.20,<1
+onnx>=1.16,<2
+onnxruntime>=1.19,<2
