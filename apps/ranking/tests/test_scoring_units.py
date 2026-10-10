@@ -215,7 +215,7 @@ def test_competency_all_weights_zero_is_neutral():
 
 
 def test_personalization_is_out_of_the_model_until_feedback_exists():
-    # Слагаемое персонализации выведено из формулы в rules-v1.2.0: boost'ам
+    # Слагаемое персонализации выведено из формулы в rules-v1.3.0: boost'ам
     # неоткуда прийти из контракта. Контекст API остаётся точкой расширения.
     score_pair(candidate(), need(), RankingContext(skillBoosts={"python": 1.0}))
     assert "personalization" not in ScoreBreakdown.model_fields

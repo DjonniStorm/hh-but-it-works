@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { useRootStore } from "@/app/store/store-context";
 import type { ActiveAttempt } from "@/pages/profile/model/attempt";
+import { attemptPlan, sectionIsCore } from "@/pages/profile/model/attempt-plan";
 import {
   allowedGrades,
   defaultTestGrade,
@@ -13,8 +14,6 @@ import {
   specializationOptions,
 } from "@/pages/profile/model/options";
 import { startAttempt } from "@/pages/profile/model/run-attempt";
-import { assessedFromProfile } from "@/pages/profile/model/save-skills";
-import { skillIsTested } from "@/pages/profile/model/skill-query";
 import { CategoryCard } from "@/pages/profile/ui/CategoryCard";
 import { SkillStatusBadge } from "@/pages/profile/ui/SkillStatusBadge";
 import { TestingRules } from "@/pages/profile/ui/TestingRules";
@@ -38,7 +37,10 @@ export const TestingLobby = ({
     specializationOptions,
     profile.specialization,
   );
-  const skills = assessedFromProfile(profile.skills);
+  const plan = attemptPlan(profile.specialization, profile.skills);
+  const profileSkills = profile.skills.filter((skill) => {
+    return skill.level;
+  });
   const allowed = allowedGrades(profile);
   const [grade, setGrade] = useState<Grade>(defaultTestGrade(profile));
   const [agreed, setAgreed] = useState(false);
@@ -49,43 +51,60 @@ export const TestingLobby = ({
       <Stack gap="sm">
         {contactsReady ? (
           <Text>
-            Специализация {specialization}. В попытку войдут обязательные темы и
-            навыки из анкеты, у каждого своя секция.
+            Специализация {specialization}. В попытке будут такие секции.
           </Text>
         ) : (
           <Text>Сначала сохраните анкету.</Text>
         )}
-        {skills.length === 0 ? (
+        {contactsReady
+          ? plan.sections.map((section) => {
+              const level = optionLabel(skillLevelOptions, section.level);
+              return (
+                <Group key={section.key} justify="space-between" wrap="nowrap">
+                  <Stack gap={0}>
+                    <Text>{section.title}</Text>
+                    {sectionIsCore(profile.specialization, section.key) ? (
+                      <Text size="sm" c="dimmed">
+                        ядро специализации
+                      </Text>
+                    ) : null}
+                    {section.detail ? (
+                      <Text size="sm" c="dimmed">
+                        {section.detail}
+                      </Text>
+                    ) : null}
+                    {level ? (
+                      <Text size="sm" c="dimmed">
+                        {level}
+                      </Text>
+                    ) : null}
+                  </Stack>
+                  {section.inProfile ? (
+                    <SkillStatusBadge
+                      level={section.level}
+                      verification={section.verification}
+                      verifiedAt={section.verifiedAt}
+                      tested
+                    />
+                  ) : null}
+                </Group>
+              );
+            })
+          : null}
+        {contactsReady && profileSkills.length === 0 ? (
           <Text c="dimmed">
             Навыков в анкете нет: попытка будет только по ядру специализации.
           </Text>
-        ) : (
-          skills.map((skill) => {
-            const level = optionLabel(skillLevelOptions, skill.level);
-            return (
-              <Group
-                key={skill.skillId ?? skill.title}
-                justify="space-between"
-                wrap="nowrap"
-              >
-                <Stack gap={0}>
-                  <Text>{skill.title}</Text>
-                  {level ? (
-                    <Text size="sm" c="dimmed">
-                      {level}
-                    </Text>
-                  ) : null}
-                </Stack>
-                <SkillStatusBadge
-                  level={skill.level}
-                  verification={skill.verification}
-                  verifiedAt={skill.verifiedAt}
-                  tested={skillIsTested(skill.title)}
-                />
-              </Group>
-            );
-          })
-        )}
+        ) : null}
+        {contactsReady
+          ? plan.untested.map((skill) => {
+              return (
+                <Text key={skill.slug}>
+                  {skill.title} — теста пока нет, останется неподтверждённым
+                </Text>
+              );
+            })
+          : null}
         <Select
           label="Грейд теста"
           description={

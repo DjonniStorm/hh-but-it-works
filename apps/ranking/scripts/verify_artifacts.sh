@@ -2,7 +2,7 @@
 set -eu
 
 ranking_dir="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-artifact_dir="${1:-$ranking_dir/evaluation/artifacts/ltr-v1.4.0-llm}"
+artifact_dir="${1:-$ranking_dir/evaluation/artifacts/ltr-v1.5.0-llm}"
 dataset="${2:-evaluation/data/llm_gold_test.jsonl}"
 
 cd "$ranking_dir"
