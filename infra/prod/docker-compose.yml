@@ -86,6 +86,7 @@ services:
       SMTP_PASS: ${SMTP_PASS:-}
       MAIL_FROM: ${MAIL_FROM:-}
       SEED_CANDIDATE_PASSWORD: ${SEED_CANDIDATE_PASSWORD:-}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-}
     depends_on:
       postgres:
         condition: service_healthy

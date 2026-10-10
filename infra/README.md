@@ -95,6 +95,20 @@ docker compose -p hhprod --env-file infra/prod/.env.local -f infra/prod/docker-c
 
 В `.env.local`: `DOMAIN=http://localhost` (только HTTP, без сертификата), `HTTP_PORT=8080`, `HTTPS_PORT=8443`, `WEB_URL=http://localhost:8080`. Почта — в Mailpit из `infra/dev`: `SMTP_HOST=host.docker.internal`, `SMTP_PORT=1025`. Для входа под сид-кандидатами — `NODE_ENV=development` и `SEED_CANDIDATE_PASSWORD`. Убрать: `docker compose -p hhprod -f infra/prod/docker-compose.yml down -v`.
 
+## Демо-аккаунты
+
+API при старте засеивает 15 компаний с потребностями (`employers/employer-seed.data.ts`) и 21 кандидата. Войти можно только под пятью аккаунтами, и только если в `.env` задан `DEMO_PASSWORD` (в production тоже). Без него у них случайный пароль. Пароль в репозиторий не пишем.
+
+| Роль         | Логин                               | Что внутри                              |
+| ------------ | ----------------------------------- | --------------------------------------- |
+| Работодатель | `employer.parus@employers.hh.test`  | Парус Финтех: backend и безопасность    |
+| Работодатель | `employer.orbita@employers.hh.test` | Медиа Орбита: два frontend              |
+| Работодатель | `employer.ladoga@employers.hh.test` | Ладога Аналитика: два data              |
+| Кандидат     | `seed.b101@candidates.hh.test`      | backend, Middle, подтверждённые навыки  |
+| Кандидат     | `seed.f202@candidates.hh.test`      | frontend, Senior, подтверждённые навыки |
+
+На проде: `DEMO_PASSWORD=…` в `/opt/hh/infra/prod/.env`, затем `dc up -d --build api` (`dc` — команда из раздела про прод, с `--env-file infra/prod/.env`). Убрать значение и пересоздать api значит закрыть вход.
+
 ## Ranking
 
 Контейнер собирается из корня:

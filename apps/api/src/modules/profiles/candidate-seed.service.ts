@@ -12,6 +12,7 @@ import { CandidateProfile } from "./candidate-profile.entity";
 import {
   type CandidateSeed,
   candidateSeeds,
+  demoCandidateIds,
   seedFspId,
 } from "./candidate-seed.data";
 import { CandidateSkill } from "./candidate-skill.entity";
@@ -78,6 +79,28 @@ export class CandidateSeedService implements OnApplicationBootstrap {
     if (open) {
       this.logger.log(`Вход под сид-кандидатами открыт: ${ids.length}`);
     }
+    await this.applyDemoPassword();
+  }
+
+  // DEMO_PASSWORD открывает вход только под demoCandidateIds и работает в production.
+  // Идёт после общего пароля, поэтому перекрывает его для этих двух.
+  private async applyDemoPassword(): Promise<void> {
+    const demo = this.config.get<string>("DEMO_PASSWORD");
+    if (!demo) {
+      return;
+    }
+    const ids: string[] = [];
+    for (const seed of candidateSeeds) {
+      if (!demoCandidateIds.includes(seed.id)) {
+        continue;
+      }
+      const user = await this.users.findByEmail(seedEmail(seed));
+      if (user) {
+        ids.push(user.id);
+      }
+    }
+    await this.users.setPassword(ids, demo);
+    this.logger.log(`Демо-вход открыт, кандидаты: ${ids.length}`);
   }
 
   private async ensure(seed: CandidateSeed): Promise<boolean> {
