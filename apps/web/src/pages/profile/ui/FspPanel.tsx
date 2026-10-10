@@ -2,10 +2,18 @@ import { useEffect, useState } from "react";
 
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
-import { participantDetails } from "@/shared/fsp/model/participant";
 import { FspHistory } from "@/shared/fsp/ui/FspHistory";
 import { FspImportModal } from "@/shared/fsp/ui/FspImportModal";
-import { Button, Group, Stack, Text } from "@mantine/core";
+import { sportRankLabel } from "@/shared/lib/labels";
+import {
+  Badge,
+  Button,
+  Group,
+  Loader,
+  Paper,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import type { CandidateProfile } from "@hh/contracts";
@@ -59,17 +67,32 @@ export const FspPanel = observer(
 
     if (fspId) {
       return (
-        <Stack gap={6} pt="sm">
+        <Stack gap={10} pt="sm">
           {!historyReady ? (
-            <Text size="sm" c="dimmed">
-              Загружаем историю из реестра…
-            </Text>
+            <Group gap="xs">
+              <Loader size="xs" />
+              <Text size="sm" c="dimmed">
+                Загружаем историю из реестра…
+              </Text>
+            </Group>
           ) : participant ? (
             <>
+              <Group gap="xs" align="center">
+                <Text size="sm" fw={600}>
+                  {participant.name}
+                </Text>
+                {participant.sportRank ? (
+                  <Badge color="fsp" variant="light" size="sm">
+                    {sportRankLabel[participant.sportRank]}
+                  </Badge>
+                ) : null}
+                {participant.rating !== null ? (
+                  <Badge color="gray" variant="light" size="sm">
+                    Рейтинг {participant.rating}
+                  </Badge>
+                ) : null}
+              </Group>
               <FspHistory achievements={participant.achievements} />
-              <Text size="sm" c="dimmed">
-                {participantDetails(participant)}
-              </Text>
               <Text size="xs" c="dimmed">
                 Видно работодателям, пока включена видимость «Достижения ФСП».
               </Text>
@@ -84,36 +107,41 @@ export const FspPanel = observer(
       );
     }
 
+    // Пустое состояние — отдельная зона: её видно, пока ID не привязан.
     return (
-      <Stack gap={6} pt="sm">
-        <Text size="sm" fw={600}>
-          Достижения ФСП
-        </Text>
-        <Text size="sm">
-          ID участника ещё не привязан. Найдём вас в реестре по почте аккаунта —
-          она уже подтверждена.
-        </Text>
-        <Group gap="xs" align="flex-start">
-          <Button
-            type="button"
-            size="xs"
-            variant="outline"
-            loading={search === "searching"}
-            onClick={searchByEmail}
-          >
-            Найти по моей почте
-          </Button>
-          {search === "not-found" ? (
-            <Text size="sm" c="dimmed">
-              В реестре нет участника с этой почтой — введите ID вручную.
+      <>
+        <Paper withBorder radius="md" p="md" bg="gray.0">
+          <Stack gap="sm">
+            <Text size="sm" fw={600}>
+              Достижения ФСП
             </Text>
-          ) : null}
-          {search === "unavailable" ? (
-            <Text size="sm" c="dimmed">
-              Реестр сейчас недоступен. Попробуйте позже.
+            <Text size="sm">
+              ID участника ещё не привязан. Найдём вас в реестре по почте
+              аккаунта — она уже подтверждена.
             </Text>
-          ) : null}
-        </Group>
+            <Group gap="xs" align="flex-start">
+              <Button
+                type="button"
+                size="xs"
+                variant="outline"
+                loading={search === "searching"}
+                onClick={searchByEmail}
+              >
+                Найти по моей почте
+              </Button>
+              {search === "not-found" ? (
+                <Text size="sm" c="dimmed">
+                  В реестре нет участника с этой почтой — введите ID вручную.
+                </Text>
+              ) : null}
+              {search === "unavailable" ? (
+                <Text size="sm" c="dimmed">
+                  Реестр сейчас недоступен. Попробуйте позже.
+                </Text>
+              ) : null}
+            </Group>
+          </Stack>
+        </Paper>
         <FspImportModal
           profile={profile}
           opened={modalOpened}
@@ -121,7 +149,7 @@ export const FspPanel = observer(
             setModalOpened(false);
           }}
         />
-      </Stack>
+      </>
     );
   },
 );
