@@ -16,7 +16,7 @@ export const NeedNewPage = observer(() => {
   const navigate = useNavigate();
 
   return (
-    <Stack gap="lg" maw={860}>
+    <Stack gap="lg" maw={860} mx="auto">
       <Stack gap={4}>
         <BackToNeeds />
         <Title order={2}>Кого вы ищете?</Title>

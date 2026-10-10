@@ -42,7 +42,7 @@ export const CompanyPage = observer(() => {
   };
 
   return (
-    <Stack gap="lg" maw={860}>
+    <Stack gap="lg" maw={860} mx="auto">
       <Stack gap={4}>
         <Title order={2}>Профиль компании</Title>
         <Text c="dimmed" size="sm">

@@ -86,7 +86,7 @@ export const NeedPage = observer(() => {
   const visible = applyRefinements(inPicked, refinements);
 
   return (
-    <Stack gap="lg" maw={1100}>
+    <Stack gap="lg" maw={1100} mx="auto">
       <Stack gap={4}>
         <BackToNeeds />
         <Group justify="space-between" align="flex-start" gap="sm">

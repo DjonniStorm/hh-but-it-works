@@ -41,7 +41,7 @@ export const NeedsPage = observer(() => {
   }
 
   return (
-    <Stack gap="lg" maw={1100}>
+    <Stack gap="lg" maw={1100} mx="auto">
       <Group justify="space-between" align="flex-end">
         <Stack gap={4}>
           <Title order={2}>Потребности и подборки</Title>

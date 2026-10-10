@@ -29,7 +29,12 @@ src/
                         error, loading, notifier, request (обёртка всех запросов)
   pages/
     auth/               LoginPage, RegisterPage, ConfirmPage
-    home/               HomePage
+    home/               HomePage: hero с кольцом готовности анкеты, оффер приглашения,
+                        PrepCard (слайд подготовки, ссылки по hover) и виджеты
+                        навыков/тестирования/чек-листа, в конце — MaterialsSection
+                        с карточками материалов по подтверждённым навыкам;
+                        расчёт готовности — model/progress, локальный каталог
+                        ссылок — model/materials, механика слайда — ui/SplitHoverCard
     profile/            кабинет кандидата: анкета плитками (контакты, образование, опыт,
                         поиск работы — разделы добавляются кнопкой), навыки,
                         тесты (TestingLobby/Run/Result)

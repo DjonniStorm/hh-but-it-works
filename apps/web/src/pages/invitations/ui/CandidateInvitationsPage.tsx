@@ -61,7 +61,7 @@ export const CandidateInvitationsPage = observer(() => {
         />
       ) : null}
       {status === "ready" ? (
-        <Stack gap="lg" maw={800}>
+        <Stack gap="lg" maw={800} mx="auto">
           <Stack gap={4}>
             <Title order={2}>Приглашения</Title>
             <Text c="dimmed" size="sm">
