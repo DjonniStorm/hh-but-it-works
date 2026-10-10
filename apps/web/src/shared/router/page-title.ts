@@ -1,5 +1,5 @@
 // Шаблон заголовка вкладки: страница задаёт только свою часть через useHead({ title }).
-export const titleTemplate = "%s — ЛЦТ";
+export const titleTemplate = "%s · ЛЦТ";
 
 // Заголовки вкладок. Без них все вкладки называются «ЛЦТ» и их не отличить.
 export const pageTitle = {
