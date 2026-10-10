@@ -8,9 +8,11 @@ import { CandidateSkill } from "../profiles/candidate-skill.entity";
 import { ProfilesModule } from "../profiles/profiles.module";
 import { Skill } from "../profiles/skill.entity";
 import { User } from "../users/user.entity";
+import { UsersModule } from "../users/users.module";
 import { CandidateInvitationsController } from "./candidate-invitations.controller";
 import { CandidatePoolService } from "./candidate-pool.service";
 import { CompanyProfile } from "./company-profile.entity";
+import { EmployerSeedService } from "./employer-seed.service";
 import { EmployersController } from "./employers.controller";
 import { EmployersService } from "./employers.service";
 import { HiringNeed } from "./hiring-need.entity";
@@ -38,6 +40,7 @@ import { RankingClient } from "./ranking.client";
     FspModule,
     // PDF-резюме принятого кандидата рисует модуль профилей.
     ProfilesModule,
+    UsersModule,
   ],
   // Ответ кандидата живёт рядом с приглашениями: те же сущности и правила статусов.
   controllers: [EmployersController, CandidateInvitationsController],
@@ -45,6 +48,7 @@ import { RankingClient } from "./ranking.client";
     EmployersService,
     InvitationsService,
     CandidatePoolService,
+    EmployerSeedService,
     RankingClient,
   ],
 })
