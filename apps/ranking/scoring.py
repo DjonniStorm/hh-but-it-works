@@ -215,7 +215,12 @@ def eligibility(candidate: CandidateSnapshot, need: HiringNeedSnapshot) -> Eligi
     return EligibilityResult(not reasons, reasons)
 
 
-def _reasons_and_warnings(candidate: CandidateSnapshot, need: HiringNeedSnapshot, components: ScoreBreakdown) -> tuple[list[str], list[str]]:
+def _reasons_and_warnings(
+    candidate: CandidateSnapshot,
+    need: HiringNeedSnapshot,
+    components: ScoreBreakdown,
+    exact_candidate: set[str] | None = None,
+) -> tuple[list[str], list[str]]:
     reasons: list[str] = []
     warnings: list[str] = []
 
@@ -227,7 +232,9 @@ def _reasons_and_warnings(candidate: CandidateSnapshot, need: HiringNeedSnapshot
         warnings.append("grade_mismatch")
 
     if need.mustSkills:
-        exact_candidate = {canonical_skill(skill.id) for skill in candidate.skills}
+        exact_candidate = exact_candidate or {
+            canonical_skill(skill.id) for skill in candidate.skills
+        }
         exact_count = 0
         for required in need.mustSkills:
             score = _best_skill_score(required, candidate)
@@ -379,7 +386,6 @@ def rank_candidates(
             item.eligible,
             item.matchScore,
             item.qualificationScore,
-            item.candidateId,
         ),
         reverse=True,
     )

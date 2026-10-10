@@ -18,8 +18,8 @@
 | Интеграция с Nest         | Работает, маппинг в `apps/api/src/modules/employers/ranking.client.ts`                |
 | UI-объяснения             | Работают: `breakdown`, `reasons`, `risks` → «Почему подходит»                         |
 | Тесты Python              | 258 pytest (248 основной контур + 9 ML + 1 slow), покрытие 91 %                       |
-| Docker-образ              | Pre-trained bundle `ltr-v1.4.0-llm`, GHCR multi-arch publish, без обучения            |
-| LTR (lightgbm)            | Дефолт — llm-approved `ltr-v1.4.0-llm`; human tier ждёт разметки                      |
+| Docker-образ              | Pre-trained bundle `ltr-v1.5.0-llm`, GHCR multi-arch publish, без обучения            |
+| LTR (lightgbm)            | Дефолт — llm-approved `ltr-v1.5.0-llm`; human tier ждёт разметки                      |
 | Мониторинг                | Latency/pool/score/agreement/drift без PII на каждый `/rank`                          |
 | Semantic/competency/fresh | Локальный ONNX-embedding в середине lexical band + fallback; живые sections/freshness |
 | Опыт кандидата            | Живой: `experienceMin/Max` разворачиваются из грейда вакансии                         |
@@ -208,7 +208,7 @@ band, иначе lexical fallback), профильный FSP, зарплата, 
 кандидатский верхний порог зарплаты.
 
 Дополнительно: без артефактов `ModelVersion` в ответе — `rules-v1.2.0`. Готовый
-образ — `hybrid-v1.2.0-ltr0.25`; pure artifact виден как `ltr-v1.4.0-llm-calibrated`.
+образ — `hybrid-v1.2.0-ltr0.25`; pure artifact виден как `ltr-v1.5.0-llm-calibrated`.
 При любой ошибке загрузки или предикта запрос получает rules fallback и
 честную версию `rules-v1.2.0`.
 
@@ -217,7 +217,7 @@ band, иначе lexical fallback), профильный FSP, зарплата, 
 ## 6. Ограничения и риски
 
 1. **Gold-набор — regression, а не рыночный.** Основной набор содержит 168 controlled-synthetic пар вокруг 21 реальной публичной вакансии; кандидаты и labels всё ещё синтетические.
-2. **Demo hybrid активирован llm-approved дефолтом (без override).** На entity-disjoint holdout гейт пройден: LTR +0.019 NDCG@5 к rules, hybrid +0.011, calibration RMSE ltr/rules ≈ 0 против 0.30 у rules (v1.2.0, synthetic). С 2026-10-10 дефолтный артефакт образа — `ltr-v1.4.0-llm` (`approvalSource: llm_judge_v1`, обучен после подключения embedding): `/health` показывает `productionApproved=true`, `unapprovedOverride=false`; `RANKING_ALLOW_UNAPPROVED_MODEL` из Dockerfile удалён. Это llm-тир, не human: human-approved бандл — следующая ступень после разметки batch-001 экспертами. llm_gold_test маленький (3 need-группы), поэтому +0.012 NDCG@5 — проверка активации, а не рыночный uplift.
+2. **Demo hybrid активирован llm-approved дефолтом (без override).** После изменения формулы обязательных навыков бандл переобучен как `ltr-v1.5.0-llm` (`approvalSource: llm_judge_v1`): на entity-disjoint `llm_gold_test` LTR +0.038 NDCG@5 к rules, hybrid +0.026. `/health` показывает `productionApproved=true`, `unapprovedOverride=false`. Это llm-тир, не human: human-approved бандл — следующая ступень после разметки batch-001 экспертами. llm_gold_test маленький (3 need-группы), поэтому это проверка активации, а не рыночный uplift.
 3. **Параметры LTR подобраны под синтетический holdout.** Простая модель (200 деревьев, 3 листа, seed 42) выбрана после того, как глубокая конфигурация перестала бить rules после перенормировки `rules-v1.2.0`. Это честно задокументировано, но переобучение на синтетику возможно: на human-labeled judgments параметры надо подбирать заново.
 4. **Semantic — локальный embedding, не сетевой сервис.** `scoring._semantic_fit` сначала берёт precomputed `semanticSimilarity`; для пар без него лексический score в band `[0.20, 0.60]` решает закоммиченный int8 ONNX-энкодер (`evaluation/models/`, `paraphrase-multilingual-MiniLM-L12-v2`, pinned revision, sha в `embedder.meta.json`), вне band — прежний детерминированный lexical fallback. Сеть, LLM и очереди не участвуют; любой сбой (нет `onnxruntime`/`tokenizers`, битый sha файла, `RANKING_EMBEDDINGS=off`) закрывает фичу (`embeddingReady=false` в `/health`) и пара scoring падает на lexical — формула не ломается.
 5. **CI выключен на аккаунте.** Файл `ranking-image.yml` остался в репо (push в `dev`/`main` + tags), но Actions отключён: раны вечно в `queued`, отсюда отказ от PR-тегов и smoke-run в облаке. Проверки только локально (`check.sh`/`check_ml.sh`/`pnpm test`), GHCR-тег `:dev` может отставать от репозитория; общий CI monorepo так и не появился.
@@ -226,7 +226,7 @@ band, иначе lexical fallback), профильный FSP, зарплата, 
 8. **Fallback при недоступности — `503`.** Подборка не отдаётся вообще. Альтернатива (показать список без оценок) не реализована — это продуктовое решение, не ошибка.
 9. **Набор причин хрупок:** `reasons[:7]`/`warnings[:8]` обрезают молча, порядок кодов = порядок построения, а не значимость.
 10. **Рыночных judgments пока нет.** Инфраструктура open-data ingestion, synthetic bootstrap, double annotation, sample weights, calibration и activation lock готова; `evaluation/annotation/batch-001` (168 пар) и гайд аннотатора готовы к отправке экспертам. LLM-судья уже разметил эти пары как `llm_judge_v1` (`evaluation/data/llm_gold*.jsonl` + провенанс), но честная сверка показала полное совпадение со сценарным порядком (Kendall tau 1.0) — это проверка пайплайна, а не внешний сигнал; human-разметка по-прежнему нужна.
-11. **Legacy-бандлы оставлены как история.** `ltr-v1.1.0`, `ltr-v1.2.0` и `ltr-v1.3.0-llm` обучены под feature-код до embedding: при загрузке текущей версии они честно фейлятся по SHA-256 fingerprint (`different feature code`) и уходят в rules fallback, поэтому `check_ml.sh` верифицирует только активный `ltr-v1.4.0-llm`. Их закоммиченные `promotion-report.json` по-прежнему гейтятся в `test_pretrained_distribution.py`. Не трогать и не копировать в свежий релиз — см. `evaluation/artifacts/README.md`.
+11. **Legacy-бандлы оставлены как история.** `ltr-v1.1.0`–`ltr-v1.4.0-llm` обучены под предыдущие версии feature-кода: при загрузке текущей версии они честно фейлятся по SHA-256 fingerprint (`different feature code`) и уходят в rules fallback, поэтому `check_ml.sh` верифицирует только активный `ltr-v1.5.0-llm`. Их закоммиченные `promotion-report.json` по-прежнему гейтятся в `test_pretrained_distribution.py`. Не трогать и не копировать в свежий релиз — см. `evaluation/artifacts/README.md`.
 
 ---
 
@@ -258,7 +258,7 @@ band, иначе lexical fallback), профильный FSP, зарплата, 
 
 1. [#34 — план полного покрытия тестами](https://github.com/DjonniStorm/hh-but-it-works/issues/34): **completed** (PR #38, 183 теста, покрытие 98 %).
 2. [#35 — интеграционные тесты Nest ↔ ranking и CI](https://github.com/DjonniStorm/hh-but-it-works/issues/35): частично закрыт локально (5 contract tests + 3 web tests + ranking image workflow); осталось — unit-тесты бизнес-логики Nest и общий CI monorepo.
-3. [#36 — довести модель до идеала](https://github.com/DjonniStorm/hh-but-it-works/issues/36): локально закрыты разделы 1 (мёртвые слагаемые: опыт подключён из грейда, остальное выкинуто и перенормировано), 2 (gold/holdout/бенчмарк-гейты), 3 (LTR с fallback и версионированием), 4 (изотоническая калибровка), 6 (мониторинг), 7 (бюджет latency тестом). Human-labels: пайплайн, batch-001 и llm-тир (`--llm-approved`, бандл `ltr-v1.4.0-llm`) готовы (`evaluation/annotation/README.md`), осталось только получить human-разметку от экспертов; semantic поднят до локального embedding (band + lexical fallback). Внешнее: петля feedback (dismiss/invite) для персонализации, продуктовые решения по §8.
+3. [#36 — довести модель до идеала](https://github.com/DjonniStorm/hh-but-it-works/issues/36): локально закрыты разделы 1 (мёртвые слагаемые: опыт подключён из грейда, остальное выкинуто и перенормировано), 2 (gold/holdout/бенчмарк-гейты), 3 (LTR с fallback и версионированием), 4 (изотоническая калибровка), 6 (мониторинг), 7 (бюджет latency тестом). Human-labels: пайплайн, batch-001 и llm-тир (`--llm-approved`, бандл `ltr-v1.5.0-llm`) готовы (`evaluation/annotation/README.md`), осталось только получить human-разметку от экспертов; semantic поднят до локального embedding (band + lexical fallback). Внешнее: петля feedback (dismiss/invite) для персонализации, продуктовые решения по §8.
 
 ### 7.4 Хэндофф следующему агенту (rules-v1.2.0 → human-labels → embeddings)
 
@@ -271,7 +271,7 @@ band, иначе lexical fallback), профильный FSP, зарплата, 
 5. **Human-labels этап закрыт инфраструктурно + llm-тир** (ветка `feat/ranking-rules-v1.2.0-experience`). `human_labels.py` принимает adjudication-строки (`adjudicator:<имя>`), считает попарное согласие аннотаторов и валит батч при `--min-agreement` (по умолчанию 0.6), PII в rationale/annotator_id, неполноте разметки и need меньше чем из двух кандидатов; экспорт пишет `pairs.manifest.json` (sha256 датасета). Готов `evaluation/annotation/batch-001` (168 пар из gold) + гайд `evaluation/annotation/README.md`. Дополнительно введён явный llm-тир: импорт с `--label-source llm_judge_v1 --min-annotators 1`, обучение `train_ltr.py --llm-approved` (только llm_judge_v1, независимый calibration, `approvalSource` в metadata) и первый бандл `evaluation/artifacts/ltr-v1.3.0-llm` (gates: ltr/hybrid +0.012 NDCG@5 на llm_gold_test, activation без override). Честная сверка: llm-разметка воспроизвела сценарный порядок (tau 1.0, exact match 87.5 %) — внешнего сигнала она не добавила, но именно этот бандл теперь является дефолтным артефактом образа (см. §6.2).
 
 6. **Serving default — llm-approved.** Dockerfile указывает на
-   `evaluation/artifacts/ltr-v1.4.0-llm` (до 2026-10-10 — `ltr-v1.3.0-llm`),
+   `evaluation/artifacts/ltr-v1.5.0-llm` (до 2026-10-10 — `ltr-v1.4.0-llm`),
    `RANKING_ALLOW_UNAPPROVED_MODEL` удалён: `/health` даёт
    `productionApproved=true`, `unapprovedOverride=false`. `verify_artifacts.sh`
    параметризован (артефакт + датасет) и по умолчанию проверяет активный бандл;
@@ -297,7 +297,7 @@ band, иначе lexical fallback), профильный FSP, зарплата, 
    fail-closed на битом sha, band/fallback на моках, реальная separability
    related/unrelated).
 
-8. **Бандл переобучен под embedding и промоунут.** `ltr-v1.4.0-llm` обучен
+8. **Бандл переобучен после изменения формулы.** `ltr-v1.5.0-llm` обучен
    `train_ltr.py --llm-approved` на тех же `llm_gold_*` сплитах с новым
    feature-кодом; гейты на `llm_gold_test`: ltr/hybrid +0.0124 NDCG@5,
    calibration RMSE ratio ≈ 0. Дефолт переключён (Dockerfile, defaults
@@ -314,9 +314,9 @@ sh scripts/check_ml.sh # детерминизм gold + bundle + ml-тесты + 
 ```
 
 E2E последняя сессия (2026-10-10): дефолтный образ собирается с
-`ltr-v1.4.0-llm` — `/health` без override отдаёт `productionApproved=true`,
+`ltr-v1.5.0-llm` — `/health` без override отдаёт `productionApproved=true`,
 `unapprovedOverride=false`, `embeddingReady=true` и
-`artifactVersion: ltr-v1.4.0-llm-calibrated`, `/rank` отвечает
+`artifactVersion: ltr-v1.5.0-llm-calibrated`, `/rank` отвечает
 `hybrid-v1.2.0-ltr0.25` (версия гибрида складывается из rules-серии);
 `/career/analyze` и 422 на мусорном теле — работают; compose-путь
 `infra/dev` поднимает ranking с той же моделью. CI: Actions на аккаунте
@@ -328,5 +328,5 @@ E2E последняя сессия (2026-10-10): дефолтный образ 
 
 - `reasons`/`warnings` сортируются порядком построения, а не по вкладу (§6.9) — кандидат №36 §5;
 - персонализация ждёт дизайн петли feedback (§6.3): слепой негативный буст по навыкам отклонённого демпфирует весь пул;
-- human-labeled judgments: llm-проход batch-001 готов (`llm_gold*`, бандл `ltr-v1.4.0-llm`), но это не замена людям — ждём CSV с human-разметкой от экспертов;
+- human-labeled judgments: llm-проход batch-001 готов (`llm_gold*`, бандл `ltr-v1.5.0-llm`), но это не замена людям — ждём CSV с human-разметкой от экспертов;
 - `salaryMax` кандидата и `relocation` — поля контракта, которых нет; вернуть их = правка `@hh/contracts` + форма.
