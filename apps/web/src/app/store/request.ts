@@ -199,9 +199,14 @@ function isSessionRequest(url: string): boolean {
   return hasPath(url, ["/auth/refresh", "/auth/logout"]);
 }
 
+// Сравниваем по концу пути: на проде API живёт под /api (VITE_API_URL=/api),
+// и вход приходит как /api/auth/login, а не /auth/login.
 function hasPath(url: string, paths: string[]): boolean {
   try {
-    return paths.includes(new URL(url).pathname);
+    const pathname = new URL(url).pathname;
+    return paths.some((path) => {
+      return pathname.endsWith(path);
+    });
   } catch {
     return false;
   }
