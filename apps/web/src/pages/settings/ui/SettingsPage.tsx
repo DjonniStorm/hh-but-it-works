@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
-import { consentWhen } from "@/pages/legal/model/consent";
+import { consentRequestHint, consentWhen } from "@/pages/legal/model/consent";
 import { ConsentDocument } from "@/pages/legal/ui/ConsentDocument";
 import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
@@ -33,6 +33,8 @@ export const SettingsPage = observer(() => {
               ? `Согласие на обработку и публикацию данных профиля дано ${when}.`
               : "Согласие дано при регистрации. Дата подгружается."}
           </Text>
+          {/* Куда писать — сразу под датой, а не в конце длинного текста согласия. */}
+          <Text fw={600}>{consentRequestHint}</Text>
           <ConsentDocument />
         </Stack>
       </Paper>
