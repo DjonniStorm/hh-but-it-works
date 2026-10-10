@@ -15,7 +15,7 @@ from taxonomy import canonical_skill, skill_match
 from text_similarity import lexical_similarity, overlap_terms
 
 
-MODEL_VERSION = "rules-v1.1.0"
+MODEL_VERSION = "rules-v1.2.0"
 GRADE_VALUE = {Grade.intern: 0, Grade.junior: 1, Grade.middle: 2, Grade.senior: 3}
 AVAILABILITY_SCORE = {
     Availability.actively_looking: 1.0,
@@ -168,38 +168,6 @@ def _fsp_fit(candidate: CandidateSnapshot, need: HiringNeedSnapshot) -> float:
     return clamp01(strength * (0.70 + 0.30 * relevance))
 
 
-def _personalization_fit(candidate: CandidateSnapshot, need: HiringNeedSnapshot, context: RankingContext) -> float:
-    if not context.skillBoosts and not context.competencyBoosts:
-        return 0.5
-
-    skill_total = 0.0
-    skill_weight = 0.0
-    for raw_skill, boost in context.skillBoosts.items():
-        weight = abs(boost)
-        if weight == 0:
-            continue
-        matched = _best_skill_score(raw_skill, candidate)
-        desired = matched if boost > 0 else 1.0 - matched
-        skill_total += desired * weight
-        skill_weight += weight
-
-    competency_total = 0.0
-    competency_weight = 0.0
-    for name, boost in context.competencyBoosts.items():
-        weight = abs(boost)
-        if weight == 0:
-            continue
-        value = candidate.competencies.get(name, 0.0)
-        desired = value if boost > 0 else 1.0 - value
-        competency_total += desired * weight
-        competency_weight += weight
-
-    total_weight = skill_weight + competency_weight
-    if total_weight == 0:
-        return 0.5
-    return clamp01((skill_total + competency_total) / total_weight)
-
-
 def eligibility(candidate: CandidateSnapshot, need: HiringNeedSnapshot) -> EligibilityResult:
     reasons: list[str] = []
 
@@ -314,40 +282,28 @@ def score_pair(candidate: CandidateSnapshot, need: HiringNeedSnapshot, context: 
     fsp = _fsp_fit(candidate, need)
     salary = _salary_fit(candidate, need)
     work_mode = _set_overlap_fit(candidate.preferences.workModes, need.workModes)
-    location = _set_overlap_fit(candidate.preferences.locations, need.locations)
-    employment = _set_overlap_fit(candidate.preferences.employmentTypes, need.employmentTypes)
     target_role = _set_overlap_fit(candidate.preferences.targetSpecializations, [need.specialization])
 
-    if candidate.preferences.desiredSkills:
-        need_skill_set = {canonical_skill(skill) for skill in (need.mustSkills + need.niceSkills)}
-        desired = [canonical_skill(skill) for skill in candidate.preferences.desiredSkills]
-        desired_skills = sum(1 for skill in desired if skill in need_skill_set) / len(desired)
-    else:
-        desired_skills = 0.75
-
     freshness = candidate.profileFreshness
-    personalization = _personalization_fit(candidate, need, context)
 
+    # Веса перенормированы после вывода из формулы слагаемых без источника
+    # данных из контракта (локация, занятость, желаемый стек, персонализация).
     qualification = (
         0.09 * specialization
         + 0.14 * grade
         + 0.20 * must
         + 0.09 * verified_must
-        + 0.03 * nice
+        + 0.04 * nice
         + 0.12 * competency
         + 0.10 * assessment
         + 0.09 * experience
         + 0.07 * semantic
         + 0.06 * fsp
-        + 0.01 * personalization
     )
     opportunity = (
-        0.35 * salary
-        + 0.22 * work_mode
-        + 0.12 * location
-        + 0.08 * employment
-        + 0.13 * target_role
-        + 0.10 * desired_skills
+        0.50 * salary
+        + 0.31 * work_mode
+        + 0.19 * target_role
     )
     intent = AVAILABILITY_SCORE[candidate.availability] * (0.62 + 0.38 * freshness)
 
@@ -373,12 +329,8 @@ def score_pair(candidate: CandidateSnapshot, need: HiringNeedSnapshot, context: 
         fspEvidence=round(fsp, 4),
         salary=round(salary, 4),
         workMode=round(work_mode, 4),
-        location=round(location, 4),
-        employmentType=round(employment, 4),
         targetRole=round(target_role, 4),
-        desiredSkills=round(desired_skills, 4),
         freshness=round(freshness, 4),
-        personalization=round(personalization, 4),
     )
     reasons, warnings = _reasons_and_warnings(candidate, need, components)
 

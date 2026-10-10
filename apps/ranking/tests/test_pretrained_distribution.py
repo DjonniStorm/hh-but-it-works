@@ -6,7 +6,7 @@ from evaluation.features import FEATURE_ORDER, model_code_sha256
 
 
 ROOT = Path(__file__).resolve().parents[1]
-BUNDLE = ROOT / "evaluation/artifacts/ltr-v1.1.0"
+BUNDLE = ROOT / "evaluation/artifacts/ltr-v1.2.0"
 
 
 def sha256(path: Path) -> str:
@@ -50,5 +50,5 @@ def test_runtime_dockerfile_never_trains_the_model():
     dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
     assert "train_ltr.py" not in dockerfile
     assert "requirements-train.txt" not in dockerfile
-    assert "evaluation/artifacts/ltr-v1.1.0" in dockerfile
+    assert "evaluation/artifacts/ltr-v1.2.0" in dockerfile
     assert "RANKING_ALLOW_UNAPPROVED_MODEL=true" in dockerfile

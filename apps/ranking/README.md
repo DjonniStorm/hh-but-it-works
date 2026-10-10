@@ -7,25 +7,61 @@
 ## Готовый запуск без обучения
 
 Версионированные `model.txt`, metadata, calibrator и held-out report лежат в
-[`evaluation/artifacts/ltr-v1.1.0`](evaluation/artifacts/ltr-v1.1.0). Обычная
+[`evaluation/artifacts/ltr-v1.2.0`](evaluation/artifacts/ltr-v1.2.0). Обычная
 Docker-сборка только устанавливает runtime и копирует готовую модель — LightGBM
 training и scikit-learn при сборке/запуске не выполняются.
 
-После публикации workflow `Publish pre-trained ranking image` команда запускает
-готовый multi-arch образ:
+Workflow `Publish pre-trained ranking image` публикует готовый multi-arch
+образ по push в `dev`, **но сейчас Actions на аккаунте выключен** — раны не
+выполняются, GHCR-тег `:dev` может отставать от репозитория. Всегда сверяй
+`modelVersion` в `/health` (должен быть `hybrid-v1.2.0-ltr0.25`):
 
 ```bash
 docker pull ghcr.io/djonnistorm/hh-but-it-works-ranking:dev
 docker run --rm -p 8000:8000 \
   ghcr.io/djonnistorm/hh-but-it-works-ranking:dev
+curl -s localhost:8000/health   # modelLoaded: true, modelVersion: hybrid-v1.2.0-ltr0.25
+curl -s -X POST localhost:8000/rank -H 'content-type: application/json' \
+  --data @apps/ranking/examples/rank-request.json
+```
+
+Надёжный путь без CI — собрать локально из клона; сборка только копирует
+committed artifacts, ничего не обучает:
+
+```bash
+docker compose --env-file infra/dev/.env.example \
+  -f infra/dev/docker-compose.yml up -d --build ranking
+```
+
+Для private GHCR один раз нужен `docker login ghcr.io`; package можно сделать public
+в GitHub Packages.
+
+### Проверка PR: CI выключен, всё вручную
+
+Воркфлоу `ranking-image.yml` есть, но Actions отключён — раны не выполняются
+и PR-теги не публикуются. Ревьюер проверяет локально:
+
+```bash
+cd apps/ranking && sh scripts/check.sh && sh scripts/check_ml.sh  # тесты + ML-гейты
+pnpm test                                                          # api + web контракт
+docker compose --env-file infra/dev/.env.example \
+  -f infra/dev/docker-compose.yml up -d --build ranking            # образ с моделью
 curl -s localhost:8000/health
 ```
 
-Или весь dev stack из клона: `docker compose --env-file infra/dev/.env.example
--f infra/dev/docker-compose.yml up`. Compose использует готовый GHCR-образ, а
-локальная сборка всё равно копирует committed artifacts без обучения. Для
-private GHCR один раз нужен `docker login ghcr.io`; package можно сделать public
-в GitHub Packages.
+Демо-запрос (`examples/rank-request.json`) содержит трёх кандидатов: middle с
+4 годами опыта идёт первым, junior с 1.1 года — вторым, junior ниже
+`experienceMin` — третьим с пониженным компонентом `experience`.
+
+### Локальный запуск без Docker
+
+```bash
+pip install -r apps/ranking/requirements-runtime-ml.txt
+cd apps/ranking && uvicorn main:app --port 8000   # hybrid + committed bundle
+```
+
+Без артефактов сервис честно откатывается на pure rules (`rules-v1.2.0`) —
+`/health` покажет `modelLoaded: false`.
 
 ## Контекст продукта
 
@@ -81,10 +117,9 @@ Related technologies могут давать мягкий relevance, но **не
 - verified evidence;
 - competency scores;
 - assessment;
-- experience;
+- experience (для Nest диапазон лет разворачивается из грейда вакансии, см. INTEGRATION);
 - precomputed semantic similarity или объяснимый lexical fallback по текстам;
-- профильный FSP evidence bonus с силой и количеством достижений;
-- session personalization.
+- профильный FSP evidence bonus с силой и количеством достижений.
 
 ### OpportunityFit
 
@@ -92,10 +127,9 @@ Related technologies могут давать мягкий relevance, но **не
 
 - salary;
 - work mode;
-- location;
-- employment type;
-- target specialization;
-- desired stack.
+- target specialization.
+
+Локация, тип занятости и желаемый стек **выведены из формулы в `rules-v1.2.0`**: в контракте нет полей, которыми их заполнить (см. HANDOFF §5).
 
 ### IntentScore
 
@@ -114,7 +148,12 @@ Related technologies могут давать мягкий relevance, но **не
 
 `RankRequest.context` принимает короткоживущие `skillBoosts` и `competencyBoosts` в диапазоне `[-1, 1]`.
 
-Это позволяет backend после `Подходит / Не подходит` уточнить текущую выдачу без online retraining. Событие при этом должно логироваться backend-ом для будущего обучения.
+Слагаемое персонализации выведено из формулы в `rules-v1.2.0`: boost'ам неоткуда
+прийти из текущего контракта, и константа в формуле — худшее состояние.
+`competencyBoosts` остаётся живым модификатором внутри слагаемого компетенций;
+`skillBoosts` зарезервирован под будущую петлю обратной связи (dismiss/invite,
+issue #36 §6) и на score сейчас не влияет. Событие «Подходит / Не подходит»
+backend логирует `InteractionEvent` для будущего обучения.
 
 ## Explainability
 
@@ -185,7 +224,7 @@ LTR-контур работает как production-safe shadow/hybrid:
 - `evaluation/train_ltr.py` учит LightGBM LambdaRank только на train и fit-ит `IsotonicRegression` только на calibration;
 - `evaluation/evaluate_ltr.py` сравнивает rules, pure LTR и hybrid на untouched test по NDCG/Precision/MRR и диагностике калибровки;
 - runtime загружает `model.txt`, `model.meta.json` и безопасный `calibrator.json`, проверяет schema, feature order, SHA-256 кода признаков и артефактов;
-- любая ошибка загрузки/предикта безопасно возвращает `rules-v1.1.0`; hard filters LTR не переопределяет.
+- любая ошибка загрузки/предикта безопасно возвращает `rules-v1.2.0`; hard filters LTR не переопределяет.
 - `scripts/promote_ml.sh` атомарно публикует локальные артефакты только после entity/group-disjoint quality gate;
 - Docker runtime build копирует проверенный versioned artifact bundle и никогда не обучает модель.
 

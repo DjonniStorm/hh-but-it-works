@@ -1,0 +1,212 @@
+{
+  "artifactSchemaVersion": 1,
+  "modelVersion": "ltr-v1.2.0",
+  "featureOrder": [
+    "specialization",
+    "grade",
+    "mustSkills",
+    "verifiedMustSkills",
+    "niceSkills",
+    "competency",
+    "assessment",
+    "experience",
+    "semantic",
+    "fspEvidence",
+    "salary",
+    "workMode",
+    "targetRole",
+    "freshness",
+    "qualificationScore",
+    "opportunityFit",
+    "intentScore",
+    "rulesMatchScore"
+  ],
+  "modelCodeSha256": "2e58f2cae2045a181916e369b526540f6cd549962c78e9a2343ed789ced21256",
+  "groups": 15,
+  "rows": 120,
+  "groupIdHashes": [
+    "01d330071b35e975d3b65789bd17cdd10da18ee294bb1690556dab1c46f43146",
+    "16bd03ea872125b7d03ca26be5780b403d0e3c2f9515e6e16182733617714a11",
+    "28ab4ea82a2829b723aad36bac3e70daabde7b9b4aafe092b94ccfb83d5c9c27",
+    "5c563880839e42623559526f65d91b82d782fc0ede52e665cc36bc2ca9102fd0",
+    "6c3feeeaed01972b242cf7d52d093bd1f1c7302a0b377b13928fa3061e96c98d",
+    "6e91ebcff6e62b52ef3d48ccab6c6e573e0a224fff72ad8ca0056143beb6eda1",
+    "796fdbc5fdd730399c68d601c5fc4724f0179bee33b0eb9ba052870aa7d062c4",
+    "8c03b26434c7e96017feeb2a82deed356a8dd43f81e147064dcfda70d03545f0",
+    "a006bbba8adfa3f73cd3e0f0833bbb6bdefbc9aed09931c11f977aa56efd147d",
+    "a8a391d7494e0dc72db435500599470196ed407b163cd052e007fe26e10d4f4a",
+    "adbab53d9a43ad770f8f93de3440245945706531d70cd9a9bb24b0cac5bc615c",
+    "b737311341c64b7c816ed10f04979c8362427da4c826588cc57ce77433b49a94",
+    "e548f08218f756625572092b55322d82c2aa2aecbe3a4feca45d43d094df2fc8",
+    "f113d02a98e4458d7d551f67e1e06de8a81e05b3301de4d3c32d9ebb4b554a43",
+    "f76bc819e54b9065892b19e1ac43740be9fc4603c333f2e7fa1c2aeec19647b2"
+  ],
+  "labels": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "labelMetadata": {
+    "sources": {
+      "controlled_synthetic_v1": 120
+    },
+    "confidence": {
+      "min": 0.72,
+      "mean": 0.83125,
+      "max": 0.95
+    }
+  },
+  "trainingParameters": {
+    "objective": "lambdarank",
+    "metric": "ndcg",
+    "n_estimators": 200,
+    "learning_rate": 0.1,
+    "num_leaves": 3,
+    "min_child_samples": 3,
+    "reg_lambda": 1.0,
+    "random_state": 42,
+    "deterministic": true,
+    "force_col_wise": true,
+    "n_jobs": 1,
+    "verbosity": -1
+  },
+  "featureStats": {
+    "specialization": {
+      "mean": 0.8375,
+      "std": 0.2814582562299426,
+      "min": 0.35,
+      "max": 1.0
+    },
+    "grade": {
+      "mean": 0.7768999999999999,
+      "std": 0.1342996276986649,
+      "min": 0.072,
+      "max": 0.98
+    },
+    "mustSkills": {
+      "mean": 0.5107625,
+      "std": 0.378260934863422,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "verifiedMustSkills": {
+      "mean": 0.25,
+      "std": 0.4330127018922193,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "niceSkills": {
+      "mean": 0.0,
+      "std": 0.0,
+      "min": 0.0,
+      "max": 0.0
+    },
+    "competency": {
+      "mean": 0.5191625,
+      "std": 0.3449701579031873,
+      "min": 0.0,
+      "max": 0.82
+    },
+    "assessment": {
+      "mean": 0.685,
+      "std": 0.11258330249197702,
+      "min": 0.62,
+      "max": 0.88
+    },
+    "experience": {
+      "mean": 0.9826666666666667,
+      "std": 0.10605606483784362,
+      "min": 0.22,
+      "max": 1.0
+    },
+    "semantic": {
+      "mean": 0.36170416666666666,
+      "std": 0.1565292796869185,
+      "min": 0.2,
+      "max": 0.6727
+    },
+    "fspEvidence": {
+      "mean": 0.16076,
+      "std": 0.27860088489928864,
+      "min": 0.0,
+      "max": 0.6867
+    },
+    "salary": {
+      "mean": 0.8541000000000001,
+      "std": 0.25487775501208415,
+      "min": 0.35,
+      "max": 1.0
+    },
+    "workMode": {
+      "mean": 1.0,
+      "std": 0.0,
+      "min": 1.0,
+      "max": 1.0
+    },
+    "targetRole": {
+      "mean": 0.75,
+      "std": 0.4330127018922193,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "freshness": {
+      "mean": 0.8049999999999999,
+      "std": 0.17363755354185337,
+      "min": 0.42,
+      "max": 0.98
+    },
+    "qualificationScore": {
+      "mean": 0.5630022666666666,
+      "std": 0.20634657214424204,
+      "min": 0.19588,
+      "max": 0.879317
+    },
+    "opportunityFit": {
+      "mean": 0.8795474166666667,
+      "std": 0.12680647192497596,
+      "min": 0.675,
+      "max": 1.0
+    },
+    "intentScore": {
+      "mean": 0.8036635000000001,
+      "std": 0.19719234352720189,
+      "min": 0.452168,
+      "max": 0.9924
+    },
+    "rulesMatchScore": {
+      "mean": 0.6611582916666666,
+      "std": 0.13745871341906,
+      "min": 0.407002,
+      "max": 0.930643
+    }
+  },
+  "lightgbmVersion": "4.7.0",
+  "datasetSha256": "09c21ff8e2d8b51006466c16dc3d0aa72151729c200960a4d50fe802b28d92ec",
+  "modelSha256": "5f5255c147fc2aa42b783ad9d6ad442473bf7a988a759ae4d328e4f8f19ada7a",
+  "calibration": {
+    "method": "isotonic",
+    "datasetSha256": "643cfabf4cf03cac515d5cefa37b626c6bbbd78d133db0daa5169506002a141f",
+    "groups": 3,
+    "rows": 24,
+    "groupIdHashes": [
+      "1190011644607b988313de9da5d58fd0d61777ff07111172a4d8e22a072008cc",
+      "2a7415cae44802c8b9128c02b1f48458f3d12693747eda85983795fdacc6707c",
+      "b68cb59da94ee3578dab09753d5140a0c2177d66f2aa329a09ec18130b81421b"
+    ],
+    "artifact": "calibrator.json",
+    "artifactSha256": "832bbc4484b2848b5aaef06764440e264edfc8f374628836f7883881817644da",
+    "labels": {
+      "sources": {
+        "controlled_synthetic_v1": 24
+      },
+      "confidence": {
+        "min": 0.72,
+        "mean": 0.8312499999999999,
+        "max": 0.95
+      }
+    }
+  },
+  "productionApproved": false,
+  "activationGate": "Shadow/evaluation only: requires double human annotation and independent held-out uplift for hybrid/LTR activation."
+}

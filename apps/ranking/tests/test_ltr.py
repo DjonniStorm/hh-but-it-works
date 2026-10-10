@@ -239,7 +239,7 @@ def test_train_ltr_fits_loadable_isotonic_calibrator(tmp_path):
     ranker = LTRRanker(model, metadata, calibrator, mode="ltr")
     assert ranker.status["modelLoaded"] is True
     assert ranker.status["calibratorLoaded"] is True
-    assert ranker.model_version == "ltr-v1.1.0-calibrated"
+    assert ranker.model_version == "ltr-v1.2.0-calibrated"
 
     fail_closed = LTRRanker(model, metadata, tmp_path / "missing.json")
     assert fail_closed.status["modelLoaded"] is False

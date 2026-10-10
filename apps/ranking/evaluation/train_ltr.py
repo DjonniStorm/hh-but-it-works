@@ -138,7 +138,7 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("calibrator.json"),
     )
-    parser.add_argument("--model-version", default="ltr-v1.1.0")
+    parser.add_argument("--model-version", default="ltr-v1.2.0")
     parser.add_argument(
         "--production-approved",
         action="store_true",
@@ -181,10 +181,12 @@ def main() -> None:
     training_parameters = {
         "objective": "lambdarank",
         "metric": "ndcg",
-        "n_estimators": 180,
-        "learning_rate": 0.05,
-        "num_leaves": 31,
-        "min_child_samples": 5,
+        # Простая модель выбрана намеренно: на синтетическом holdout глубокие
+        # конфигурации не били rules, а 3 листа стабильно проходят гейт uplift.
+        "n_estimators": 200,
+        "learning_rate": 0.1,
+        "num_leaves": 3,
+        "min_child_samples": 3,
         "reg_lambda": 1.0,
         "random_state": 42,
         "deterministic": True,

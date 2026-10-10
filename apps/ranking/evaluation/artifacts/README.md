@@ -1,6 +1,6 @@
 # Pre-trained artifact bundles
 
-`ltr-v1.1.0/` is the immutable default bundle consumed by `Dockerfile`.
+`ltr-v1.2.0/` is the immutable default bundle consumed by `Dockerfile`.
 It contains:
 
 - `model.txt` — LightGBM model;
@@ -17,7 +17,7 @@ Maintainers rebuild a new version explicitly:
 python -m venv /tmp/ranking-train
 . /tmp/ranking-train/bin/activate
 pip install -r requirements-train.txt
-sh scripts/promote_ml.sh evaluation/artifacts/ltr-v1.1.0
+sh scripts/promote_ml.sh evaluation/artifacts/ltr-v1.2.0
 ```
 
 Never overwrite a released directory. Create a new version, run

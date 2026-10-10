@@ -10,7 +10,7 @@ cmp evaluation/data/gold_train.jsonl "$tmp_dir/generated/gold_train.jsonl"
 cmp evaluation/data/gold_calibration.jsonl "$tmp_dir/generated/gold_calibration.jsonl"
 cmp evaluation/data/gold_test.jsonl "$tmp_dir/generated/gold_test.jsonl"
 
-sh scripts/verify_artifacts.sh evaluation/artifacts/ltr-v1.1.0
+sh scripts/verify_artifacts.sh evaluation/artifacts/ltr-v1.2.0
 
 pytest -q -m ml
 sh scripts/promote_ml.sh "$tmp_dir/artifacts" > "$tmp_dir/promotion.log"
@@ -32,7 +32,7 @@ payload = json.loads(Path("examples/rank-request.json").read_text(encoding="utf-
 response = client.post("/rank", json=payload)
 assert response.status_code == 200, response.text
 body = response.json()
-assert body["modelVersion"] == "hybrid-v1.1.0-ltr0.25"
+assert body["modelVersion"] == "hybrid-v1.2.0-ltr0.25"
 assert body["results"]
 assert all(item["modelVersion"] == body["modelVersion"] for item in body["results"])
 health = client.get("/health").json()
