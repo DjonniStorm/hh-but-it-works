@@ -22,28 +22,48 @@ export * from "./format";
 
 export const roleSchema = z.enum(Role);
 
+// Правило нового пароля: одно на регистрацию и на сброс.
+// bcrypt всё равно учитывает только первые 72 байта.
+export const passwordSchema = z
+  .string()
+  .min(8, "Минимум 8 символов")
+  .max(72, "Не длиннее 72 символов");
+
+// Токен из письма: base64url от 32 байт, 43 символа. Граница с запасом.
+const emailTokenSchema = z.string().min(1).max(128);
+
 export const registerSchema = z.object({
   email: z.email("Укажите почту"),
-  password: z.string().min(8, "Минимум 8 символов"),
+  password: passwordSchema,
   role: roleSchema,
   consent: z.literal(true, "Нужно согласие на обработку данных"),
 });
 
 export const loginSchema = z.object({
   email: z.email("Укажите почту"),
-  password: z.string().min(1, "Введите пароль"),
+  // Шире правила нового пароля: пароли, заведённые до границы в 72 символа,
+  // должны по-прежнему входить. Граница только от огромных тел запроса.
+  password: z
+    .string()
+    .min(1, "Введите пароль")
+    .max(256, "Не длиннее 256 символов"),
 });
 
 export const confirmEmailSchema = z.object({
-  token: z.string().min(1),
+  token: emailTokenSchema,
 });
 
 export const resendConfirmationSchema = z.object({
   email: z.email("Укажите почту"),
 });
 
-export const refreshSchema = z.object({
-  refreshToken: z.string().min(1),
+export const forgotPasswordSchema = z.object({
+  email: z.email("Укажите почту"),
+});
+
+export const resetPasswordSchema = z.object({
+  token: emailTokenSchema,
+  password: passwordSchema,
 });
 
 export const publicUserSchema = z.object({
@@ -51,11 +71,13 @@ export const publicUserSchema = z.object({
   email: z.email(),
   role: roleSchema,
   emailVerifiedAt: z.iso.datetime().nullable(),
+  // null только у старой сессии в браузере, пока /auth/me не обновил её.
+  consentAt: z.iso.datetime().nullable(),
 });
 
+// Refresh-токен в тело не входит: API кладёт его в HttpOnly-cookie hh_refresh.
 export const sessionSchema = z.object({
   accessToken: z.string(),
-  refreshToken: z.string(),
   user: publicUserSchema,
 });
 
@@ -753,6 +775,8 @@ export const assessmentResultSchema = z.object({
   status: attemptStatusSchema,
   score: z.number().int().min(0).max(100),
   grade: gradeSchema,
+  // Специализация из анкеты на момент попытки. null — попытка старше этого поля.
+  specialization: specializationSchema.nullable(),
   integrity: z.number().int().min(0).max(100),
   flags: z.array(flagCountSchema),
   sections: z.array(assessmentSectionResultSchema),
@@ -769,7 +793,8 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ConfirmEmailInput = z.infer<typeof confirmEmailSchema>;
 export type ResendConfirmationInput = z.infer<typeof resendConfirmationSchema>;
-export type RefreshInput = z.infer<typeof refreshSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type PublicUser = z.infer<typeof publicUserSchema>;
 export type Session = z.infer<typeof sessionSchema>;
 export type Health = z.infer<typeof healthSchema>;

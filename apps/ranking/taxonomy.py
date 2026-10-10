@@ -31,12 +31,23 @@ ALIASES: dict[str, set[str]] = {
     "spring": {"spring", "spring boot", "springboot"},
     "react": {"react", "reactjs", "react.js"},
     "fastapi_testing": {"fastapi testing"},
-    # Слаги и заголовки каталога навыков API (skill-catalog.ts) обязаны сводиться
-    # к одному канону: иначе must-have из формы вакансии не совпадёт с навыком
-    # кандидата, который шлётся заголовком.
+    # Слаги и заголовки каталога (packages/types/src/skill-catalog.ts) обязаны
+    # сводиться к одному канону: иначе must-have из формы вакансии не совпадёт
+    # с навыком кандидата, который шлётся заголовком.
     "http_api": {"http api", "http и api", "http-api"},
     "testing": {"testing", "тестирование", "тесты"},
     "csharp": {"csharp", "c#", "c sharp"},
+    "nextjs": {"nextjs", "next.js", "next js"},
+    "dotnet": {"dotnet", ".net"},
+    "cicd": {"cicd", "ci/cd", "ci cd", "ci-cd"},
+    "cplusplus": {"cplusplus", "c++", "cpp", "c plus plus"},
+    "vue": {"vue", "vue.js", "vuejs", "vue js"},
+    "microservices": {"microservices", "microservice", "микросервисы"},
+    "networks": {"networks", "networking", "сети"},
+    "statistics": {"statistics", "статистика"},
+    "cryptography": {"cryptography", "криптография"},
+    "algorithms": {"algorithms", "алгоритмы"},
+    "pentest": {"pentest", "penetration testing"},
 }
 
 # Partial relations are deliberately conservative: related tech is not a substitute

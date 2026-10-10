@@ -96,6 +96,9 @@ const russiaCup = "Кубок России по спортивному прог�
 const olympiad = "Всероссийская олимпиада ФСП";
 const ctf = "Всероссийские соревнования по информационной безопасности (CTF)";
 
+// Под этими кандидатами можно войти, если задан DEMO_PASSWORD (в production тоже).
+export const demoCandidateIds = ["B101", "F202"];
+
 export const candidateSeeds: CandidateSeed[] = [
   {
     id: "B101",

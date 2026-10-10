@@ -10,6 +10,7 @@ import { UsersModule } from "../users/users.module";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { JwtStrategy } from "./jwt.strategy";
+import { RefreshCookie } from "./refresh-cookie";
 import { SessionStore } from "./session.store";
 
 @Module({
@@ -26,6 +27,13 @@ import { SessionStore } from "./session.store";
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, SessionStore, JwtStrategy, JwtAuthGuard, RolesGuard],
+  providers: [
+    AuthService,
+    SessionStore,
+    RefreshCookie,
+    JwtStrategy,
+    JwtAuthGuard,
+    RolesGuard,
+  ],
 })
 export class AuthModule {}

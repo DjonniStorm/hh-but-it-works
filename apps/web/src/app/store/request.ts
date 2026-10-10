@@ -190,8 +190,14 @@ function statusCodeOf(error: unknown): number | null {
   return statusCode;
 }
 
+// 401 этих ручек — неверный пароль или ссылка из письма, а не истёкшая сессия.
 function isCredentialRequest(url: string): boolean {
-  return hasPath(url, ["/auth/login", "/auth/register", "/auth/confirm"]);
+  return hasPath(url, [
+    "/auth/login",
+    "/auth/register",
+    "/auth/confirm",
+    "/auth/password/reset",
+  ]);
 }
 
 // Эти ручки сами работают с refresh-токеном: обновлять сессию ради них бессмысленно.
@@ -199,9 +205,14 @@ function isSessionRequest(url: string): boolean {
   return hasPath(url, ["/auth/refresh", "/auth/logout"]);
 }
 
+// Сравниваем по концу пути: на проде API живёт под /api (VITE_API_URL=/api),
+// и вход приходит как /api/auth/login, а не /auth/login.
 function hasPath(url: string, paths: string[]): boolean {
   try {
-    return paths.includes(new URL(url).pathname);
+    const pathname = new URL(url).pathname;
+    return paths.some((path) => {
+      return pathname.endsWith(path);
+    });
   } catch {
     return false;
   }

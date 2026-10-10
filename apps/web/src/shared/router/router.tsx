@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 
+import { rootStore } from "@/app/store/root-store";
 import { EmployerLayout } from "@/pages/employer/ui/EmployerLayout";
 import { Navigate, createBrowserRouter } from "react-router";
 
@@ -35,6 +36,13 @@ function lazyPage<T extends Record<string, unknown>>(
   };
 }
 
+// Кабинет решает «вошёл или нет» только после восстановления сессии по cookie,
+// иначе перезагрузка страницы выкидывала бы на вход.
+async function restoreSession() {
+  await rootStore.auth.restoreSession();
+  return null;
+}
+
 const pageFallback = <RouteFallback />;
 const screenFallback = <RouteFallback fullScreen />;
 
@@ -45,6 +53,8 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <ProtectedRoute />,
+        loader: restoreSession,
+        hydrateFallbackElement: screenFallback,
         children: [
           {
             index: true,
@@ -72,6 +82,14 @@ export const router = createBrowserRouter([
                 hydrateFallbackElement: pageFallback,
               },
             ],
+          },
+          {
+            path: ROUTES.SETTINGS,
+            lazy: lazyPage(
+              () => import("@/pages/settings/ui/SettingsPage"),
+              "SettingsPage",
+            ),
+            hydrateFallbackElement: pageFallback,
           },
           {
             element: <EmployerRoute />,
@@ -170,7 +188,31 @@ export const router = createBrowserRouter([
             ),
             hydrateFallbackElement: screenFallback,
           },
+          {
+            path: ROUTES.AUTH.FORGOT,
+            lazy: lazyPage(
+              () => import("@/pages/auth/ui/ForgotPasswordPage"),
+              "ForgotPasswordPage",
+            ),
+            hydrateFallbackElement: screenFallback,
+          },
+          {
+            path: ROUTES.AUTH.RESET,
+            lazy: lazyPage(
+              () => import("@/pages/auth/ui/ResetPasswordPage"),
+              "ResetPasswordPage",
+            ),
+            hydrateFallbackElement: screenFallback,
+          },
         ],
+      },
+      {
+        path: ROUTES.LEGAL.CONSENT,
+        lazy: lazyPage(
+          () => import("@/pages/legal/ui/ConsentPage"),
+          "ConsentPage",
+        ),
+        hydrateFallbackElement: screenFallback,
       },
       {
         path: ROUTES.TEST,

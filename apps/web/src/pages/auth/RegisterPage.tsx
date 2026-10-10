@@ -109,9 +109,17 @@ export const RegisterPage = observer(() => {
             {...form.getInputProps("role")}
           />
           <Checkbox
-            label="Согласен на обработку и публикацию данных профиля (152-ФЗ)"
+            label="Согласен на обработку и публикацию данных профиля"
             {...form.getInputProps("consent", { type: "checkbox" })}
           />
+          <Anchor
+            component={Link}
+            to={ROUTES.LEGAL.CONSENT}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Текст согласия (152-ФЗ)
+          </Anchor>
           <Button type="submit">Создать аккаунт</Button>
           <Anchor component={Link} to={ROUTES.AUTH.LOGIN}>
             Уже есть аккаунт

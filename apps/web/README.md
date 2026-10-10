@@ -28,7 +28,9 @@ src/
     store/              MobX-сторы: rootStore, auth, profile, employer, invitation,
                         error, loading, notifier, request (обёртка всех запросов)
   pages/
-    auth/               LoginPage, RegisterPage, ConfirmPage
+    auth/               LoginPage, RegisterPage, ConfirmPage; ui/ForgotPasswordPage, ui/ResetPasswordPage
+    legal/              текст согласия на обработку данных (152-ФЗ)
+    settings/           настройки: записанное согласие, для кандидата — ссылка в профиль
     home/               HomePage: hero с кольцом готовности анкеты, оффер приглашения,
                         PrepCard (слайд подготовки, ссылки по hover) и виджеты
                         навыков/тестирования/чек-листа, в конце — MaterialsSection
@@ -78,9 +80,9 @@ src/
 
 ## Роуты
 
-`ROUTES` в `shared/router/routes.ts`: `/`, `/profile`, `/invitations`, `/auth/{login,register,confirm}`, `/employer`, `/employer/needs`, `/employer/needs/new`, `/employer/needs/:needId`, `/employer/needs/:needId/edit`, `/employer/search`, `/employer/invitations`, `/employer/company`, `/test`.
+`ROUTES` в `shared/router/routes.ts`: `/`, `/profile`, `/invitations`, `/settings`, `/legal/consent`, `/auth/{login,register,confirm,forgot,reset}`, `/employer`, `/employer/needs`, `/employer/needs/new`, `/employer/needs/:needId`, `/employer/needs/:needId/edit`, `/employer/search`, `/employer/invitations`, `/employer/company`, `/test`.
 
-`ProtectedRoute` пускает только с токеном, `CandidateRoute`/`EmployerRoute` — по `role`.
+`ProtectedRoute` пускает только с токеном, `CandidateRoute`/`EmployerRoute` — по `role`. Access-токен живёт в памяти, refresh — в HttpOnly-cookie `hh_refresh` от API (`credentials: "include"` в `hey-api.ts`). После перезагрузки сессию восстанавливает `auth.restoreSession()`: его запускает `main.tsx`, а загрузчик `ProtectedRoute` ждёт.
 
 ## Подборка и рекомендации
 

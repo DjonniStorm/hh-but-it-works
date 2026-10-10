@@ -1,5 +1,5 @@
 import type { NeedFormValues } from "@/pages/employer/model/need-form";
-import { skillSuggestions } from "@/pages/employer/model/options";
+import { skillSuggestionsFor } from "@/pages/employer/model/options";
 import { SalaryFields } from "@/pages/employer/ui/SalaryFields";
 import { focusFirstError } from "@/shared/lib/focus-first-error";
 import {
@@ -90,15 +90,15 @@ export const NeedForm = ({
         <TagsInput
           label="Обязательные навыки"
           withAsterisk
-          description="Без них кандидат не справится. Enter — добавить свой."
-          data={skillSuggestions}
+          description="Из каталога специализации. Навык без теста у кандидата останется неподтверждённым. Enter — добавить свой."
+          data={skillSuggestionsFor(form.values.specialization)}
           clearable
           {...form.getInputProps("mustSkills")}
         />
         <TagsInput
           label="Желательные навыки"
           description="Дают бонус в ранжировании, но не обязательны."
-          data={skillSuggestions}
+          data={skillSuggestionsFor(form.values.specialization)}
           clearable
           {...form.getInputProps("niceSkills")}
         />

@@ -4,6 +4,7 @@ import { type Transporter, createTransport } from "nodemailer";
 
 import { confirmationLetter } from "./letters/confirmation";
 import type { Letter } from "./letters/layout";
+import { passwordResetLetter } from "./letters/password-reset";
 
 // Письма уходят в фоне, запрос их не ждёт. Таймаут только обрывает зависший
 // SMTP: у nodemailer по умолчанию до десяти минут на сокет.
@@ -53,6 +54,14 @@ export class MailService {
       this.logger.log(`confirmation for ${email}: ${link}`);
     }
     await this.send(email, confirmationLetter(link));
+  }
+
+  async sendPasswordReset(email: string, link: string): Promise<void> {
+    // Как и подтверждение: вне production ссылка в логе, сбросить можно без ящика.
+    if (!this.production) {
+      this.logger.log(`password reset for ${email}: ${link}`);
+    }
+    await this.send(email, passwordResetLetter(link));
   }
 
   // Ошибку не пробрасываем: письмо — побочный эффект, действие пользователя

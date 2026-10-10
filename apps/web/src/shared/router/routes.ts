@@ -3,10 +3,16 @@ export const ROUTES = {
   PROFILE: "/profile",
   INVITATIONS: "/invitations",
   ABOUT: "/about",
+  SETTINGS: "/settings",
+  LEGAL: {
+    CONSENT: "/legal/consent",
+  },
   AUTH: {
     LOGIN: "/auth/login",
     REGISTER: "/auth/register",
     CONFIRM: "/auth/confirm",
+    FORGOT: "/auth/forgot",
+    RESET: "/auth/reset",
   },
   EMPLOYER: {
     ROOT: "/employer",

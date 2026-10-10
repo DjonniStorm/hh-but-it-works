@@ -27,7 +27,7 @@ docker compose --env-file infra/dev/.env.example -f infra/dev/docker-compose.yml
 
 - Веб и API на одном домене: бандл собран с `VITE_API_URL=/api`, CORS не нужен, код не менялся. Swagger — `https://$DOMAIN/api/docs`.
 - `apps/web/Dockerfile` собирает статику и кладёт её в образ Caddy. Caddy собран через `xcaddy` с плагином [`caddy-ratelimit`](https://github.com/mholt/caddy-ratelimit): в стандартном Caddy лимита частоты нет. Caddyfile монтируется из `infra/prod`, его правка — без пересборки.
-- Лимит: `POST /api/auth/login`, `register`, `confirm`, `confirm/resend` — `AUTH_RATE_EVENTS` запросов с одного IP за `AUTH_RATE_WINDOW` (по умолчанию 10 за минуту). Сверх лимита Caddy отвечает 429 и до api запрос не доходит.
+- Лимит: `POST /api/auth/login`, `register`, `confirm`, `confirm/resend`, `password/forgot`, `password/reset` — `AUTH_RATE_EVENTS` запросов с одного IP за `AUTH_RATE_WINDOW` (по умолчанию 10 за минуту). Сверх лимита Caddy отвечает 429 и до api запрос не доходит.
 - `apps/api/Dockerfile` собирает `packages/*` и api, в рантайм идут только prod-зависимости и `dist`.
 - `ranking` собирается из `apps/ranking`: сборка копирует готовую модель из `evaluation/artifacts`, без обучения.
 - Письма уходят через SMTP из `.env` (Яндекс). Mailpit в проде не поднимается.
@@ -94,6 +94,20 @@ docker compose -p hhprod --env-file infra/prod/.env.local -f infra/prod/docker-c
 ```
 
 В `.env.local`: `DOMAIN=http://localhost` (только HTTP, без сертификата), `HTTP_PORT=8080`, `HTTPS_PORT=8443`, `WEB_URL=http://localhost:8080`. Почта — в Mailpit из `infra/dev`: `SMTP_HOST=host.docker.internal`, `SMTP_PORT=1025`. Для входа под сид-кандидатами — `NODE_ENV=development` и `SEED_CANDIDATE_PASSWORD`. Убрать: `docker compose -p hhprod -f infra/prod/docker-compose.yml down -v`.
+
+## Демо-аккаунты
+
+API при старте засеивает 15 компаний с потребностями (`employers/employer-seed.data.ts`) и 21 кандидата. Войти можно только под пятью аккаунтами, и только если в `.env` задан `DEMO_PASSWORD` (в production тоже). Без него у них случайный пароль. Пароль в репозиторий не пишем.
+
+| Роль         | Логин                               | Что внутри                              |
+| ------------ | ----------------------------------- | --------------------------------------- |
+| Работодатель | `employer.parus@employers.hh.test`  | Парус Финтех: backend и безопасность    |
+| Работодатель | `employer.orbita@employers.hh.test` | Медиа Орбита: два frontend              |
+| Работодатель | `employer.ladoga@employers.hh.test` | Ладога Аналитика: два data              |
+| Кандидат     | `seed.b101@candidates.hh.test`      | backend, Middle, подтверждённые навыки  |
+| Кандидат     | `seed.f202@candidates.hh.test`      | frontend, Senior, подтверждённые навыки |
+
+На проде: `DEMO_PASSWORD=…` в `/opt/hh/infra/prod/.env`, затем `dc up -d --build api` (`dc` — команда из раздела про прод, с `--env-file infra/prod/.env`). Убрать значение и пересоздать api значит закрыть вход.
 
 ## Ranking
 

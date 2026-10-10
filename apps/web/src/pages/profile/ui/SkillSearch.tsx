@@ -7,26 +7,31 @@ import {
   findSkill,
   matchingSkills,
   sameTitle,
+  skillGroups,
 } from "@/pages/profile/model/skill-query";
+import { specializationLabel } from "@/shared/lib/labels";
 import {
   Button,
   Combobox,
   Group,
   Select,
   Stack,
+  Text,
   TextInput,
   useCombobox,
 } from "@mantine/core";
 
-import { SkillLevel } from "@hh/types";
+import { SkillLevel, type Specialization } from "@hh/types";
 
 export const SkillSearch = ({
   catalog,
   takenTitles,
+  specialization,
   onAdd,
 }: {
   catalog: CatalogSkill[];
   takenTitles: string[];
+  specialization: Specialization | null;
   onAdd: (draft: {
     title: string;
     skillId?: string;
@@ -45,7 +50,8 @@ export const SkillSearch = ({
   const needle = query.trim();
   // Сверяем со всем каталогом, не только со свободными: «postgresql» это PostgreSQL.
   const known = findSkill(catalog, needle);
-  const matches = matchingSkills(open, query).slice(0, 8);
+  const matches = matchingSkills(open, query);
+  const groups = visibleGroups(matches, needle, specialization);
   const already = takenTitles.some((title) => {
     return sameTitle(title, needle);
   });
@@ -80,7 +86,7 @@ export const SkillSearch = ({
         <Combobox.Target>
           <TextInput
             label="Навык"
-            description="Из каталога профиля. Если такого нет — добавим ваш вариант."
+            description="Каталог открыт по специализации. Навык без теста останется неподтверждённым. Если такого нет — добавим ваш вариант."
             placeholder="PostgreSQL"
             value={query}
             onChange={(event) => {
@@ -98,11 +104,27 @@ export const SkillSearch = ({
         </Combobox.Target>
         <Combobox.Dropdown>
           <Combobox.Options>
-            {matches.map((skill) => {
+            {groups.map((group) => {
               return (
-                <Combobox.Option key={skill.skillId} value={skill.skillId}>
-                  {skill.title}
-                </Combobox.Option>
+                <Combobox.Group key={group.key} label={group.label}>
+                  {group.skills.map((skill) => {
+                    return (
+                      <Combobox.Option
+                        key={skill.skillId}
+                        value={skill.skillId}
+                      >
+                        <Group justify="space-between" wrap="nowrap" gap="xs">
+                          <Text size="sm">{skill.title}</Text>
+                          {skill.tested ? null : (
+                            <Text size="xs" c="dimmed">
+                              без теста
+                            </Text>
+                          )}
+                        </Group>
+                      </Combobox.Option>
+                    );
+                  })}
+                </Combobox.Group>
               );
             })}
             {showCreate ? (
@@ -111,7 +133,7 @@ export const SkillSearch = ({
               </Combobox.Option>
             ) : null}
             {already ? <Combobox.Empty>Уже в списке</Combobox.Empty> : null}
-            {matches.length === 0 && !showCreate && !already ? (
+            {groups.length === 0 && !showCreate && !already ? (
               <Combobox.Empty>Ничего не нашли</Combobox.Empty>
             ) : null}
           </Combobox.Options>
@@ -140,4 +162,34 @@ export const SkillSearch = ({
 
 function isSkillLevel(value: string | null): value is SkillLevel {
   return Object.values(SkillLevel).includes(value as SkillLevel);
+}
+
+// Пустой запрос показывает свою специализацию. Поиск идёт по всему каталогу.
+function visibleGroups(
+  skills: CatalogSkill[],
+  query: string,
+  specialization: Specialization | null,
+) {
+  const groups = skillGroups(skills, specialization, specializationLabel);
+  if (!query) {
+    if (!specialization) {
+      return groups.flatMap((group) => {
+        const head = group.skills.slice(0, 6);
+        if (head.length === 0) {
+          return [];
+        }
+        return [{ ...group, skills: head }];
+      });
+    }
+    return groups.filter((group) => {
+      return group.key === specialization;
+    });
+  }
+  return groups.flatMap((group) => {
+    const head = group.skills.slice(0, 8);
+    if (head.length === 0) {
+      return [];
+    }
+    return [{ ...group, skills: head }];
+  });
 }

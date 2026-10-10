@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 
+import { rootStore } from "@/app/store/root-store";
 import { StoreProvider } from "@/app/store/store-context";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/700.css";
@@ -8,6 +9,11 @@ import "@mantine/notifications/styles.css";
 import { createRoot } from "react-dom/client";
 
 import { HeadProvider, Router, Theme } from "./providers";
+
+// Сессию восстанавливаем сразу, на любой странице. Кабинет ждёт этого в
+// загрузчике роута, а вход и регистрация не ждут: по готовности они сами
+// уведут вошедшего в кабинет.
+void rootStore.auth.restoreSession();
 
 const element = document.getElementById("root");
 if (!element) {

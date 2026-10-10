@@ -20,6 +20,7 @@ export type PublicUserDtoOutput = {
     email: string;
     role: 'candidate' | 'employer';
     emailVerifiedAt: string | null;
+    consentAt: string | null;
 };
 
 export type ApiErrorDto = {
@@ -42,6 +43,15 @@ export type ResendConfirmationDto = {
     email: string;
 };
 
+export type ForgotPasswordDto = {
+    email: string;
+};
+
+export type ResetPasswordDto = {
+    token: string;
+    password: string;
+};
+
 export type LoginDto = {
     email: string;
     password: string;
@@ -49,17 +59,13 @@ export type LoginDto = {
 
 export type SessionDtoOutput = {
     accessToken: string;
-    refreshToken: string;
     user: {
         id: string;
         email: string;
         role: 'candidate' | 'employer';
         emailVerifiedAt: string | null;
+        consentAt: string | null;
     };
-};
-
-export type RefreshDto = {
-    refreshToken: string;
 };
 
 export type CandidateProfileDtoOutput = {
@@ -298,6 +304,7 @@ export type AssessmentResultDtoOutput = {
     status: 'passed' | 'failed' | 'annulled';
     score: number;
     grade: 'junior' | 'middle' | 'senior';
+    specialization: 'backend' | 'frontend' | 'data' | 'security' | null;
     integrity: number;
     flags: Array<{
         type: 'tab-hidden' | 'window-blur' | 'fullscreen-exit' | 'fullscreen-denied' | 'copy' | 'ip-change' | 'agent-change' | 'fast-answer';
@@ -320,6 +327,7 @@ export type AssessmentHistoryDtoOutput = {
         status: 'passed' | 'failed' | 'annulled';
         score: number;
         grade: 'junior' | 'middle' | 'senior';
+        specialization: 'backend' | 'frontend' | 'data' | 'security' | null;
         integrity: number;
         flags: Array<{
             type: 'tab-hidden' | 'window-blur' | 'fullscreen-exit' | 'fullscreen-denied' | 'copy' | 'ip-change' | 'agent-change' | 'fast-answer';
@@ -681,6 +689,58 @@ export type AuthControllerResendConfirmationResponses = {
 
 export type AuthControllerResendConfirmationResponse = AuthControllerResendConfirmationResponses[keyof AuthControllerResendConfirmationResponses];
 
+export type AuthControllerForgotPasswordData = {
+    body: ForgotPasswordDto;
+    path?: never;
+    query?: never;
+    url: '/auth/password/forgot';
+};
+
+export type AuthControllerForgotPasswordErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors
+     */
+    400: ApiErrorDto;
+    /**
+     * Письмо на этот адрес уже отправлено, повторная отправка доступна через минуту
+     */
+    429: ApiErrorDto;
+};
+
+export type AuthControllerForgotPasswordError = AuthControllerForgotPasswordErrors[keyof AuthControllerForgotPasswordErrors];
+
+export type AuthControllerForgotPasswordResponses = {
+    204: void;
+};
+
+export type AuthControllerForgotPasswordResponse = AuthControllerForgotPasswordResponses[keyof AuthControllerForgotPasswordResponses];
+
+export type AuthControllerResetPasswordData = {
+    body: ResetPasswordDto;
+    path?: never;
+    query?: never;
+    url: '/auth/password/reset';
+};
+
+export type AuthControllerResetPasswordErrors = {
+    /**
+     * Тело запроса не прошло валидацию, замечания в поле errors
+     */
+    400: ApiErrorDto;
+    /**
+     * Ссылка сброса пароля недействительна, истекла или уже использована
+     */
+    401: ApiErrorDto;
+};
+
+export type AuthControllerResetPasswordError = AuthControllerResetPasswordErrors[keyof AuthControllerResetPasswordErrors];
+
+export type AuthControllerResetPasswordResponses = {
+    204: void;
+};
+
+export type AuthControllerResetPasswordResponse = AuthControllerResetPasswordResponses[keyof AuthControllerResetPasswordResponses];
+
 export type AuthControllerLoginData = {
     body: LoginDto;
     path?: never;
@@ -712,7 +772,7 @@ export type AuthControllerLoginResponses = {
 export type AuthControllerLoginResponse = AuthControllerLoginResponses[keyof AuthControllerLoginResponses];
 
 export type AuthControllerRefreshData = {
-    body: RefreshDto;
+    body?: never;
     path?: never;
     query?: never;
     url: '/auth/refresh';
@@ -720,11 +780,7 @@ export type AuthControllerRefreshData = {
 
 export type AuthControllerRefreshErrors = {
     /**
-     * Тело запроса не прошло валидацию, замечания в поле errors
-     */
-    400: ApiErrorDto;
-    /**
-     * Refresh-токен недействителен, истёк или уже использован
+     * Cookie hh_refresh нет, или refresh-токен в ней недействителен, истёк или уже использован
      */
     401: ApiErrorDto;
 };
@@ -738,24 +794,11 @@ export type AuthControllerRefreshResponses = {
 export type AuthControllerRefreshResponse = AuthControllerRefreshResponses[keyof AuthControllerRefreshResponses];
 
 export type AuthControllerLogoutData = {
-    body: RefreshDto;
+    body?: never;
     path?: never;
     query?: never;
     url: '/auth/logout';
 };
-
-export type AuthControllerLogoutErrors = {
-    /**
-     * Тело запроса не прошло валидацию, замечания в поле errors
-     */
-    400: ApiErrorDto;
-    /**
-     * Refresh-токен недействителен или истёк
-     */
-    401: ApiErrorDto;
-};
-
-export type AuthControllerLogoutError = AuthControllerLogoutErrors[keyof AuthControllerLogoutErrors];
 
 export type AuthControllerLogoutResponses = {
     204: void;

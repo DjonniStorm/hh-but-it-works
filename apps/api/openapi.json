@@ -160,6 +160,90 @@
         "tags": ["Auth"]
       }
     },
+    "/auth/password/forgot": {
+      "post": {
+        "operationId": "AuthController_forgotPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Письмо на этот адрес уже отправлено, повторная отправка доступна через минуту",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/password/reset": {
+      "post": {
+        "operationId": "AuthController_resetPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Ссылка сброса пароля недействительна, истекла или уже использована",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Auth"]
+      }
+    },
     "/auth/login": {
       "post": {
         "operationId": "AuthController_login",
@@ -223,16 +307,6 @@
       "post": {
         "operationId": "AuthController_refresh",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshDto"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "",
@@ -244,18 +318,8 @@
               }
             }
           },
-          "400": {
-            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorDto"
-                }
-              }
-            }
-          },
           "401": {
-            "description": "Refresh-токен недействителен, истёк или уже использован",
+            "description": "Cookie hh_refresh нет, или refresh-токен в ней недействителен, истёк или уже использован",
             "content": {
               "application/json": {
                 "schema": {
@@ -272,39 +336,9 @@
       "post": {
         "operationId": "AuthController_logout",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshDto"
-              }
-            }
-          }
-        },
         "responses": {
           "204": {
             "description": ""
-          },
-          "400": {
-            "description": "Тело запроса не прошло валидацию, замечания в поле errors",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Refresh-токен недействителен или истёк",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorDto"
-                }
-              }
-            }
           }
         },
         "tags": ["Auth"]
@@ -2605,7 +2639,8 @@
           },
           "password": {
             "type": "string",
-            "minLength": 8
+            "minLength": 8,
+            "maxLength": 72
           },
           "role": {
             "type": "string",
@@ -2640,9 +2675,15 @@
             "format": "date-time",
             "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
             "nullable": true
+          },
+          "consentAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           }
         },
-        "required": ["id", "email", "role", "emailVerifiedAt"],
+        "required": ["id", "email", "role", "emailVerifiedAt", "consentAt"],
         "additionalProperties": false
       },
       "ApiErrorDto": {
@@ -2698,7 +2739,8 @@
         "properties": {
           "token": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 128
           }
         },
         "required": ["token"]
@@ -2714,6 +2756,33 @@
         },
         "required": ["email"]
       },
+      "ForgotPasswordDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          }
+        },
+        "required": ["email"]
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 72
+          }
+        },
+        "required": ["token", "password"]
+      },
       "LoginDto": {
         "type": "object",
         "properties": {
@@ -2724,7 +2793,8 @@
           },
           "password": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 256
           }
         },
         "required": ["email", "password"]
@@ -2733,9 +2803,6 @@
         "type": "object",
         "properties": {
           "accessToken": {
-            "type": "string"
-          },
-          "refreshToken": {
             "type": "string"
           },
           "user": {
@@ -2760,24 +2827,20 @@
                 "format": "date-time",
                 "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
                 "nullable": true
+              },
+              "consentAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                "nullable": true
               }
             },
-            "required": ["id", "email", "role", "emailVerifiedAt"],
+            "required": ["id", "email", "role", "emailVerifiedAt", "consentAt"],
             "additionalProperties": false
           }
         },
-        "required": ["accessToken", "refreshToken", "user"],
+        "required": ["accessToken", "user"],
         "additionalProperties": false
-      },
-      "RefreshDto": {
-        "type": "object",
-        "properties": {
-          "refreshToken": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "required": ["refreshToken"]
       },
       "CandidateProfileDto_Output": {
         "type": "object",
@@ -4031,6 +4094,11 @@
             "type": "string",
             "enum": ["junior", "middle", "senior"]
           },
+          "specialization": {
+            "type": "string",
+            "enum": ["backend", "frontend", "data", "security", null],
+            "nullable": true
+          },
           "integrity": {
             "type": "integer",
             "minimum": 0,
@@ -4110,6 +4178,7 @@
           "status",
           "score",
           "grade",
+          "specialization",
           "integrity",
           "flags",
           "sections",
@@ -4144,6 +4213,11 @@
                 "grade": {
                   "type": "string",
                   "enum": ["junior", "middle", "senior"]
+                },
+                "specialization": {
+                  "type": "string",
+                  "enum": ["backend", "frontend", "data", "security", null],
+                  "nullable": true
                 },
                 "integrity": {
                   "type": "integer",
@@ -4224,6 +4298,7 @@
                 "status",
                 "score",
                 "grade",
+                "specialization",
                 "integrity",
                 "flags",
                 "sections",

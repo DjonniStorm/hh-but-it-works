@@ -8,16 +8,18 @@ export const SkillStatusBadge = ({
   level,
   verification,
   verifiedAt,
+  tested,
 }: {
   level: string | null;
   verification: SkillVerification | null;
   verifiedAt: string | null;
+  tested: boolean;
 }) => {
   if (!level) {
     return null;
   }
   const passport = skillPassport(verification, verifiedAt);
-  const badge = statusBadge(verification);
+  const badge = statusBadge(verification, tested);
   if (!passport) {
     return badge;
   }
@@ -31,7 +33,7 @@ export const SkillStatusBadge = ({
   );
 };
 
-function statusBadge(verification: SkillVerification | null) {
+function statusBadge(verification: SkillVerification | null, tested: boolean) {
   if (verification === SkillVerification.Verified) {
     return <Badge color="fsp">Подтверждён</Badge>;
   }
@@ -44,7 +46,11 @@ function statusBadge(verification: SkillVerification | null) {
   }
   return (
     <Tooltip
-      label="Самооценка. Тест и интеграция этот уровень ещё не подтвердили."
+      label={
+        tested
+          ? "Самооценка. Тест и интеграция этот уровень ещё не подтвердили."
+          : "Теста по этому навыку нет, поэтому он остаётся неподтверждённым."
+      }
       multiline
       w={260}
       withArrow
