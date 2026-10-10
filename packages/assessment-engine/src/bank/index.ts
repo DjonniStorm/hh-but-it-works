@@ -6,12 +6,15 @@ import {
 } from "@hh/types";
 
 import type { Template } from "../types";
+import { algorithms } from "./algorithms";
 import { csharp } from "./csharp";
 import { docker } from "./docker";
+import { git } from "./git";
 import { go } from "./go";
 import { httpApi } from "./http-api";
 import { java } from "./java";
 import { kafka } from "./kafka";
+import { kubernetes } from "./kubernetes";
 import { linux } from "./linux";
 import { owasp } from "./owasp";
 import { pandas } from "./pandas";
@@ -20,6 +23,7 @@ import { python } from "./python";
 import { react } from "./react";
 import { redis } from "./redis";
 import { sql } from "./sql";
+import { systemDesign } from "./system-design";
 import { testing } from "./testing";
 import { typescript } from "./typescript";
 
@@ -40,6 +44,10 @@ const bySkill = {
   owasp,
   kafka,
   pandas,
+  kubernetes,
+  git,
+  "system-design": systemDesign,
+  алгоритмы: algorithms,
 };
 
 export type CatalogSlug = keyof typeof bySkill;

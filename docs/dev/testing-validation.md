@@ -52,10 +52,11 @@
   без заданий в банке: нет
   секция docker: user; networking; pid; compose
   секция http-api: link; caching; get-body; cors
+  секция kubernetes: hpa; dns; statefulset; secret
   секция owasp: csrf; access-check; controls; idor
 ```
 
-На этих вакансиях непокрытых навыков не осталось. Kubernetes по-прежнему идёт заданиями Docker: своего банка у него нет. SQL спрашивается своим банком и не склеивается с PostgreSQL.
+На этих вакансиях непокрытых навыков не осталось. У Kubernetes теперь свой банк, и в вакансии он идёт отдельной секцией, а не заданиями Docker. SQL спрашивается своим банком и не склеивается с PostgreSQL.
 
 ## Защита от списывания
 
@@ -108,7 +109,7 @@ senior:  0 / 21 / 275 / 104
 
 Вариативность: у двух попыток middle-бэкенда общих шаблонов 25,2 %, одинаковых формулировок с теми же вариантами 1,2 %.
 
-В новых банках короче всех ячейка Kafka на junior: 6 шаблонов. Redis на junior и Kafka на senior — 7, senior у SQL, Linux, Redis, OWASP и Pandas — по 8. Секция берёт 4, так что попытка собирается.
+В новых банках короче всех ячейка Kafka на junior: 6 шаблонов. Redis на junior и Kafka на senior — 7, senior у SQL, Linux, Redis, OWASP и Pandas — по 8. Секция берёт 4, так что попытка собирается. У Kubernetes, Git, System Design и Алгоритмов в каждой ячейке от 10 шаблонов.
 
 Выводы:
 
