@@ -7,20 +7,20 @@
 ## Готовый запуск без обучения
 
 Версионированные `model.txt`, metadata, calibrator и held-out report лежат в
-[`evaluation/artifacts/ltr-v1.2.0`](evaluation/artifacts/ltr-v1.2.0). Обычная
+[`evaluation/artifacts/ltr-v1.5.0-llm`](evaluation/artifacts/ltr-v1.5.0-llm). Обычная
 Docker-сборка только устанавливает runtime и копирует готовую модель — LightGBM
 training и scikit-learn при сборке/запуске не выполняются.
 
 Workflow `Publish pre-trained ranking image` публикует готовый multi-arch
 образ по push в `dev`, **но сейчас Actions на аккаунте выключен** — раны не
 выполняются, GHCR-тег `:dev` может отставать от репозитория. Всегда сверяй
-`modelVersion` в `/health` (должен быть `hybrid-v1.2.0-ltr0.25`):
+`modelVersion` в `/health` (должен быть `hybrid-v1.3.0-ltr0.25`):
 
 ```bash
 docker pull ghcr.io/djonnistorm/hh-but-it-works-ranking:dev
 docker run --rm -p 8000:8000 \
   ghcr.io/djonnistorm/hh-but-it-works-ranking:dev
-curl -s localhost:8000/health   # modelLoaded: true, modelVersion: hybrid-v1.2.0-ltr0.25
+curl -s localhost:8000/health   # modelLoaded: true, modelVersion: hybrid-v1.3.0-ltr0.25
 curl -s -X POST localhost:8000/rank -H 'content-type: application/json' \
   --data @apps/ranking/examples/rank-request.json
 ```
@@ -60,7 +60,7 @@ pip install -r apps/ranking/requirements-runtime-ml.txt
 cd apps/ranking && uvicorn main:app --port 8000   # hybrid + committed bundle
 ```
 
-Без артефактов сервис честно откатывается на pure rules (`rules-v1.2.0`) —
+Без артефактов сервис честно откатывается на pure rules (`rules-v1.3.0`) —
 `/health` покажет `modelLoaded: false`.
 
 ## Контекст продукта
@@ -129,7 +129,7 @@ Related technologies могут давать мягкий relevance, но **не
 - work mode;
 - target specialization.
 
-Локация, тип занятости и желаемый стек **выведены из формулы в `rules-v1.2.0`**: в контракте нет полей, которыми их заполнить (см. HANDOFF §5).
+Локация, тип занятости и желаемый стек **выведены из формулы в `rules-v1.3.0`**: в контракте нет полей, которыми их заполнить (см. HANDOFF §5).
 
 ### IntentScore
 
@@ -148,7 +148,7 @@ Related technologies могут давать мягкий relevance, но **не
 
 `RankRequest.context` принимает короткоживущие `skillBoosts` и `competencyBoosts` в диапазоне `[-1, 1]`.
 
-Слагаемое персонализации выведено из формулы в `rules-v1.2.0`: boost'ам неоткуда
+Слагаемое персонализации выведено из формулы в `rules-v1.3.0`: boost'ам неоткуда
 прийти из текущего контракта, и константа в формуле — худшее состояние.
 `competencyBoosts` остаётся живым модификатором внутри слагаемого компетенций;
 `skillBoosts` зарезервирован под будущую петлю обратной связи (dismiss/invite,
@@ -224,7 +224,7 @@ LTR-контур работает как production-safe shadow/hybrid:
 - `evaluation/train_ltr.py` учит LightGBM LambdaRank только на train и fit-ит `IsotonicRegression` только на calibration;
 - `evaluation/evaluate_ltr.py` сравнивает rules, pure LTR и hybrid на untouched test по NDCG/Precision/MRR и диагностике калибровки;
 - runtime загружает `model.txt`, `model.meta.json` и безопасный `calibrator.json`, проверяет schema, feature order, SHA-256 кода признаков и артефактов;
-- любая ошибка загрузки/предикта безопасно возвращает `rules-v1.2.0`; hard filters LTR не переопределяет.
+- любая ошибка загрузки/предикта безопасно возвращает `rules-v1.3.0`; hard filters LTR не переопределяет.
 - `scripts/promote_ml.sh` атомарно публикует локальные артефакты только после entity/group-disjoint quality gate;
 - Docker runtime build копирует проверенный versioned artifact bundle и никогда не обучает модель.
 

@@ -1,5 +1,5 @@
 {
-  "modelVersion": "rules-v1.2.0",
+  "modelVersion": "rules-v1.3.0",
   "results": [
     {
       "candidateId": "c-strong",
@@ -22,7 +22,7 @@
       "eligible": true,
       "intentScore": 0.981,
       "matchScore": 0.905427,
-      "modelVersion": "rules-v1.2.0",
+      "modelVersion": "rules-v1.3.0",
       "opportunityFit": 1.0,
       "qualificationScore": 0.8608,
       "reasons": [
@@ -58,7 +58,7 @@
       "eligible": true,
       "intentScore": 0.981,
       "matchScore": 0.680471,
-      "modelVersion": "rules-v1.2.0",
+      "modelVersion": "rules-v1.3.0",
       "opportunityFit": 1.0,
       "qualificationScore": 0.554709,
       "reasons": [
@@ -97,7 +97,7 @@
       "eligible": false,
       "intentScore": 0.0,
       "matchScore": 0.0,
-      "modelVersion": "rules-v1.2.0",
+      "modelVersion": "rules-v1.3.0",
       "opportunityFit": 1.0,
       "qualificationScore": 0.8608,
       "reasons": [
@@ -135,7 +135,7 @@
       "eligible": false,
       "intentScore": 0.981,
       "matchScore": 0.0,
-      "modelVersion": "rules-v1.2.0",
+      "modelVersion": "rules-v1.3.0",
       "opportunityFit": 1.0,
       "qualificationScore": 0.8023,
       "reasons": [
@@ -173,7 +173,7 @@
       "eligible": false,
       "intentScore": 0.772,
       "matchScore": 0.0,
-      "modelVersion": "rules-v1.2.0",
+      "modelVersion": "rules-v1.3.0",
       "opportunityFit": 0.501,
       "qualificationScore": 0.4508,
       "reasons": [

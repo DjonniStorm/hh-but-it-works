@@ -14,7 +14,8 @@ cmp evaluation/data/gold_train.jsonl "$tmp_dir/generated/gold_train.jsonl"
 cmp evaluation/data/gold_calibration.jsonl "$tmp_dir/generated/gold_calibration.jsonl"
 cmp evaluation/data/gold_test.jsonl "$tmp_dir/generated/gold_test.jsonl"
 
-# Legacy ltr-v1.2.0 is deliberately absent: it was trained under pre-embedding
+# Legacy ltr-v1.4.0-llm is deliberately absent from the active path: it was
+# trained under the previous rules formula and feature code
 # feature code and now fails closed to rules (see test_pretrained_distribution).
 sh scripts/verify_artifacts.sh evaluation/artifacts/ltr-v1.5.0-llm evaluation/data/llm_gold_test.jsonl
 
@@ -38,7 +39,7 @@ payload = json.loads(Path("examples/rank-request.json").read_text(encoding="utf-
 response = client.post("/rank", json=payload)
 assert response.status_code == 200, response.text
 body = response.json()
-assert body["modelVersion"] == "hybrid-v1.2.0-ltr0.25"
+assert body["modelVersion"] == "hybrid-v1.3.0-ltr0.25"
 assert body["results"]
 assert all(item["modelVersion"] == body["modelVersion"] for item in body["results"])
 health = client.get("/health").json()

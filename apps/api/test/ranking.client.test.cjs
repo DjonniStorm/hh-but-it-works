@@ -194,13 +194,13 @@ test("shortlist preserves model version and orders candidates by ranking", async
       rank: async (actualNeed, actualCandidates) => {
         assert.equal(actualNeed, need);
         assert.equal(actualCandidates, candidates);
-        return { modelVersion: "hybrid-v1.2.0-ltr0.25", scores };
+        return { modelVersion: "hybrid-v1.3.0-ltr0.25", scores };
       },
     },
   );
 
   const shortlist = await service.shortlist("employer-1", "need-1");
-  assert.equal(shortlist.modelVersion, "hybrid-v1.2.0-ltr0.25");
+  assert.equal(shortlist.modelVersion, "hybrid-v1.3.0-ltr0.25");
   assert.deepEqual(
     shortlist.items.map((item) => item.candidate.id),
     ["candidate-high", "candidate-low"],

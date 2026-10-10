@@ -16,7 +16,7 @@ from text_similarity import lexical_similarity, overlap_terms
 from embedding_similarity import embedding_similarity
 
 
-MODEL_VERSION = "rules-v1.2.0"
+MODEL_VERSION = "rules-v1.3.0"
 # Lexical score band where the pair is too close to call and the local ONNX
 # embedder decides; outside the band embeddings are skipped to keep the
 # hot path fast on large pools.
