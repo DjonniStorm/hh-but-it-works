@@ -20,7 +20,14 @@ export * from "./format";
 export const roleSchema = z.enum(Role);
 
 // Правило нового пароля: одно на регистрацию и на сброс.
-export const passwordSchema = z.string().min(8, "Минимум 8 символов");
+// bcrypt всё равно учитывает только первые 72 байта.
+export const passwordSchema = z
+  .string()
+  .min(8, "Минимум 8 символов")
+  .max(72, "Не длиннее 72 символов");
+
+// Токен из письма: base64url от 32 байт, 43 символа. Граница с запасом.
+const emailTokenSchema = z.string().min(1).max(128);
 
 export const registerSchema = z.object({
   email: z.email("Укажите почту"),
@@ -31,11 +38,16 @@ export const registerSchema = z.object({
 
 export const loginSchema = z.object({
   email: z.email("Укажите почту"),
-  password: z.string().min(1, "Введите пароль"),
+  // Шире правила нового пароля: пароли, заведённые до границы в 72 символа,
+  // должны по-прежнему входить. Граница только от огромных тел запроса.
+  password: z
+    .string()
+    .min(1, "Введите пароль")
+    .max(256, "Не длиннее 256 символов"),
 });
 
 export const confirmEmailSchema = z.object({
-  token: z.string().min(1),
+  token: emailTokenSchema,
 });
 
 export const resendConfirmationSchema = z.object({
@@ -47,7 +59,7 @@ export const forgotPasswordSchema = z.object({
 });
 
 export const resetPasswordSchema = z.object({
-  token: z.string().min(1),
+  token: emailTokenSchema,
   password: passwordSchema,
 });
 
