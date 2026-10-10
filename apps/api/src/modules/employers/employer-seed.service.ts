@@ -5,6 +5,7 @@ import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
+import { docFromPlainText } from "@hh/contracts";
 import { Role } from "@hh/types";
 
 import { UsersService } from "../users/users.service";
@@ -91,7 +92,8 @@ export class EmployerSeedService implements OnApplicationBootstrap {
         userId: user.id,
         name: seed.name,
         industry: seed.industry,
-        description: seed.description,
+        // Данные сида — простой текст, в базу уходит документ.
+        description: docFromPlainText(seed.description),
         website: seed.website,
         contactEmail: email,
         contactTelegram: `@${seed.id}_hr`,

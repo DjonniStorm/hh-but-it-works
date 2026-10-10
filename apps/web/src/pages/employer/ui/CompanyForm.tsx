@@ -3,6 +3,7 @@ import { StoreKey } from "@/app/store/store-key";
 import { industryOptions } from "@/pages/employer/model/options";
 import { websiteOnBlur, websiteOnFocus } from "@/pages/employer/model/website";
 import { focusFirstError } from "@/shared/lib/focus-first-error";
+import { RichTextEditorField } from "@/shared/rich-text/ui/RichTextEditorField";
 import {
   Button,
   Group,
@@ -11,7 +12,6 @@ import {
   SimpleGrid,
   Stack,
   TextInput,
-  Textarea,
 } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
 import { observer } from "mobx-react-lite";
@@ -70,12 +70,11 @@ export const CompanyForm = observer(
               {...form.getInputProps("industry")}
             />
           </SimpleGrid>
-          <Textarea
+          <RichTextEditorField
             label="О компании"
-            withAsterisk
+            required
             description="Продукт, команда, чем интересны задачи."
-            autosize
-            minRows={4}
+            placeholder="Расскажите о компании"
             {...form.getInputProps("description")}
           />
           <TextInput

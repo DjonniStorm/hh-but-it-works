@@ -6,6 +6,8 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 
+import type { RichTextDoc } from "@hh/contracts";
+
 // Профиль компании. Один на пользователя-работодателя.
 @Entity("company_profiles")
 export class CompanyProfile {
@@ -21,8 +23,8 @@ export class CompanyProfile {
   @Column()
   industry!: string;
 
-  @Column({ type: "text" })
-  description!: string;
+  @Column({ type: "jsonb" })
+  description!: RichTextDoc;
 
   /** Пустая строка, если сайта нет: так же приходит из формы. */
   @Column({ default: "" })

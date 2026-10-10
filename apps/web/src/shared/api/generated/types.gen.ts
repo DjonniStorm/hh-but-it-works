@@ -363,7 +363,97 @@ export type CompanyResponseDtoOutput = {
     company: {
         name: string;
         industry: string;
-        description: string;
+        description: {
+            type: 'doc';
+            content: Array<{
+                type: 'paragraph';
+                content?: Array<{
+                    type: 'text';
+                    text: string;
+                    marks?: Array<{
+                        type: 'bold';
+                    } | {
+                        type: 'italic';
+                    } | {
+                        type: 'link';
+                        attrs: {
+                            href: string;
+                        };
+                    }>;
+                } | {
+                    type: 'hardBreak';
+                }>;
+            } | {
+                type: 'heading';
+                attrs: {
+                    level: 2;
+                };
+                content?: Array<{
+                    type: 'text';
+                    text: string;
+                    marks?: Array<{
+                        type: 'bold';
+                    } | {
+                        type: 'italic';
+                    } | {
+                        type: 'link';
+                        attrs: {
+                            href: string;
+                        };
+                    }>;
+                } | {
+                    type: 'hardBreak';
+                }>;
+            } | {
+                type: 'bulletList';
+                content: Array<{
+                    type: 'listItem';
+                    content: Array<{
+                        type: 'paragraph';
+                        content?: Array<{
+                            type: 'text';
+                            text: string;
+                            marks?: Array<{
+                                type: 'bold';
+                            } | {
+                                type: 'italic';
+                            } | {
+                                type: 'link';
+                                attrs: {
+                                    href: string;
+                                };
+                            }>;
+                        } | {
+                            type: 'hardBreak';
+                        }>;
+                    }>;
+                }>;
+            } | {
+                type: 'orderedList';
+                content: Array<{
+                    type: 'listItem';
+                    content: Array<{
+                        type: 'paragraph';
+                        content?: Array<{
+                            type: 'text';
+                            text: string;
+                            marks?: Array<{
+                                type: 'bold';
+                            } | {
+                                type: 'italic';
+                            } | {
+                                type: 'link';
+                                attrs: {
+                                    href: string;
+                                };
+                            }>;
+                        } | {
+                            type: 'hardBreak';
+                        }>;
+                    }>;
+                }>;
+            }>;
+        };
         website: '' | string;
         contactEmail: string;
         contactTelegram: string;
@@ -373,8 +463,98 @@ export type CompanyResponseDtoOutput = {
 export type CompanyProfileDto = {
     name: string;
     industry: string;
-    description: string;
-    website: string | string;
+    description: {
+        type: 'doc';
+        content: Array<{
+            type: 'paragraph';
+            content?: Array<{
+                type: 'text';
+                text: string;
+                marks?: Array<{
+                    type: 'bold';
+                } | {
+                    type: 'italic';
+                } | {
+                    type: 'link';
+                    attrs: {
+                        href: string;
+                    };
+                }>;
+            } | {
+                type: 'hardBreak';
+            }>;
+        } | {
+            type: 'heading';
+            attrs: {
+                level: 2;
+            };
+            content?: Array<{
+                type: 'text';
+                text: string;
+                marks?: Array<{
+                    type: 'bold';
+                } | {
+                    type: 'italic';
+                } | {
+                    type: 'link';
+                    attrs: {
+                        href: string;
+                    };
+                }>;
+            } | {
+                type: 'hardBreak';
+            }>;
+        } | {
+            type: 'bulletList';
+            content: Array<{
+                type: 'listItem';
+                content: Array<{
+                    type: 'paragraph';
+                    content?: Array<{
+                        type: 'text';
+                        text: string;
+                        marks?: Array<{
+                            type: 'bold';
+                        } | {
+                            type: 'italic';
+                        } | {
+                            type: 'link';
+                            attrs: {
+                                href: string;
+                            };
+                        }>;
+                    } | {
+                        type: 'hardBreak';
+                    }>;
+                }>;
+            }>;
+        } | {
+            type: 'orderedList';
+            content: Array<{
+                type: 'listItem';
+                content: Array<{
+                    type: 'paragraph';
+                    content?: Array<{
+                        type: 'text';
+                        text: string;
+                        marks?: Array<{
+                            type: 'bold';
+                        } | {
+                            type: 'italic';
+                        } | {
+                            type: 'link';
+                            attrs: {
+                                href: string;
+                            };
+                        }>;
+                    } | {
+                        type: 'hardBreak';
+                    }>;
+                }>;
+            }>;
+        }>;
+    };
+    website: '' | string;
     contactEmail: string;
     contactTelegram: string;
 };
@@ -382,8 +562,98 @@ export type CompanyProfileDto = {
 export type CompanyProfileDtoOutput = {
     name: string;
     industry: string;
-    description: string;
-    website: string | string;
+    description: {
+        type: 'doc';
+        content: Array<{
+            type: 'paragraph';
+            content?: Array<{
+                type: 'text';
+                text: string;
+                marks?: Array<{
+                    type: 'bold';
+                } | {
+                    type: 'italic';
+                } | {
+                    type: 'link';
+                    attrs: {
+                        href: string;
+                    };
+                }>;
+            } | {
+                type: 'hardBreak';
+            }>;
+        } | {
+            type: 'heading';
+            attrs: {
+                level: 2;
+            };
+            content?: Array<{
+                type: 'text';
+                text: string;
+                marks?: Array<{
+                    type: 'bold';
+                } | {
+                    type: 'italic';
+                } | {
+                    type: 'link';
+                    attrs: {
+                        href: string;
+                    };
+                }>;
+            } | {
+                type: 'hardBreak';
+            }>;
+        } | {
+            type: 'bulletList';
+            content: Array<{
+                type: 'listItem';
+                content: Array<{
+                    type: 'paragraph';
+                    content?: Array<{
+                        type: 'text';
+                        text: string;
+                        marks?: Array<{
+                            type: 'bold';
+                        } | {
+                            type: 'italic';
+                        } | {
+                            type: 'link';
+                            attrs: {
+                                href: string;
+                            };
+                        }>;
+                    } | {
+                        type: 'hardBreak';
+                    }>;
+                }>;
+            }>;
+        } | {
+            type: 'orderedList';
+            content: Array<{
+                type: 'listItem';
+                content: Array<{
+                    type: 'paragraph';
+                    content?: Array<{
+                        type: 'text';
+                        text: string;
+                        marks?: Array<{
+                            type: 'bold';
+                        } | {
+                            type: 'italic';
+                        } | {
+                            type: 'link';
+                            attrs: {
+                                href: string;
+                            };
+                        }>;
+                    } | {
+                        type: 'hardBreak';
+                    }>;
+                }>;
+            }>;
+        }>;
+    };
+    website: '' | string;
     contactEmail: string;
     contactTelegram: string;
 };
@@ -537,7 +807,97 @@ export type InvitationListDtoOutput = {
     items: Array<{
         candidateId: string;
         needId: string | null;
-        message: string;
+        message: {
+            type: 'doc';
+            content: Array<{
+                type: 'paragraph';
+                content?: Array<{
+                    type: 'text';
+                    text: string;
+                    marks?: Array<{
+                        type: 'bold';
+                    } | {
+                        type: 'italic';
+                    } | {
+                        type: 'link';
+                        attrs: {
+                            href: string;
+                        };
+                    }>;
+                } | {
+                    type: 'hardBreak';
+                }>;
+            } | {
+                type: 'heading';
+                attrs: {
+                    level: 2;
+                };
+                content?: Array<{
+                    type: 'text';
+                    text: string;
+                    marks?: Array<{
+                        type: 'bold';
+                    } | {
+                        type: 'italic';
+                    } | {
+                        type: 'link';
+                        attrs: {
+                            href: string;
+                        };
+                    }>;
+                } | {
+                    type: 'hardBreak';
+                }>;
+            } | {
+                type: 'bulletList';
+                content: Array<{
+                    type: 'listItem';
+                    content: Array<{
+                        type: 'paragraph';
+                        content?: Array<{
+                            type: 'text';
+                            text: string;
+                            marks?: Array<{
+                                type: 'bold';
+                            } | {
+                                type: 'italic';
+                            } | {
+                                type: 'link';
+                                attrs: {
+                                    href: string;
+                                };
+                            }>;
+                        } | {
+                            type: 'hardBreak';
+                        }>;
+                    }>;
+                }>;
+            } | {
+                type: 'orderedList';
+                content: Array<{
+                    type: 'listItem';
+                    content: Array<{
+                        type: 'paragraph';
+                        content?: Array<{
+                            type: 'text';
+                            text: string;
+                            marks?: Array<{
+                                type: 'bold';
+                            } | {
+                                type: 'italic';
+                            } | {
+                                type: 'link';
+                                attrs: {
+                                    href: string;
+                                };
+                            }>;
+                        } | {
+                            type: 'hardBreak';
+                        }>;
+                    }>;
+                }>;
+            }>;
+        };
         contact: string;
         salaryFrom: number;
         salaryTo: number;
@@ -555,7 +915,97 @@ export type InvitationListDtoOutput = {
 export type InvitationDtoOutput = {
     candidateId: string;
     needId: string | null;
-    message: string;
+    message: {
+        type: 'doc';
+        content: Array<{
+            type: 'paragraph';
+            content?: Array<{
+                type: 'text';
+                text: string;
+                marks?: Array<{
+                    type: 'bold';
+                } | {
+                    type: 'italic';
+                } | {
+                    type: 'link';
+                    attrs: {
+                        href: string;
+                    };
+                }>;
+            } | {
+                type: 'hardBreak';
+            }>;
+        } | {
+            type: 'heading';
+            attrs: {
+                level: 2;
+            };
+            content?: Array<{
+                type: 'text';
+                text: string;
+                marks?: Array<{
+                    type: 'bold';
+                } | {
+                    type: 'italic';
+                } | {
+                    type: 'link';
+                    attrs: {
+                        href: string;
+                    };
+                }>;
+            } | {
+                type: 'hardBreak';
+            }>;
+        } | {
+            type: 'bulletList';
+            content: Array<{
+                type: 'listItem';
+                content: Array<{
+                    type: 'paragraph';
+                    content?: Array<{
+                        type: 'text';
+                        text: string;
+                        marks?: Array<{
+                            type: 'bold';
+                        } | {
+                            type: 'italic';
+                        } | {
+                            type: 'link';
+                            attrs: {
+                                href: string;
+                            };
+                        }>;
+                    } | {
+                        type: 'hardBreak';
+                    }>;
+                }>;
+            }>;
+        } | {
+            type: 'orderedList';
+            content: Array<{
+                type: 'listItem';
+                content: Array<{
+                    type: 'paragraph';
+                    content?: Array<{
+                        type: 'text';
+                        text: string;
+                        marks?: Array<{
+                            type: 'bold';
+                        } | {
+                            type: 'italic';
+                        } | {
+                            type: 'link';
+                            attrs: {
+                                href: string;
+                            };
+                        }>;
+                    } | {
+                        type: 'hardBreak';
+                    }>;
+                }>;
+            }>;
+        }>;
+    };
     contact: string;
     salaryFrom: number;
     salaryTo: number;
@@ -572,7 +1022,97 @@ export type InvitationDtoOutput = {
 export type InvitationInputDto = {
     candidateId: string;
     needId: string | null;
-    message: string;
+    message: {
+        type: 'doc';
+        content: Array<{
+            type: 'paragraph';
+            content?: Array<{
+                type: 'text';
+                text: string;
+                marks?: Array<{
+                    type: 'bold';
+                } | {
+                    type: 'italic';
+                } | {
+                    type: 'link';
+                    attrs: {
+                        href: string;
+                    };
+                }>;
+            } | {
+                type: 'hardBreak';
+            }>;
+        } | {
+            type: 'heading';
+            attrs: {
+                level: 2;
+            };
+            content?: Array<{
+                type: 'text';
+                text: string;
+                marks?: Array<{
+                    type: 'bold';
+                } | {
+                    type: 'italic';
+                } | {
+                    type: 'link';
+                    attrs: {
+                        href: string;
+                    };
+                }>;
+            } | {
+                type: 'hardBreak';
+            }>;
+        } | {
+            type: 'bulletList';
+            content: Array<{
+                type: 'listItem';
+                content: Array<{
+                    type: 'paragraph';
+                    content?: Array<{
+                        type: 'text';
+                        text: string;
+                        marks?: Array<{
+                            type: 'bold';
+                        } | {
+                            type: 'italic';
+                        } | {
+                            type: 'link';
+                            attrs: {
+                                href: string;
+                            };
+                        }>;
+                    } | {
+                        type: 'hardBreak';
+                    }>;
+                }>;
+            }>;
+        } | {
+            type: 'orderedList';
+            content: Array<{
+                type: 'listItem';
+                content: Array<{
+                    type: 'paragraph';
+                    content?: Array<{
+                        type: 'text';
+                        text: string;
+                        marks?: Array<{
+                            type: 'bold';
+                        } | {
+                            type: 'italic';
+                        } | {
+                            type: 'link';
+                            attrs: {
+                                href: string;
+                            };
+                        }>;
+                    } | {
+                        type: 'hardBreak';
+                    }>;
+                }>;
+            }>;
+        }>;
+    };
     contact: string;
     salaryFrom: number;
     salaryTo: number;
@@ -584,7 +1124,188 @@ export type CandidateInvitationListDtoOutput = {
         companyName: string;
         companyIndustry: string;
         needTitle: string | null;
-        message: string;
+        message: {
+            type: 'doc';
+            content: Array<{
+                type: 'paragraph';
+                content?: Array<{
+                    type: 'text';
+                    text: string;
+                    marks?: Array<{
+                        type: 'bold';
+                    } | {
+                        type: 'italic';
+                    } | {
+                        type: 'link';
+                        attrs: {
+                            href: string;
+                        };
+                    }>;
+                } | {
+                    type: 'hardBreak';
+                }>;
+            } | {
+                type: 'heading';
+                attrs: {
+                    level: 2;
+                };
+                content?: Array<{
+                    type: 'text';
+                    text: string;
+                    marks?: Array<{
+                        type: 'bold';
+                    } | {
+                        type: 'italic';
+                    } | {
+                        type: 'link';
+                        attrs: {
+                            href: string;
+                        };
+                    }>;
+                } | {
+                    type: 'hardBreak';
+                }>;
+            } | {
+                type: 'bulletList';
+                content: Array<{
+                    type: 'listItem';
+                    content: Array<{
+                        type: 'paragraph';
+                        content?: Array<{
+                            type: 'text';
+                            text: string;
+                            marks?: Array<{
+                                type: 'bold';
+                            } | {
+                                type: 'italic';
+                            } | {
+                                type: 'link';
+                                attrs: {
+                                    href: string;
+                                };
+                            }>;
+                        } | {
+                            type: 'hardBreak';
+                        }>;
+                    }>;
+                }>;
+            } | {
+                type: 'orderedList';
+                content: Array<{
+                    type: 'listItem';
+                    content: Array<{
+                        type: 'paragraph';
+                        content?: Array<{
+                            type: 'text';
+                            text: string;
+                            marks?: Array<{
+                                type: 'bold';
+                            } | {
+                                type: 'italic';
+                            } | {
+                                type: 'link';
+                                attrs: {
+                                    href: string;
+                                };
+                            }>;
+                        } | {
+                            type: 'hardBreak';
+                        }>;
+                    }>;
+                }>;
+            }>;
+        };
+        companyDescription: {
+            type: 'doc';
+            content: Array<{
+                type: 'paragraph';
+                content?: Array<{
+                    type: 'text';
+                    text: string;
+                    marks?: Array<{
+                        type: 'bold';
+                    } | {
+                        type: 'italic';
+                    } | {
+                        type: 'link';
+                        attrs: {
+                            href: string;
+                        };
+                    }>;
+                } | {
+                    type: 'hardBreak';
+                }>;
+            } | {
+                type: 'heading';
+                attrs: {
+                    level: 2;
+                };
+                content?: Array<{
+                    type: 'text';
+                    text: string;
+                    marks?: Array<{
+                        type: 'bold';
+                    } | {
+                        type: 'italic';
+                    } | {
+                        type: 'link';
+                        attrs: {
+                            href: string;
+                        };
+                    }>;
+                } | {
+                    type: 'hardBreak';
+                }>;
+            } | {
+                type: 'bulletList';
+                content: Array<{
+                    type: 'listItem';
+                    content: Array<{
+                        type: 'paragraph';
+                        content?: Array<{
+                            type: 'text';
+                            text: string;
+                            marks?: Array<{
+                                type: 'bold';
+                            } | {
+                                type: 'italic';
+                            } | {
+                                type: 'link';
+                                attrs: {
+                                    href: string;
+                                };
+                            }>;
+                        } | {
+                            type: 'hardBreak';
+                        }>;
+                    }>;
+                }>;
+            } | {
+                type: 'orderedList';
+                content: Array<{
+                    type: 'listItem';
+                    content: Array<{
+                        type: 'paragraph';
+                        content?: Array<{
+                            type: 'text';
+                            text: string;
+                            marks?: Array<{
+                                type: 'bold';
+                            } | {
+                                type: 'italic';
+                            } | {
+                                type: 'link';
+                                attrs: {
+                                    href: string;
+                                };
+                            }>;
+                        } | {
+                            type: 'hardBreak';
+                        }>;
+                    }>;
+                }>;
+            }>;
+        } | null;
         contact: string;
         salaryFrom: number;
         salaryTo: number;
@@ -603,7 +1324,188 @@ export type CandidateInvitationDtoOutput = {
     companyName: string;
     companyIndustry: string;
     needTitle: string | null;
-    message: string;
+    message: {
+        type: 'doc';
+        content: Array<{
+            type: 'paragraph';
+            content?: Array<{
+                type: 'text';
+                text: string;
+                marks?: Array<{
+                    type: 'bold';
+                } | {
+                    type: 'italic';
+                } | {
+                    type: 'link';
+                    attrs: {
+                        href: string;
+                    };
+                }>;
+            } | {
+                type: 'hardBreak';
+            }>;
+        } | {
+            type: 'heading';
+            attrs: {
+                level: 2;
+            };
+            content?: Array<{
+                type: 'text';
+                text: string;
+                marks?: Array<{
+                    type: 'bold';
+                } | {
+                    type: 'italic';
+                } | {
+                    type: 'link';
+                    attrs: {
+                        href: string;
+                    };
+                }>;
+            } | {
+                type: 'hardBreak';
+            }>;
+        } | {
+            type: 'bulletList';
+            content: Array<{
+                type: 'listItem';
+                content: Array<{
+                    type: 'paragraph';
+                    content?: Array<{
+                        type: 'text';
+                        text: string;
+                        marks?: Array<{
+                            type: 'bold';
+                        } | {
+                            type: 'italic';
+                        } | {
+                            type: 'link';
+                            attrs: {
+                                href: string;
+                            };
+                        }>;
+                    } | {
+                        type: 'hardBreak';
+                    }>;
+                }>;
+            }>;
+        } | {
+            type: 'orderedList';
+            content: Array<{
+                type: 'listItem';
+                content: Array<{
+                    type: 'paragraph';
+                    content?: Array<{
+                        type: 'text';
+                        text: string;
+                        marks?: Array<{
+                            type: 'bold';
+                        } | {
+                            type: 'italic';
+                        } | {
+                            type: 'link';
+                            attrs: {
+                                href: string;
+                            };
+                        }>;
+                    } | {
+                        type: 'hardBreak';
+                    }>;
+                }>;
+            }>;
+        }>;
+    };
+    companyDescription: {
+        type: 'doc';
+        content: Array<{
+            type: 'paragraph';
+            content?: Array<{
+                type: 'text';
+                text: string;
+                marks?: Array<{
+                    type: 'bold';
+                } | {
+                    type: 'italic';
+                } | {
+                    type: 'link';
+                    attrs: {
+                        href: string;
+                    };
+                }>;
+            } | {
+                type: 'hardBreak';
+            }>;
+        } | {
+            type: 'heading';
+            attrs: {
+                level: 2;
+            };
+            content?: Array<{
+                type: 'text';
+                text: string;
+                marks?: Array<{
+                    type: 'bold';
+                } | {
+                    type: 'italic';
+                } | {
+                    type: 'link';
+                    attrs: {
+                        href: string;
+                    };
+                }>;
+            } | {
+                type: 'hardBreak';
+            }>;
+        } | {
+            type: 'bulletList';
+            content: Array<{
+                type: 'listItem';
+                content: Array<{
+                    type: 'paragraph';
+                    content?: Array<{
+                        type: 'text';
+                        text: string;
+                        marks?: Array<{
+                            type: 'bold';
+                        } | {
+                            type: 'italic';
+                        } | {
+                            type: 'link';
+                            attrs: {
+                                href: string;
+                            };
+                        }>;
+                    } | {
+                        type: 'hardBreak';
+                    }>;
+                }>;
+            }>;
+        } | {
+            type: 'orderedList';
+            content: Array<{
+                type: 'listItem';
+                content: Array<{
+                    type: 'paragraph';
+                    content?: Array<{
+                        type: 'text';
+                        text: string;
+                        marks?: Array<{
+                            type: 'bold';
+                        } | {
+                            type: 'italic';
+                        } | {
+                            type: 'link';
+                            attrs: {
+                                href: string;
+                            };
+                        }>;
+                    } | {
+                        type: 'hardBreak';
+                    }>;
+                }>;
+            }>;
+        }>;
+    } | null;
     contact: string;
     salaryFrom: number;
     salaryTo: number;

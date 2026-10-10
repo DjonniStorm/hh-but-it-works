@@ -1,9 +1,9 @@
-import type { CompanyProfile } from "@hh/contracts";
+import { type CompanyProfile, emptyRichText } from "@hh/contracts";
 
 export const emptyCompany: CompanyProfile = {
   name: "",
   industry: "",
-  description: "",
+  description: emptyRichText(),
   website: "",
   contactEmail: "",
   contactTelegram: "",
