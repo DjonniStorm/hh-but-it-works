@@ -168,13 +168,6 @@ export class AuthStore {
         const result = await authControllerMe();
         const user = mapPublicUser(readData(result));
         this.user = user;
-        if (this.accessToken && this.refreshToken) {
-          writeSession({
-            accessToken: this.accessToken,
-            refreshToken: this.refreshToken,
-            user,
-          });
-        }
         return user;
       },
       { loader: false, ...options },

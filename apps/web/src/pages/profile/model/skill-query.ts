@@ -91,53 +91,51 @@ export function findSkill(
   });
 }
 
-// Своя специализация сверху. Один навык попадает только в первую подходящую группу.
+const groupOrder: readonly string[] = [
+  ...Object.values(Specialization),
+  "other",
+];
+
+// Своя специализация сверху. Навык из нескольких специализаций попадает в свою, иначе в первую.
 export function skillGroups(
   skills: CatalogSkill[],
   specialization: Specialization | null,
   labels: Record<Specialization, string>,
 ): SkillGroup[] {
-  const order = orderedSpecializations(skills, specialization);
-  const placed = new Set<string>();
-  const groups: SkillGroup[] = [];
-  for (const key of order) {
-    const rows = skills.filter((skill) => {
-      if (placed.has(skill.skillId)) {
-        return false;
-      }
-      return skill.specializations.includes(key);
-    });
-    for (const skill of rows) {
-      placed.add(skill.skillId);
-    }
-    if (rows.length > 0) {
-      groups.push({ key, label: labels[key], skills: rows });
+  const byKey = new Map<string, CatalogSkill[]>();
+  for (const skill of skills) {
+    const key = skillGroupKey(skill, specialization);
+    const bucket = byKey.get(key);
+    if (bucket) {
+      bucket.push(skill);
+    } else {
+      byKey.set(key, [skill]);
     }
   }
-  const rest = skills.filter((skill) => {
-    return !placed.has(skill.skillId);
+  const order = specialization
+    ? [specialization, ...groupOrder.filter((key) => key !== specialization)]
+    : groupOrder;
+  return order.flatMap((key) => {
+    const rows = byKey.get(key);
+    if (!rows) {
+      return [];
+    }
+    return [
+      {
+        key,
+        label: key === "other" ? "Свои" : labels[key as Specialization],
+        skills: rows,
+      },
+    ];
   });
-  if (rest.length > 0) {
-    groups.push({ key: "other", label: "Свои", skills: rest });
-  }
-  return groups;
 }
 
-function orderedSpecializations(
-  skills: CatalogSkill[],
+function skillGroupKey(
+  skill: CatalogSkill,
   specialization: Specialization | null,
-): Specialization[] {
-  const present = new Set<Specialization>();
-  for (const skill of skills) {
-    for (const item of skill.specializations) {
-      present.add(item);
-    }
+): string {
+  if (specialization && skill.specializations.includes(specialization)) {
+    return specialization;
   }
-  const rest = [...present].filter((item) => {
-    return item !== specialization;
-  });
-  if (!specialization || !present.has(specialization)) {
-    return rest;
-  }
-  return [specialization, ...rest];
+  return skill.specializations[0] ?? "other";
 }
