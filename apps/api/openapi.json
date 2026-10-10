@@ -484,6 +484,222 @@
         "tags": ["Profiles"]
       }
     },
+    "/profile/fsp-link/preview": {
+      "get": {
+        "operationId": "ProfilesController_fspLinkPreview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FspLinkPreviewDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Profiles"]
+      }
+    },
+    "/profile/fsp-history": {
+      "get": {
+        "operationId": "ProfilesController_fspHistory",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FspHistoryDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Profiles"]
+      }
+    },
+    "/profile/fsp": {
+      "put": {
+        "operationId": "ProfilesController_fspLink",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FspLinkDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FspLinkResultDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Profiles"]
+      }
+    },
+    "/profile/fsp-login": {
+      "post": {
+        "operationId": "ProfilesController_fspLogin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FspLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FspLinkResultDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Код входа не подошёл, уже использован или просрочен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Реестр ФСП сейчас недоступен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Profiles"]
+      }
+    },
     "/profile/resume-draft": {
       "post": {
         "operationId": "ProfilesController_resumeDraft",
@@ -3003,6 +3219,245 @@
         ],
         "additionalProperties": false
       },
+      "FspLinkPreviewDto_Output": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["found", "not-found", "unavailable"]
+          },
+          "participant": {
+            "type": "object",
+            "properties": {
+              "fspId": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "sportRank": {
+                "type": "string",
+                "enum": ["rank3", "rank2", "rank1", "kms", "ms", "msmk", null],
+                "nullable": true
+              },
+              "rating": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "nullable": true
+              },
+              "achievements": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "year": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "place": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "nullable": true
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "competition",
+                        "cup",
+                        "olympiad",
+                        "hackathon",
+                        "diploma",
+                        "certificate"
+                      ]
+                    },
+                    "level": {
+                      "type": "string",
+                      "enum": [
+                        "regional",
+                        "interregional",
+                        "all_russia",
+                        "russia",
+                        "international",
+                        null
+                      ],
+                      "nullable": true
+                    },
+                    "organizer": {
+                      "type": "string",
+                      "maxLength": 200,
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "year",
+                    "place",
+                    "kind",
+                    "level",
+                    "organizer"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "fspId",
+              "name",
+              "sportRank",
+              "rating",
+              "achievements"
+            ],
+            "additionalProperties": false,
+            "nullable": true
+          }
+        },
+        "required": ["status", "participant"],
+        "additionalProperties": false
+      },
+      "FspHistoryDto_Output": {
+        "type": "object",
+        "properties": {
+          "participant": {
+            "type": "object",
+            "properties": {
+              "fspId": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "sportRank": {
+                "type": "string",
+                "enum": ["rank3", "rank2", "rank1", "kms", "ms", "msmk", null],
+                "nullable": true
+              },
+              "rating": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "nullable": true
+              },
+              "achievements": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "year": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "place": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "nullable": true
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "competition",
+                        "cup",
+                        "olympiad",
+                        "hackathon",
+                        "diploma",
+                        "certificate"
+                      ]
+                    },
+                    "level": {
+                      "type": "string",
+                      "enum": [
+                        "regional",
+                        "interregional",
+                        "all_russia",
+                        "russia",
+                        "international",
+                        null
+                      ],
+                      "nullable": true
+                    },
+                    "organizer": {
+                      "type": "string",
+                      "maxLength": 200,
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "year",
+                    "place",
+                    "kind",
+                    "level",
+                    "organizer"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "fspId",
+              "name",
+              "sportRank",
+              "rating",
+              "achievements"
+            ],
+            "additionalProperties": false,
+            "nullable": true
+          }
+        },
+        "required": ["participant"],
+        "additionalProperties": false
+      },
+      "FspLinkDto": {
+        "type": "object",
+        "properties": {
+          "fspId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "nullable": true
+          },
+          "showFsp": {
+            "type": "boolean"
+          }
+        },
+        "required": ["fspId", "showFsp"]
+      },
+      "FspLinkResultDto_Output": {
+        "type": "object",
+        "properties": {
+          "fspId": {
+            "type": "string",
+            "maxLength": 64,
+            "nullable": true
+          },
+          "showFsp": {
+            "type": "boolean"
+          }
+        },
+        "required": ["fspId", "showFsp"],
+        "additionalProperties": false
+      },
+      "FspLoginDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": ["code"]
+      },
       "ResumeDraftDto_Output": {
         "type": "object",
         "properties": {
@@ -4589,9 +5044,44 @@
                             "exclusiveMinimum": 0,
                             "maximum": 9007199254740991,
                             "nullable": true
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "competition",
+                              "cup",
+                              "olympiad",
+                              "hackathon",
+                              "diploma",
+                              "certificate"
+                            ]
+                          },
+                          "level": {
+                            "type": "string",
+                            "enum": [
+                              "regional",
+                              "interregional",
+                              "all_russia",
+                              "russia",
+                              "international",
+                              null
+                            ],
+                            "nullable": true
+                          },
+                          "organizer": {
+                            "type": "string",
+                            "maxLength": 200,
+                            "nullable": true
                           }
                         },
-                        "required": ["title", "year", "place"],
+                        "required": [
+                          "title",
+                          "year",
+                          "place",
+                          "kind",
+                          "level",
+                          "organizer"
+                        ],
                         "additionalProperties": false
                       }
                     },
@@ -4869,9 +5359,44 @@
                         "exclusiveMinimum": 0,
                         "maximum": 9007199254740991,
                         "nullable": true
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "competition",
+                          "cup",
+                          "olympiad",
+                          "hackathon",
+                          "diploma",
+                          "certificate"
+                        ]
+                      },
+                      "level": {
+                        "type": "string",
+                        "enum": [
+                          "regional",
+                          "interregional",
+                          "all_russia",
+                          "russia",
+                          "international",
+                          null
+                        ],
+                        "nullable": true
+                      },
+                      "organizer": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "nullable": true
                       }
                     },
-                    "required": ["title", "year", "place"],
+                    "required": [
+                      "title",
+                      "year",
+                      "place",
+                      "kind",
+                      "level",
+                      "organizer"
+                    ],
                     "additionalProperties": false
                   }
                 },

@@ -49,14 +49,14 @@ src/
 
 ## Эндпоинты
 
-| Префикс                 | Ручки                                                                                                                                                                                                                                      |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `GET /health`           | `GET`                                                                                                                                                                                                                                      |
-| `auth`                  | `POST register`, `confirm`, `confirm/resend` (раз в минуту на адрес, ответ не выдаёт, есть ли пользователь), `password/forgot` (так же), `password/reset` (выход на всех устройствах), `login`, `refresh`, `logout`, `GET me`              |
-| `profile`               | `GET`, `PUT`                                                                                                                                                                                                                               |
-| `assessment`            | `POST attempts`, `GET attempts/current`, `POST attempts/answer`, `POST attempts/events`, `POST attempts/finish`, `GET attempts/history`                                                                                                    |
-| `employer`              | `GET/PUT company`, `GET/POST needs`, `GET/PUT/DELETE needs/:id` (удаление мягкое), `GET needs/:id/shortlist`, `POST candidates/search` (банк кандидатов, первые 50), `PUT/DELETE needs/:id/dismissed/:candidateId`, `GET/POST invitations` |
-| `candidate/invitations` | `GET`, `POST viewed`, `POST :id/accept`, `POST :id/decline`                                                                                                                                                                                |
+| Префикс                 | Ручки                                                                                                                                                                                                                                                     |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /health`           | `GET`                                                                                                                                                                                                                                                     |
+| `auth`                  | `POST register`, `confirm`, `confirm/resend` (раз в минуту на адрес, ответ не выдаёт, есть ли пользователь), `password/forgot` (так же), `password/reset` (выход на всех устройствах), `login`, `refresh`, `logout`, `GET me`                             |
+| `profile`               | `GET`, `PUT`, `PUT fsp` (привязка ФСП: меняет только `fspId` и показ, работает и с незаполненной анкетой), `GET fsp-link/preview` (импорт ФСП по почте из токена: `found`/`not-found`/`unavailable`), `GET fsp-history` (история по привязанному `fspId`) |
+| `assessment`            | `POST attempts`, `GET attempts/current`, `POST attempts/answer`, `POST attempts/events`, `POST attempts/finish`, `GET attempts/history`                                                                                                                   |
+| `employer`              | `GET/PUT company`, `GET/POST needs`, `GET/PUT/DELETE needs/:id` (удаление мягкое), `GET needs/:id/shortlist`, `POST candidates/search` (банк кандидатов, первые 50), `PUT/DELETE needs/:id/dismissed/:candidateId`, `GET/POST invitations`                |
+| `candidate/invitations` | `GET`, `POST viewed`, `POST :id/accept`, `POST :id/decline`                                                                                                                                                                                               |
 
 Роли: `GET /assessment/*` — кандидат, `employer/*` — работодатель.
 

@@ -73,6 +73,14 @@ export const router = createBrowserRouter([
                 hydrateFallbackElement: pageFallback,
               },
               {
+                path: ROUTES.FSP_CALLBACK,
+                lazy: lazyPage(
+                  () => import("@/pages/fsp-callback/ui/FspCallbackPage"),
+                  "FspCallbackPage",
+                ),
+                hydrateFallbackElement: pageFallback,
+              },
+              {
                 path: ROUTES.INVITATIONS,
                 lazy: lazyPage(
                   () =>

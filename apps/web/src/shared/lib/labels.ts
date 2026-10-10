@@ -1,5 +1,8 @@
 import type { MatchGroup } from "@hh/contracts";
 import {
+  FspAchievementKind,
+  FspAchievementLevel,
+  FspSportRank,
   Grade,
   InvitationStatus,
   SearchStatus,
@@ -78,6 +81,33 @@ export function skillPassport(
   }
   return `${source}, ${date.toLocaleDateString("ru-RU")}`;
 }
+
+// Подписи реестра ФСП: разряд, уровень соревнования и тип достижения.
+export const sportRankLabel: Record<FspSportRank, string> = {
+  [FspSportRank.Rank3]: "3-й разряд",
+  [FspSportRank.Rank2]: "2-й разряд",
+  [FspSportRank.Rank1]: "1-й разряд",
+  [FspSportRank.Kms]: "КМС",
+  [FspSportRank.Ms]: "Мастер спорта",
+  [FspSportRank.Msmk]: "МСМК",
+};
+
+export const achievementKindLabel: Record<FspAchievementKind, string> = {
+  [FspAchievementKind.Competition]: "Соревнование",
+  [FspAchievementKind.Cup]: "Кубок",
+  [FspAchievementKind.Olympiad]: "Олимпиада",
+  [FspAchievementKind.Hackathon]: "Хакатон",
+  [FspAchievementKind.Diploma]: "Грамота",
+  [FspAchievementKind.Certificate]: "Сертификат",
+};
+
+export const achievementLevelLabel: Record<FspAchievementLevel, string> = {
+  [FspAchievementLevel.Regional]: "Региональный",
+  [FspAchievementLevel.Interregional]: "Межрегиональный",
+  [FspAchievementLevel.AllRussia]: "Всероссийский",
+  [FspAchievementLevel.Russia]: "Российский",
+  [FspAchievementLevel.International]: "Международный",
+};
 
 export const searchStatusLabel: Record<SearchStatus, string> = {
   [SearchStatus.ActivelyLooking]: "Активно ищет",

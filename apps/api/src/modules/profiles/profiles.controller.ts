@@ -25,6 +25,11 @@ import {
 import { User } from "../users/user.entity";
 import {
   CandidateProfileDto,
+  FspHistoryDto,
+  FspLinkDto,
+  FspLinkPreviewDto,
+  FspLinkResultDto,
+  FspLoginDto,
   ResumeDraftDto,
   ResumePdfQueryDto,
   SaveProfileDto,
@@ -48,6 +53,39 @@ export class ProfilesController {
   @ZodResponse({ status: 200, type: CandidateProfileDto })
   get(@CurrentUser() user: User) {
     return this.profiles.get(user.id);
+  }
+
+  // Импорт ФСП: что реестр знает о человеке с почтой из токена.
+  // Статус found/not-found/unavailable возвращаем как есть, без интерпретации.
+  @Get("fsp-link/preview")
+  @ZodResponse({ status: 200, type: FspLinkPreviewDto })
+  fspLinkPreview(@CurrentUser() user: User) {
+    return this.profiles.fspLinkPreview(user.id);
+  }
+
+  // Своя история ФСП по привязанному fspId.
+  @Get("fsp-history")
+  @ZodResponse({ status: 200, type: FspHistoryDto })
+  fspHistory(@CurrentUser() user: User) {
+    return this.profiles.fspHistory(user.id);
+  }
+
+  // Привязка ФСП меняет только ID и показ — без проверки остальной анкеты.
+  @Put("fsp")
+  @ZodResponse({ status: 200, type: FspLinkResultDto })
+  fspLink(@CurrentUser() user: User, @Body() body: FspLinkDto) {
+    return this.profiles.fspLink(user.id, body);
+  }
+
+  // OIDC-вход через реестр ФСП: code обменивается на сервере, sub становится fspId.
+  @Post("fsp-login")
+  @ZodResponse({ status: 200, type: FspLinkResultDto })
+  @ApiErrors({
+    400: "Код входа не подошёл, уже использован или просрочен",
+    503: "Реестр ФСП сейчас недоступен",
+  })
+  fspLogin(@CurrentUser() user: User, @Body() body: FspLoginDto) {
+    return this.profiles.fspLogin(user.id, body.code);
   }
 
   @Post("resume-draft")

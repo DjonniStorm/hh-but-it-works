@@ -2,8 +2,8 @@ import { candidateMeta } from "@/pages/employer/model/candidate-meta";
 import { inviteLabel } from "@/pages/employer/model/invite-label";
 import { CandidateBadges } from "@/pages/employer/ui/CandidateBadges";
 import { CandidateSkills } from "@/pages/employer/ui/CandidateSkills";
-import { FspHistory } from "@/pages/employer/ui/FspHistory";
 import { InvitationBadge } from "@/pages/employer/ui/InvitationBadge";
+import { FspHistory } from "@/shared/fsp/ui/FspHistory";
 import { Button, Group, Paper, SimpleGrid, Stack, Text } from "@mantine/core";
 
 import type { CandidateSnapshot, Invitation } from "@hh/contracts";
