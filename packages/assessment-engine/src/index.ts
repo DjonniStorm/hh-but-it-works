@@ -24,7 +24,6 @@ export {
   bankSlugFor,
   catalogSlugs,
   coreSkills,
-  coveredSkillSlugs,
   isCatalogSlug,
 } from "./bank";
 export type { CatalogSlug } from "./bank";

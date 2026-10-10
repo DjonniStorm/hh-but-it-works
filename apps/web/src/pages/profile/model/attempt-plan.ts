@@ -2,17 +2,10 @@ import {
   type SkillLevel,
   type SkillVerification,
   Specialization,
+  coreSkillSlugs,
   relatedSkillSlug,
   skillCatalog,
 } from "@hh/types";
-
-// Как coreSkills в пакете тестов. Веб пакет не импортирует: в нём ключи ответов.
-const coreSlugs: Record<Specialization, readonly string[]> = {
-  [Specialization.Backend]: ["http-api", "postgresql"],
-  [Specialization.Frontend]: ["typescript", "http-api"],
-  [Specialization.Data]: ["postgresql"],
-  [Specialization.Security]: ["http-api", "docker"],
-};
 
 const bySlug = new Map(
   skillCatalog.map((skill) => {
@@ -28,28 +21,41 @@ export type PlanSkill = {
   verifiedAt: string | null;
 };
 
+// Секция — банк вопросов. Результат секции получает только навык банка.
 export type PlannedSection = {
   key: string;
   title: string;
-  detail: string | null;
   level: SkillLevel | null;
   verification: SkillVerification | null;
   verifiedAt: string | null;
   inProfile: boolean;
 };
 
-type Bucket = {
-  bankSlug: string;
+// Навык анкеты без своего банка: вопросы берутся у родственника, сам навык остаётся заявленным.
+export type RelatedSkill = {
+  slug: string;
   title: string;
-  native: boolean;
-  skill: PlanSkill | null;
-  also: string[];
+  bankTitle: string;
+  bankInProfile: boolean;
 };
 
-// Свой банк, если он есть. Иначе вопросы родственника из relatedSkillSlug.
-export function bankSlugForSkill(slug: string): string | null {
-  const item = bySlug.get(slug);
-  if (item?.tested) {
+export type AttemptPlan = {
+  sections: PlannedSection[];
+  related: RelatedSkill[];
+  untested: { slug: string; title: string }[];
+};
+
+function coreOf(specialization: Specialization): readonly string[] {
+  return coreSkillSlugs[specialization];
+}
+
+function titleOf(slug: string): string {
+  return bySlug.get(slug)?.title ?? slug;
+}
+
+// Как bankSlugFor в пакете тестов: свой банк или банк родственника из relatedSkillSlug.
+function bankSlugForSkill(slug: string): string | null {
+  if (bySlug.get(slug)?.tested) {
     return slug;
   }
   const target = relatedSkillSlug[slug];
@@ -59,10 +65,6 @@ export function bankSlugForSkill(slug: string): string | null {
   return null;
 }
 
-export function skillCanBeTested(slug: string): boolean {
-  return bankSlugForSkill(slug) !== null;
-}
-
 export function sectionIsCore(
   specialization: Specialization | null,
   bankSlug: string,
@@ -70,126 +72,82 @@ export function sectionIsCore(
   if (!specialization) {
     return false;
   }
-  return coreSlugs[specialization].includes(bankSlug);
+  return coreOf(specialization).includes(bankSlug);
 }
 
+export function relatedNote(skill: RelatedSkill): string {
+  const intro = `${skill.title} — своих вопросов нет, проверим ${skill.bankTitle}.`;
+  if (skill.bankInProfile) {
+    return `${intro} Результат получит ${skill.bankTitle}, ${skill.title} останется заявленным`;
+  }
+  return `${intro} Если сдадите, ${skill.bankTitle} добавится в анкету подтверждённым, ${skill.title} останется заявленным`;
+}
+
+// Те же секции, что соберёт API: банки ядра и банки навыков анкеты.
 export function attemptPlan(
   specialization: Specialization | null,
   skills: readonly PlanSkill[],
-): { sections: PlannedSection[]; untested: { slug: string; title: string }[] } {
+): AttemptPlan {
   if (!specialization) {
-    return { sections: [], untested: [] };
+    return { sections: [], related: [], untested: [] };
   }
-  const buckets = new Map<string, Bucket>();
-  const consider = (
-    slug: string,
-    title: string,
-    skill: PlanSkill | null,
-  ): boolean => {
-    const bankSlug = bankSlugForSkill(slug);
-    if (!bankSlug) {
-      return false;
-    }
-    const native = slug === bankSlug;
-    const current = buckets.get(bankSlug);
-    if (!current) {
-      buckets.set(bankSlug, { bankSlug, title, native, skill, also: [] });
-      return true;
-    }
-    if (native && !current.native) {
-      current.also.push(current.title);
-      current.title = title;
-      current.native = true;
-      current.skill = skill;
-      return true;
-    }
-    if (!native) {
-      current.also.push(title);
-      return true;
-    }
-    if (skill && !current.skill) {
-      current.skill = skill;
-    }
-    return true;
-  };
-
-  for (const slug of coreSlugs[specialization]) {
-    const item = bySlug.get(slug);
-    consider(slug, item?.title ?? slug, null);
-  }
-  const untested: { slug: string; title: string }[] = [];
-  const ordered = skills
+  const own = skills
     .filter((skill) => {
       return skill.level;
     })
     .sort((left, right) => {
       return left.title.localeCompare(right.title, "ru");
     });
-  for (const skill of ordered) {
-    if (!consider(skill.slug, skill.title, skill)) {
-      untested.push({ slug: skill.slug, title: skill.title });
-    }
-  }
-  const coreOrder = new Map(
-    coreSlugs[specialization].map((slug, index) => {
-      return [slug, index] as const;
+  const ownBySlug = new Map(
+    own.map((skill) => {
+      return [skill.slug, skill] as const;
     }),
   );
-  const sections = [...buckets.values()]
+  const core = coreOf(specialization);
+  const banks = new Set<string>(core);
+  const related: RelatedSkill[] = [];
+  const untested: { slug: string; title: string }[] = [];
+  for (const skill of own) {
+    const bankSlug = bankSlugForSkill(skill.slug);
+    if (!bankSlug) {
+      untested.push({ slug: skill.slug, title: skill.title });
+      continue;
+    }
+    banks.add(bankSlug);
+    if (bankSlug !== skill.slug) {
+      related.push({
+        slug: skill.slug,
+        title: skill.title,
+        bankTitle: titleOf(bankSlug),
+        bankInProfile: ownBySlug.has(bankSlug),
+      });
+    }
+  }
+  const sections = [...banks]
     .sort((left, right) => {
-      const leftCore = coreOrder.get(left.bankSlug);
-      const rightCore = coreOrder.get(right.bankSlug);
-      if (leftCore !== undefined && rightCore !== undefined) {
+      const leftCore = core.indexOf(left);
+      const rightCore = core.indexOf(right);
+      if (leftCore !== -1 && rightCore !== -1) {
         return leftCore - rightCore;
       }
-      if (leftCore !== undefined) {
+      if (leftCore !== -1) {
         return -1;
       }
-      if (rightCore !== undefined) {
+      if (rightCore !== -1) {
         return 1;
       }
-      return left.title.localeCompare(right.title, "ru");
+      return titleOf(left).localeCompare(titleOf(right), "ru");
     })
-    .map((bucket) => {
+    .map((slug) => {
+      const skill = ownBySlug.get(slug);
       return {
-        key: bucket.bankSlug,
-        title: bucket.title,
-        detail: sectionDetail(bucket),
-        level: bucket.skill?.level ?? null,
-        verification: bucket.skill?.verification ?? null,
-        verifiedAt: bucket.skill?.verifiedAt ?? null,
-        inProfile: Boolean(bucket.skill),
+        key: slug,
+        title: titleOf(slug),
+        level: skill?.level ?? null,
+        verification: skill?.verification ?? null,
+        verifiedAt: skill?.verifiedAt ?? null,
+        inProfile: Boolean(skill),
       };
     });
-  return { sections, untested };
-}
-
-function sectionDetail(bucket: Bucket): string | null {
-  const via = bySlug.get(bucket.bankSlug)?.title ?? bucket.bankSlug;
-  const extra = alsoClause(bucket.also);
-  if (!bucket.native) {
-    if (!extra) {
-      return `вопросы по ${via}`;
-    }
-    return `вопросы по ${via}, ${extra}`;
-  }
-  if (!extra) {
-    return null;
-  }
-  return `этой секцией ${extra}`;
-}
-
-function alsoClause(titles: string[]): string | null {
-  if (titles.length === 0) {
-    return null;
-  }
-  if (titles.length === 1) {
-    return `также проверяется ${titles[0]}`;
-  }
-  return `также проверяются ${joinTitles(titles)}`;
-}
-
-function joinTitles(titles: string[]): string {
-  const head = titles.slice(0, -1).join(", ");
-  return `${head} и ${titles[titles.length - 1]}`;
+  return { sections, related, untested };
 }

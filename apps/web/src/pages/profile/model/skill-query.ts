@@ -1,5 +1,3 @@
-import { skillCanBeTested } from "@/pages/profile/model/attempt-plan";
-
 import { Specialization, skillCatalog } from "@hh/types";
 
 export type CatalogSkill = {
@@ -16,6 +14,12 @@ export type SkillGroup = {
   skills: CatalogSkill[];
 };
 
+const testedTitles = new Set(
+  skillCatalog.flatMap((skill) => {
+    return skill.tested ? [skill.title] : [];
+  }),
+);
+
 const catalogBySlug = new Map(
   skillCatalog.map((skill) => {
     return [skill.slug, skill] as const;
@@ -23,13 +27,7 @@ const catalogBySlug = new Map(
 );
 
 export function skillIsTested(title: string): boolean {
-  const meta = skillCatalog.find((skill) => {
-    return skill.title === title;
-  });
-  if (!meta) {
-    return false;
-  }
-  return skillCanBeTested(meta.slug);
+  return testedTitles.has(title);
 }
 
 export function profileCatalog(
@@ -41,7 +39,7 @@ export function profileCatalog(
       skillId: skill.skillId,
       title: skill.title,
       slug: skill.slug,
-      tested: skillCanBeTested(skill.slug),
+      tested: meta?.tested ?? false,
       specializations: meta?.specializations ?? [],
     };
   });
