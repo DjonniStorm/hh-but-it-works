@@ -2,7 +2,7 @@
 # scripts/build_embedder.py. Not installed by the serving image or tests.
 # Pinned build stack used for the committed artifact (see embedder.meta.json).
 -r requirements.txt
-torch==2.8.0
+torch==2.13.0
 transformers==5.10.1
 huggingface_hub>=0.27,<1
 tokenizers>=0.20,<1
