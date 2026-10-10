@@ -6,16 +6,17 @@ import { Link } from "react-router";
 import type { CandidateProfile } from "@hh/contracts";
 import { SkillVerification } from "@hh/types";
 
+import { isConfirmedSkill } from "../model/materials";
+import { ownSkills } from "../model/own-skills";
+
 // Чипсы навыков: подтверждённые в цвете верификации, счётчик сверху.
 export const SkillsWidget = ({
   profile,
 }: {
   profile: CandidateProfile | null;
 }) => {
-  const skills = profile?.skills ?? [];
-  const confirmed = skills.filter((skill) => {
-    return skill.verification !== SkillVerification.Unverified;
-  }).length;
+  const skills = ownSkills(profile);
+  const confirmed = skills.filter(isConfirmedSkill).length;
 
   return (
     <Paper withBorder p="lg" radius="md" style={{ background: surfaceColor }}>
