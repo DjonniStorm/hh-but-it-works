@@ -734,6 +734,8 @@ export const assessmentResultSchema = z.object({
   status: attemptStatusSchema,
   score: z.number().int().min(0).max(100),
   grade: gradeSchema,
+  // Специализация из анкеты на момент попытки. null — попытка старше этого поля.
+  specialization: specializationSchema.nullable(),
   integrity: z.number().int().min(0).max(100),
   flags: z.array(flagCountSchema),
   sections: z.array(assessmentSectionResultSchema),

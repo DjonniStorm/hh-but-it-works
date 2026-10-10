@@ -1,6 +1,6 @@
 import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 
-import { AttemptStatus, Grade, IntegrityFlag } from "@hh/types";
+import { AttemptStatus, Grade, IntegrityFlag, Specialization } from "@hh/types";
 
 /** Завершённая попытка. Активная живёт в Redis, сюда попадает итог. */
 @Entity("assessment_attempts")
@@ -15,6 +15,19 @@ export class AttemptRecord {
 
   @Column({ type: "enum", enum: Grade, enumName: "attempt_grade" })
   grade!: Grade;
+
+  /**
+   * Специализация из анкеты на момент попытки: вместе с грейдом это история
+   * опроса. У попыток до этой колонки — null. Свой тип enum, как у остальных
+   * колонок с enum: общий synchronize не сможет удалить.
+   */
+  @Column({
+    type: "enum",
+    enum: Specialization,
+    enumName: "attempt_specialization",
+    nullable: true,
+  })
+  specialization!: Specialization | null;
 
   @Column({ type: "enum", enum: AttemptStatus, enumName: "attempt_status" })
   status!: AttemptStatus;

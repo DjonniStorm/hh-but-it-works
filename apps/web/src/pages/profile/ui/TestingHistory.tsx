@@ -1,10 +1,10 @@
 import {
   type AttemptHistory,
+  attemptCategory,
   formatDate,
   statusColors,
   statusLabels,
 } from "@/pages/profile/model/attempt";
-import { gradeOptions, optionLabel } from "@/pages/profile/model/options";
 import { Badge, Divider, Group, Stack, Text, Title } from "@mantine/core";
 
 export const TestingHistory = ({
@@ -24,8 +24,7 @@ export const TestingHistory = ({
             <Group key={item.attemptId} justify="space-between" wrap="nowrap">
               <Stack gap={0}>
                 <Text>
-                  {formatDate(item.finishedAt)},{" "}
-                  {optionLabel(gradeOptions, item.grade)}
+                  {formatDate(item.finishedAt)}, {attemptCategory(item)}
                 </Text>
                 <Text size="sm" c="dimmed">
                   Балл {item.score}, чистота {item.integrity}
