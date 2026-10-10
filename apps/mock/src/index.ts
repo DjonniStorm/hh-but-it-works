@@ -83,6 +83,33 @@ type Participant = typeof participantSchema.static;
 // Названия, годы и места соревнований совпадают с сидом; kind/level/organizer и
 // отдельные документы — домен мока, их в сиде нет.
 const participants: Record<string, Participant> = {
+  // Тестовый участник без пары в сиде API: для проверки импорта по почте.
+  // Регистрируешься в приложении с этой почтой — на главной должно появиться превью.
+  "fsp-test": {
+    fspId: "fsp-test",
+    name: "Тестовый Участник",
+    email: "seed.test@candidates.hh.test",
+    sportRank: "kms",
+    rating: 999,
+    achievements: [
+      {
+        title: "Открытый чемпионат ФСП для тестов",
+        year: 2026,
+        place: 1,
+        kind: "competition",
+        level: "all_russia",
+        organizer: "ФСП",
+      },
+      {
+        title: "Сертификат участника",
+        year: 2026,
+        place: null,
+        kind: "certificate",
+        level: "all_russia",
+        organizer: "ФСП",
+      },
+    ],
+  },
   "fsp-demo": {
     fspId: "fsp-demo",
     name: "Демо Участник",

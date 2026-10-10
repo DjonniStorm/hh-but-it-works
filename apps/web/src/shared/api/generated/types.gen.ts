@@ -150,6 +150,16 @@ export type FspHistoryDtoOutput = {
     } | null;
 };
 
+export type FspLinkDto = {
+    fspId: string | null;
+    showFsp: boolean;
+};
+
+export type FspLinkResultDtoOutput = {
+    fspId: string | null;
+    showFsp: boolean;
+};
+
 export type ResumeDraftDtoOutput = {
     displayName: string | null;
     specialization: 'backend' | 'frontend' | 'data' | 'security' | null;
@@ -935,6 +945,32 @@ export type ProfilesControllerFspHistoryResponses = {
 };
 
 export type ProfilesControllerFspHistoryResponse = ProfilesControllerFspHistoryResponses[keyof ProfilesControllerFspHistoryResponses];
+
+export type ProfilesControllerFspLinkData = {
+    body: FspLinkDto;
+    path?: never;
+    query?: never;
+    url: '/profile/fsp';
+};
+
+export type ProfilesControllerFspLinkErrors = {
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли candidate
+     */
+    403: ApiErrorDto;
+};
+
+export type ProfilesControllerFspLinkError = ProfilesControllerFspLinkErrors[keyof ProfilesControllerFspLinkErrors];
+
+export type ProfilesControllerFspLinkResponses = {
+    200: FspLinkResultDtoOutput;
+};
+
+export type ProfilesControllerFspLinkResponse = ProfilesControllerFspLinkResponses[keyof ProfilesControllerFspLinkResponses];
 
 export type ProfilesControllerResumeDraftData = {
     body: {

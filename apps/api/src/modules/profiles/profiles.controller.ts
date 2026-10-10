@@ -26,7 +26,9 @@ import { User } from "../users/user.entity";
 import {
   CandidateProfileDto,
   FspHistoryDto,
+  FspLinkDto,
   FspLinkPreviewDto,
+  FspLinkResultDto,
   ResumeDraftDto,
   ResumePdfQueryDto,
   SaveProfileDto,
@@ -65,6 +67,13 @@ export class ProfilesController {
   @ZodResponse({ status: 200, type: FspHistoryDto })
   fspHistory(@CurrentUser() user: User) {
     return this.profiles.fspHistory(user.id);
+  }
+
+  // Привязка ФСП меняет только ID и показ — без проверки остальной анкеты.
+  @Put("fsp")
+  @ZodResponse({ status: 200, type: FspLinkResultDto })
+  fspLink(@CurrentUser() user: User, @Body() body: FspLinkDto) {
+    return this.profiles.fspLink(user.id, body);
   }
 
   @Post("resume-draft")

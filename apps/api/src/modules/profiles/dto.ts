@@ -3,7 +3,9 @@ import { createZodDto } from "nestjs-zod";
 import {
   candidateProfileSchema,
   fspHistorySchema,
+  fspLinkInputSchema,
   fspLinkPreviewSchema,
+  fspLinkResultSchema,
   resumeDraftSchema,
   resumePdfQuerySchema,
   saveProfileSchema,
@@ -15,3 +17,5 @@ export class ResumeDraftDto extends createZodDto(resumeDraftSchema) {}
 export class ResumePdfQueryDto extends createZodDto(resumePdfQuerySchema) {}
 export class FspLinkPreviewDto extends createZodDto(fspLinkPreviewSchema) {}
 export class FspHistoryDto extends createZodDto(fspHistorySchema) {}
+export class FspLinkDto extends createZodDto(fspLinkInputSchema) {}
+export class FspLinkResultDto extends createZodDto(fspLinkResultSchema) {}

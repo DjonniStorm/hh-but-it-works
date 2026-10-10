@@ -1,4 +1,3 @@
-import { profileToInput } from "@/pages/profile/model/save-contacts";
 import type {
   ContactValues,
   ResumeDraftHit,
@@ -7,6 +6,7 @@ import type {
 import {
   profilesControllerExportPdf,
   profilesControllerFspHistory,
+  profilesControllerFspLink,
   profilesControllerFspLinkPreview,
   profilesControllerGet,
   profilesControllerResumeDraft,
@@ -21,6 +21,7 @@ import type {
   CandidateProfile,
   FspHistory,
   FspLinkPreview,
+  FspLinkResult,
   ResumeDraft,
   SaveProfileInput,
 } from "@hh/contracts";
@@ -124,14 +125,24 @@ export class ProfileStore {
   // а модалка успевает закрыться с содержимым.
   linkFsp(
     input: { fspId: string; showFsp: boolean },
-    options?: CallOptions<CandidateProfile>,
+    options?: CallOptions<FspLinkResult>,
   ) {
-    const profile = this.profile;
-    if (!profile) {
-      // Анкеты ещё нет — привязывать нечего, тишина вместо пустого тоста.
-      return Promise.resolve<CandidateProfile | null>(null);
-    }
-    return this.save(profileToInput(profile, input), options);
+    return request(
+      this.root,
+      async () => {
+        const result = await profilesControllerFspLink({ body: input });
+        const link = readData(result);
+        // Анкеты ещё нет — страница подхватит ID после своей загрузки.
+        runInAction(() => {
+          if (this.profile) {
+            this.profile.fspId = link.fspId;
+            this.profile.showFsp = link.showFsp;
+          }
+        });
+        return link;
+      },
+      { loader: true, ...options },
+    );
   }
 
   parseResume(file: File, options?: CallOptions<ResumeDraft>) {

@@ -506,6 +506,19 @@ export const fspHistorySchema = z.object({
   participant: fspParticipantSchema.nullable(),
 });
 
+// Привязка ФСП меняет только два поля: ручка работает и с незаполненной анкетой.
+export const fspLinkInputSchema = z.object({
+  fspId: z.string().trim().min(1).max(64).nullable(),
+  showFsp: z.boolean(),
+});
+
+// Что записалось: клиент правит только эти поля, не всю анкету.
+// Без max конвертер выдаёт type:[string,null], а hey-api делает string[].
+export const fspLinkResultSchema = z.object({
+  fspId: z.string().max(64).nullable(),
+  showFsp: z.boolean(),
+});
+
 export const candidatePreferencesSchema = z.object({
   desiredSalaryFrom: z.number().int().positive().nullable(),
   workFormats: z.array(workFormatSchema),
@@ -817,6 +830,8 @@ export type FspParticipant = z.infer<typeof fspParticipantSchema>;
 export type FspLinkStatus = z.infer<typeof fspLinkStatusSchema>;
 export type FspLinkPreview = z.infer<typeof fspLinkPreviewSchema>;
 export type FspHistory = z.infer<typeof fspHistorySchema>;
+export type FspLinkInput = z.infer<typeof fspLinkInputSchema>;
+export type FspLinkResult = z.infer<typeof fspLinkResultSchema>;
 export type CandidatePreferences = z.infer<typeof candidatePreferencesSchema>;
 export type CandidateSnapshot = z.infer<typeof candidateSnapshotSchema>;
 export type CandidateSearch = z.infer<typeof candidateSearchSchema>;

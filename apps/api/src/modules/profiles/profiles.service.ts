@@ -11,7 +11,9 @@ import { coreSkills } from "@hh/assessment-engine";
 import type {
   CandidateProfile as CandidateProfileView,
   FspHistory as FspHistoryView,
+  FspLinkInput,
   FspLinkPreview as FspLinkPreviewView,
+  FspLinkResult,
   SaveProfileInput,
 } from "@hh/contracts";
 import {
@@ -120,6 +122,31 @@ export class ProfilesService implements OnModuleInit {
     const profile = await this.profiles.findOne({ where: { userId } });
     const participant = await this.fsp.participant(profile?.fspId ?? null);
     return { participant };
+  }
+
+  // Привязка без полной анкеты: меняем только два поля, поэтому подходит
+  // и свежему кандидату, у которого строки профиля ещё нет.
+  async fspLink(userId: string, input: FspLinkInput): Promise<FspLinkResult> {
+    const profile = await this.profiles.findOne({ where: { userId } });
+    if (profile) {
+      profile.fspId = input.fspId;
+      profile.showFsp = input.showFsp;
+      const saved = await this.profiles.save(profile);
+      return { fspId: saved.fspId, showFsp: saved.showFsp };
+    }
+    // Три обязательных поля анкеты не nullable. Ставим заглушки: первое
+    // сохранение анкеты заменит их, а до тех пор кандидат не виден в подборке.
+    const saved = await this.profiles.save(
+      this.profiles.create({
+        userId,
+        displayName: "",
+        specialization: Specialization.Backend,
+        claimedGrade: Grade.Junior,
+        fspId: input.fspId,
+        showFsp: input.showFsp,
+      }),
+    );
+    return { fspId: saved.fspId, showFsp: saved.showFsp };
   }
 
   // Навыки анкеты из каталога и ядро специализации, даже если его в анкете нет.

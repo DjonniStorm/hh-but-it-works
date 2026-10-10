@@ -572,6 +572,60 @@
         "tags": ["Profiles"]
       }
     },
+    "/profile/fsp": {
+      "put": {
+        "operationId": "ProfilesController_fspLink",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FspLinkDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FspLinkResultDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Profiles"]
+      }
+    },
     "/profile/resume-draft": {
       "post": {
         "operationId": "ProfilesController_resumeDraft",
@@ -3287,6 +3341,36 @@
           }
         },
         "required": ["participant"],
+        "additionalProperties": false
+      },
+      "FspLinkDto": {
+        "type": "object",
+        "properties": {
+          "fspId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "nullable": true
+          },
+          "showFsp": {
+            "type": "boolean"
+          }
+        },
+        "required": ["fspId", "showFsp"]
+      },
+      "FspLinkResultDto_Output": {
+        "type": "object",
+        "properties": {
+          "fspId": {
+            "type": "string",
+            "maxLength": 64,
+            "nullable": true
+          },
+          "showFsp": {
+            "type": "boolean"
+          }
+        },
+        "required": ["fspId", "showFsp"],
         "additionalProperties": false
       },
       "ResumeDraftDto_Output": {
