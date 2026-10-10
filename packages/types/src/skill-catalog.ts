@@ -204,7 +204,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "kubernetes",
     title: "Kubernetes",
-    tested: false,
+    tested: true,
     specializations: [backend, security],
   },
   {
@@ -228,7 +228,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "git",
     title: "Git",
-    tested: false,
+    tested: true,
     specializations: [backend, frontend, data, security],
   },
   {
@@ -330,7 +330,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "system-design",
     title: "System Design",
-    tested: false,
+    tested: true,
     specializations: [backend],
   },
   {
@@ -348,7 +348,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "алгоритмы",
     title: "Алгоритмы",
-    tested: false,
+    tested: true,
     specializations: [backend, frontend, data, security],
   },
   {
