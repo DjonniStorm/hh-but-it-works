@@ -26,7 +26,7 @@ import type {
 
 import { type RequestOptions, readData, request } from "./request";
 import type { RootStore } from "./root-store";
-import { clearStoredSession, readSession, writeSession } from "./session";
+import { forgetStoredSession } from "./session";
 import { StoreKey } from "./store-key";
 
 type CallOptions<T> = Pick<RequestOptions<T>, "onError" | "onSuccess">;
@@ -34,21 +34,20 @@ type CallOptions<T> = Pick<RequestOptions<T>, "onError" | "onSuccess">;
 export class AuthStore {
   readonly key = StoreKey.Auth;
   user: PublicUser | null = null;
+  // Access-токен только в памяти. Refresh лежит в HttpOnly-cookie, странице он не виден.
   accessToken: string | null = null;
-  refreshToken: string | null = null;
   // Сервер выдаёт refresh-токен на один раз. Параллельные 401 ждут одно обновление.
   private renewing: Promise<boolean> | null = null;
+  // Восстановление сессии после загрузки страницы: одно на загрузку, его ждут роуты.
+  private restoring: Promise<boolean> | null = null;
 
   constructor(private readonly root: RootStore) {
-    makeAutoObservable<this, "root" | "key" | "renewing">(
+    makeAutoObservable<this, "root" | "key" | "renewing" | "restoring">(
       this,
-      { key: false, root: false, renewing: false },
+      { key: false, root: false, renewing: false, restoring: false },
       { autoBind: true },
     );
-    const saved = readSession();
-    if (saved) {
-      this.applySession(saved);
-    }
+    forgetStoredSession();
   }
 
   register(input: RegisterInput, options?: CallOptions<PublicUser>) {
@@ -128,24 +127,13 @@ export class AuthStore {
     );
   }
 
-  refresh(options?: CallOptions<Session>) {
-    const refreshToken = this.refreshToken;
-    if (!refreshToken) {
-      const error = new Error("Сессия недействительна");
-      this.root.errors.report(error, options?.onError);
-      return Promise.reject(error);
+  // После перезагрузки access-токена нет: берём новый по cookie. Тихо, как
+  // renewSession: у гостя 401 значит «не вошёл», а не «сессия закончилась».
+  restoreSession(): Promise<boolean> {
+    if (!this.restoring) {
+      this.restoring = this.renewSession();
     }
-
-    return request(
-      this.root,
-      async () => {
-        const result = await authControllerRefresh({ body: { refreshToken } });
-        const session = mapSession(readData(result));
-        this.applySession(session);
-        return session;
-      },
-      { loader: false, ...options },
-    );
+    return this.restoring;
   }
 
   // Тихое обновление для request: без тоста и лоадера. false — сессию не вернуть.
@@ -159,12 +147,8 @@ export class AuthStore {
   }
 
   private async exchangeRefresh(): Promise<boolean> {
-    const refreshToken = this.refreshToken;
-    if (!refreshToken) {
-      return false;
-    }
     try {
-      const result = await authControllerRefresh({ body: { refreshToken } });
+      const result = await authControllerRefresh();
       this.applySession(mapSession(readData(result)));
       return true;
     } catch {
@@ -172,18 +156,12 @@ export class AuthStore {
     }
   }
 
+  // Cookie стирает сервер, поэтому выход всегда через запрос.
   logout(options?: CallOptions<void>) {
-    const refreshToken = this.refreshToken;
-    if (!refreshToken) {
-      this.clearSession();
-      options?.onSuccess?.();
-      return Promise.resolve();
-    }
-
     return request(
       this.root,
       async () => {
-        const result = await authControllerLogout({ body: { refreshToken } });
+        const result = await authControllerLogout();
         readData(result);
         this.clearSession();
         return undefined;
@@ -208,8 +186,6 @@ export class AuthStore {
   private applySession(session: Session): void {
     this.user = session.user;
     this.accessToken = session.accessToken;
-    this.refreshToken = session.refreshToken;
-    writeSession(session);
     client.setConfig({
       auth: () => this.accessToken ?? undefined,
     });
@@ -223,8 +199,6 @@ export class AuthStore {
   private clearSession(): void {
     this.user = null;
     this.accessToken = null;
-    this.refreshToken = null;
-    clearStoredSession();
     client.setConfig({
       auth: () => undefined,
     });

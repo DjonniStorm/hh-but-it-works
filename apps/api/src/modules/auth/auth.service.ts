@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 
 import {
   ConflictException,
@@ -19,17 +19,22 @@ import {
   ConfirmEmailDto,
   ForgotPasswordDto,
   LoginDto,
-  RefreshDto,
   RegisterDto,
   ResendConfirmationDto,
   ResetPasswordDto,
 } from "./dto";
 import { SessionStore } from "./session.store";
 
+// refreshToken уходит в HttpOnly-cookie, в тело ответа попадают остальные поля.
 type Session = {
   accessToken: string;
   refreshToken: string;
   user: PublicUser;
+};
+
+// null — обновление в окне после ротации: новый refresh в cookie уже есть.
+type RenewedSession = Omit<Session, "refreshToken"> & {
+  refreshToken: string | null;
 };
 
 @Injectable()
@@ -134,36 +139,50 @@ export class AuthService {
     return this.issueSession(user);
   }
 
-  async refresh(input: RefreshDto): Promise<Session> {
-    const userId = this.readRefreshUserId(input.refreshToken);
-    if (!userId) {
+  async refresh(refreshToken: string | null): Promise<RenewedSession> {
+    const userId = refreshToken ? this.readRefreshUserId(refreshToken) : null;
+    if (!refreshToken || !userId) {
       throw new UnauthorizedException("Сессия недействительна");
     }
-    const storedUserId = await this.sessions.takeRefresh(input.refreshToken);
-    if (storedUserId !== userId) {
+    const rotation = await this.sessions.rotateRefresh(refreshToken);
+    if (rotation?.userId !== userId) {
       throw new UnauthorizedException("Сессия недействительна");
     }
     const user = await this.users.findById(userId);
     if (!user) {
       throw new UnauthorizedException("Сессия недействительна");
     }
+    if (rotation.grace) {
+      return {
+        accessToken: this.signAccess(user),
+        refreshToken: null,
+        user: toPublicUser(user),
+      };
+    }
     return this.issueSession(user);
   }
 
-  async logout(input: RefreshDto): Promise<void> {
-    if (!this.readRefreshUserId(input.refreshToken)) {
-      throw new UnauthorizedException("Сессия недействительна");
+  // Выход всегда удаётся: cookie стирает контроллер, даже если токен уже недействителен.
+  async logout(refreshToken: string | null): Promise<void> {
+    if (refreshToken && this.readRefreshUserId(refreshToken)) {
+      await this.sessions.dropRefresh(refreshToken);
     }
-    await this.sessions.dropRefresh(input.refreshToken);
+  }
+
+  private signAccess(user: User): string {
+    return this.jwt.sign({ sub: user.id, role: user.role });
   }
 
   private async issueSession(user: User): Promise<Session> {
-    const accessToken = this.jwt.sign({ sub: user.id, role: user.role });
+    const accessToken = this.signAccess(user);
     const refreshToken = this.jwt.sign(
       { sub: user.id },
       {
         secret: this.config.getOrThrow<string>("JWT_REFRESH_SECRET"),
         expiresIn: "7d",
+        // Без jti два токена одного пользователя в одну секунду совпадали бы
+        // байт в байт, и ротация вернула бы тот же токен.
+        jwtid: randomUUID(),
       },
     );
     await this.sessions.saveRefresh(refreshToken, user.id);

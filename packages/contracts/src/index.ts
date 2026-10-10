@@ -20,7 +20,14 @@ export * from "./format";
 export const roleSchema = z.enum(Role);
 
 // Правило нового пароля: одно на регистрацию и на сброс.
-export const passwordSchema = z.string().min(8, "Минимум 8 символов");
+// bcrypt всё равно учитывает только первые 72 байта.
+export const passwordSchema = z
+  .string()
+  .min(8, "Минимум 8 символов")
+  .max(72, "Не длиннее 72 символов");
+
+// Токен из письма: base64url от 32 байт, 43 символа. Граница с запасом.
+const emailTokenSchema = z.string().min(1).max(128);
 
 export const registerSchema = z.object({
   email: z.email("Укажите почту"),
@@ -31,11 +38,16 @@ export const registerSchema = z.object({
 
 export const loginSchema = z.object({
   email: z.email("Укажите почту"),
-  password: z.string().min(1, "Введите пароль"),
+  // Шире правила нового пароля: пароли, заведённые до границы в 72 символа,
+  // должны по-прежнему входить. Граница только от огромных тел запроса.
+  password: z
+    .string()
+    .min(1, "Введите пароль")
+    .max(256, "Не длиннее 256 символов"),
 });
 
 export const confirmEmailSchema = z.object({
-  token: z.string().min(1),
+  token: emailTokenSchema,
 });
 
 export const resendConfirmationSchema = z.object({
@@ -47,12 +59,8 @@ export const forgotPasswordSchema = z.object({
 });
 
 export const resetPasswordSchema = z.object({
-  token: z.string().min(1),
+  token: emailTokenSchema,
   password: passwordSchema,
-});
-
-export const refreshSchema = z.object({
-  refreshToken: z.string().min(1),
 });
 
 export const publicUserSchema = z.object({
@@ -64,9 +72,9 @@ export const publicUserSchema = z.object({
   consentAt: z.iso.datetime().nullable(),
 });
 
+// Refresh-токен в тело не входит: API кладёт его в HttpOnly-cookie hh_refresh.
 export const sessionSchema = z.object({
   accessToken: z.string(),
-  refreshToken: z.string(),
   user: publicUserSchema,
 });
 
@@ -744,7 +752,6 @@ export type ConfirmEmailInput = z.infer<typeof confirmEmailSchema>;
 export type ResendConfirmationInput = z.infer<typeof resendConfirmationSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
-export type RefreshInput = z.infer<typeof refreshSchema>;
 export type PublicUser = z.infer<typeof publicUserSchema>;
 export type Session = z.infer<typeof sessionSchema>;
 export type Health = z.infer<typeof healthSchema>;

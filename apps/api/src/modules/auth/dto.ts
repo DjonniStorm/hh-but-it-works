@@ -5,7 +5,6 @@ import {
   forgotPasswordSchema,
   loginSchema,
   publicUserSchema,
-  refreshSchema,
   registerSchema,
   resendConfirmationSchema,
   resetPasswordSchema,
@@ -20,6 +19,5 @@ export class ResendConfirmationDto extends createZodDto(
 ) {}
 export class ForgotPasswordDto extends createZodDto(forgotPasswordSchema) {}
 export class ResetPasswordDto extends createZodDto(resetPasswordSchema) {}
-export class RefreshDto extends createZodDto(refreshSchema) {}
 export class PublicUserDto extends createZodDto(publicUserSchema) {}
 export class SessionDto extends createZodDto(sessionSchema) {}

@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 
+import { rootStore } from "@/app/store/root-store";
 import { EmployerLayout } from "@/pages/employer/ui/EmployerLayout";
 import { Navigate, createBrowserRouter } from "react-router";
 
@@ -35,6 +36,13 @@ function lazyPage<T extends Record<string, unknown>>(
   };
 }
 
+// Кабинет решает «вошёл или нет» только после восстановления сессии по cookie,
+// иначе перезагрузка страницы выкидывала бы на вход.
+async function restoreSession() {
+  await rootStore.auth.restoreSession();
+  return null;
+}
+
 const pageFallback = <RouteFallback />;
 const screenFallback = <RouteFallback fullScreen />;
 
@@ -45,6 +53,8 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <ProtectedRoute />,
+        loader: restoreSession,
+        hydrateFallbackElement: screenFallback,
         children: [
           {
             index: true,
