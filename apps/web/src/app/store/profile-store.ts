@@ -8,6 +8,7 @@ import {
   profilesControllerFspHistory,
   profilesControllerFspLink,
   profilesControllerFspLinkPreview,
+  profilesControllerFspLogin,
   profilesControllerGet,
   profilesControllerResumeDraft,
   profilesControllerSave,
@@ -131,6 +132,26 @@ export class ProfileStore {
       this.root,
       async () => {
         const result = await profilesControllerFspLink({ body: input });
+        const link = readData(result);
+        // Анкеты ещё нет — страница подхватит ID после своей загрузки.
+        runInAction(() => {
+          if (this.profile) {
+            this.profile.fspId = link.fspId;
+            this.profile.showFsp = link.showFsp;
+          }
+        });
+        return link;
+      },
+      { loader: true, ...options },
+    );
+  }
+
+  // OIDC-вход через реестр: code обменивается на сервере, в стор приходят те же два поля.
+  fspLogin(code: string, options?: CallOptions<FspLinkResult>) {
+    return request(
+      this.root,
+      async () => {
+        const result = await profilesControllerFspLogin({ body: { code } });
         const link = readData(result);
         // Анкеты ещё нет — страница подхватит ID после своей загрузки.
         runInAction(() => {

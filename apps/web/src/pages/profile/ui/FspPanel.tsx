@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
+import { fspLoginUrl } from "@/shared/fsp/model/oidc";
 import { FspHistory } from "@/shared/fsp/ui/FspHistory";
 import { FspImportModal } from "@/shared/fsp/ui/FspImportModal";
 import { sportRankLabel } from "@/shared/lib/labels";
@@ -13,6 +14,7 @@ import {
   Paper,
   Stack,
   Text,
+  Tooltip,
 } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
@@ -31,6 +33,8 @@ export const FspPanel = observer(
     const [historyReady, setHistoryReady] = useState(true);
 
     const fspId = profile.fspId;
+    // Привязка пишет в строку профиля: до первого сохранения анкеты писать некуда.
+    const saved = profile.displayName.trim() !== "";
 
     // История грузится, как только появился привязанный ID.
     useEffect(() => {
@@ -50,19 +54,19 @@ export const FspPanel = observer(
 
     const searchByEmail = () => {
       setSearch("searching");
-      void profiles
-        .loadFspPreview()
-        .then((preview) => {
-          if (preview?.status === "found") {
+      void profiles.loadFspPreview({
+        onSuccess: (preview) => {
+          if (preview.status === "found") {
             setSearch("idle");
             setModalOpened(true);
             return;
           }
-          setSearch(preview?.status ?? "unavailable");
-        })
-        .catch(() => {
+          setSearch(preview.status);
+        },
+        onError: () => {
           setSearch("unavailable");
-        });
+        },
+      });
     };
 
     if (fspId) {
@@ -116,30 +120,57 @@ export const FspPanel = observer(
               Достижения ФСП
             </Text>
             <Text size="sm">
-              ID участника ещё не привязан. Найдём вас в реестре по почте
-              аккаунта — она уже подтверждена.
+              ID участника ещё не привязан. Подключите ФСП — так связь
+              подтвердит сам реестр. Если реестр не знает вашей почты, найдём
+              историю по почте аккаунта.
             </Text>
             <Group gap="xs" align="flex-start">
-              <Button
-                type="button"
-                size="xs"
-                variant="outline"
-                loading={search === "searching"}
-                onClick={searchByEmail}
-              >
-                Найти по моей почте
-              </Button>
-              {search === "not-found" ? (
-                <Text size="sm" c="dimmed">
-                  В реестре нет участника с этой почтой — введите ID вручную.
-                </Text>
-              ) : null}
-              {search === "unavailable" ? (
-                <Text size="sm" c="dimmed">
-                  Реестр сейчас недоступен. Попробуйте позже.
-                </Text>
-              ) : null}
+              {/* Disabled-кнопка не отдаёт события браузеру: тултип вешаем на обёртку. */}
+              <Tooltip label="Сначала сохраните анкету" disabled={saved}>
+                <span>
+                  <Button
+                    type="button"
+                    size="xs"
+                    disabled={!saved}
+                    onClick={() => {
+                      window.location.assign(fspLoginUrl());
+                    }}
+                  >
+                    Подключить ФСП
+                  </Button>
+                </span>
+              </Tooltip>
+              <Tooltip label="Сначала сохраните анкету" disabled={saved}>
+                <span>
+                  <Button
+                    type="button"
+                    size="xs"
+                    variant="outline"
+                    disabled={!saved}
+                    loading={search === "searching"}
+                    onClick={searchByEmail}
+                  >
+                    Найти по моей почте
+                  </Button>
+                </span>
+              </Tooltip>
             </Group>
+            {!saved ? (
+              <Text size="xs" c="dimmed">
+                Подключение станет доступно после сохранения анкеты: заполните
+                ФИО, специализацию и грейд и нажмите «Сохранить контакты».
+              </Text>
+            ) : null}
+            {search === "not-found" ? (
+              <Text size="sm" c="dimmed">
+                В реестре нет участника с этой почтой.
+              </Text>
+            ) : null}
+            {search === "unavailable" ? (
+              <Text size="sm" c="dimmed">
+                Реестр сейчас недоступен. Попробуйте позже.
+              </Text>
+            ) : null}
           </Stack>
         </Paper>
         <FspImportModal

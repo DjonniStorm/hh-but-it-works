@@ -3,6 +3,7 @@ import {
   ConflictException,
   Injectable,
   OnModuleInit,
+  ServiceUnavailableException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { EntityManager, In, Repository } from "typeorm";
@@ -127,25 +128,41 @@ export class ProfilesService implements OnModuleInit {
   // Привязка без полной анкеты: меняем только два поля, поэтому подходит
   // и свежему кандидату, у которого строки профиля ещё нет.
   async fspLink(userId: string, input: FspLinkInput): Promise<FspLinkResult> {
-    const profile = await this.profiles.findOne({ where: { userId } });
-    if (profile) {
-      profile.fspId = input.fspId;
-      profile.showFsp = input.showFsp;
-      const saved = await this.profiles.save(profile);
-      return { fspId: saved.fspId, showFsp: saved.showFsp };
+    return this.writeFspLink(userId, input.fspId, input.showFsp);
+  }
+
+  // OIDC-вход через реестр: обмениваем code на sub и привязываем его как fspId.
+  async fspLogin(userId: string, code: string): Promise<FspLinkResult> {
+    const exchange = await this.fsp.exchangeCode(code);
+    if (exchange.status === "unavailable") {
+      throw new ServiceUnavailableException(
+        "Реестр ФСП сейчас недоступен, попробуйте позже",
+      );
     }
-    // Три обязательных поля анкеты не nullable. Ставим заглушки: первое
-    // сохранение анкеты заменит их, а до тех пор кандидат не виден в подборке.
-    const saved = await this.profiles.save(
-      this.profiles.create({
-        userId,
-        displayName: "",
-        specialization: Specialization.Backend,
-        claimedGrade: Grade.Junior,
-        fspId: input.fspId,
-        showFsp: input.showFsp,
-      }),
-    );
+    if (exchange.status === "invalid") {
+      throw new BadRequestException(
+        "Код входа не подошёл. Начните вход заново",
+      );
+    }
+    return this.writeFspLink(userId, exchange.sub, true);
+  }
+
+  private async writeFspLink(
+    userId: string,
+    fspId: string | null,
+    showFsp: boolean,
+  ): Promise<FspLinkResult> {
+    // Строки профиля может не быть: строку с заглушками не заводим,
+    // кандидат сначала сохраняет анкету сам.
+    const profile = await this.profiles.findOne({ where: { userId } });
+    if (!profile) {
+      throw new BadRequestException(
+        "Сначала сохраните анкету: ФИО, специализацию и грейд",
+      );
+    }
+    profile.fspId = fspId;
+    profile.showFsp = showFsp;
+    const saved = await this.profiles.save(profile);
     return { fspId: saved.fspId, showFsp: saved.showFsp };
   }
 

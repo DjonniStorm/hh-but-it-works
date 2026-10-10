@@ -6,6 +6,7 @@ import {
   fspLinkInputSchema,
   fspLinkPreviewSchema,
   fspLinkResultSchema,
+  fspLoginInputSchema,
   resumeDraftSchema,
   resumePdfQuerySchema,
   saveProfileSchema,
@@ -19,3 +20,4 @@ export class FspLinkPreviewDto extends createZodDto(fspLinkPreviewSchema) {}
 export class FspHistoryDto extends createZodDto(fspHistorySchema) {}
 export class FspLinkDto extends createZodDto(fspLinkInputSchema) {}
 export class FspLinkResultDto extends createZodDto(fspLinkResultSchema) {}
+export class FspLoginDto extends createZodDto(fspLoginInputSchema) {}

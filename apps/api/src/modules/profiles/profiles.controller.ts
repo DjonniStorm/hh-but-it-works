@@ -29,6 +29,7 @@ import {
   FspLinkDto,
   FspLinkPreviewDto,
   FspLinkResultDto,
+  FspLoginDto,
   ResumeDraftDto,
   ResumePdfQueryDto,
   SaveProfileDto,
@@ -74,6 +75,17 @@ export class ProfilesController {
   @ZodResponse({ status: 200, type: FspLinkResultDto })
   fspLink(@CurrentUser() user: User, @Body() body: FspLinkDto) {
     return this.profiles.fspLink(user.id, body);
+  }
+
+  // OIDC-вход через реестр ФСП: code обменивается на сервере, sub становится fspId.
+  @Post("fsp-login")
+  @ZodResponse({ status: 200, type: FspLinkResultDto })
+  @ApiErrors({
+    400: "Код входа не подошёл, уже использован или просрочен",
+    503: "Реестр ФСП сейчас недоступен",
+  })
+  fspLogin(@CurrentUser() user: User, @Body() body: FspLoginDto) {
+    return this.profiles.fspLogin(user.id, body.code);
   }
 
   @Post("resume-draft")

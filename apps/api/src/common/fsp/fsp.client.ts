@@ -41,10 +41,16 @@ type RawParticipant = {
 export class FspClient implements OnModuleDestroy {
   private readonly logger = new Logger(FspClient.name);
   private readonly baseUrl: string;
+  private readonly clientId: string;
+  private readonly clientSecret: string;
   private readonly redis: Redis;
 
   constructor(config: ConfigService) {
     this.baseUrl = config.get<string>("FSP_URL") ?? "http://localhost:3001";
+    // Учётные данные клиента OIDC: мок их не проверяет, но формат — как у Keycloak.
+    this.clientId = config.get<string>("FSP_CLIENT_ID") ?? "hh";
+    this.clientSecret =
+      config.get<string>("FSP_CLIENT_SECRET") ?? "hh-mock-secret";
     this.redis = new Redis(config.getOrThrow<string>("REDIS_URL"), {
       lazyConnect: process.env.OPENAPI_EXPORT === "1",
     });
@@ -100,6 +106,47 @@ export class FspClient implements OnModuleDestroy {
     }
     await this.writeCache(`fsp-by-email:${email}`, result);
     return { status: "found", participant: result };
+  }
+
+  // OIDC-вход: обмен code на sub. Код одноразовый на стороне реестра,
+  // поэтому не кэшируем и не переиспользуем.
+  async exchangeCode(
+    code: string,
+  ): Promise<
+    | { status: "ok"; sub: string }
+    | { status: "invalid" }
+    | { status: "unavailable" }
+  > {
+    try {
+      const response = await fetch(`${this.baseUrl}/token`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          grant_type: "authorization_code",
+          code,
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+        }),
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      if (response.status === 400) {
+        return { status: "invalid" };
+      }
+      if (!response.ok) {
+        return { status: "unavailable" };
+      }
+      const body = (await response.json()) as { sub?: unknown };
+      if (typeof body.sub !== "string" || body.sub === "") {
+        this.logger.warn("Реестр ФСП вернул ответ без sub на обмен code");
+        return { status: "unavailable" };
+      }
+      return { status: "ok", sub: body.sub };
+    } catch (error) {
+      this.logger.warn(
+        `Реестр ФСП недоступен при обмене code: ${String(error)}`,
+      );
+      return { status: "unavailable" };
+    }
   }
 
   // "missing" — в реестре нет, "error" — реестр молчит или прислал битое тело.

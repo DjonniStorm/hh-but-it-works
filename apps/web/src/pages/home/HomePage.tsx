@@ -5,7 +5,7 @@ import { StoreKey } from "@/app/store/store-key";
 import { profileProgress } from "@/pages/home/model/progress";
 import { AttemptWidget } from "@/pages/home/ui/AttemptWidget";
 import { ChecklistWidget } from "@/pages/home/ui/ChecklistWidget";
-import { FspImportBanner } from "@/pages/home/ui/FspImportBanner";
+import { FspHomeBanner } from "@/pages/home/ui/FspHomeBanner";
 import { HomeHero } from "@/pages/home/ui/HomeHero";
 import { HomeOffer } from "@/pages/home/ui/HomeOffer";
 import { MaterialsSection } from "@/pages/home/ui/MaterialsSection";
@@ -60,7 +60,7 @@ export const HomePage = observer(() => {
       <HomeOffer />
       {profile ? (
         <>
-          <FspImportBanner profile={profile} />
+          <FspHomeBanner profile={profile} />
           <PrepCard profile={profile} />
           <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
             <SkillsWidget profile={profile} />

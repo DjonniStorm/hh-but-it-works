@@ -519,6 +519,11 @@ export const fspLinkResultSchema = z.object({
   showFsp: z.boolean(),
 });
 
+// OIDC-вход через реестр: код, выданный страницей входа ФСП.
+export const fspLoginInputSchema = z.object({
+  code: z.string().trim().min(1).max(200),
+});
+
 export const candidatePreferencesSchema = z.object({
   desiredSalaryFrom: z.number().int().positive().nullable(),
   workFormats: z.array(workFormatSchema),
@@ -832,6 +837,7 @@ export type FspLinkPreview = z.infer<typeof fspLinkPreviewSchema>;
 export type FspHistory = z.infer<typeof fspHistorySchema>;
 export type FspLinkInput = z.infer<typeof fspLinkInputSchema>;
 export type FspLinkResult = z.infer<typeof fspLinkResultSchema>;
+export type FspLoginInput = z.infer<typeof fspLoginInputSchema>;
 export type CandidatePreferences = z.infer<typeof candidatePreferencesSchema>;
 export type CandidateSnapshot = z.infer<typeof candidateSnapshotSchema>;
 export type CandidateSearch = z.infer<typeof candidateSearchSchema>;

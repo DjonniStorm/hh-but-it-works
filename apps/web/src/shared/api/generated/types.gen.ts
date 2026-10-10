@@ -160,6 +160,10 @@ export type FspLinkResultDtoOutput = {
     showFsp: boolean;
 };
 
+export type FspLoginDto = {
+    code: string;
+};
+
 export type ResumeDraftDtoOutput = {
     displayName: string | null;
     specialization: 'backend' | 'frontend' | 'data' | 'security' | null;
@@ -971,6 +975,40 @@ export type ProfilesControllerFspLinkResponses = {
 };
 
 export type ProfilesControllerFspLinkResponse = ProfilesControllerFspLinkResponses[keyof ProfilesControllerFspLinkResponses];
+
+export type ProfilesControllerFspLoginData = {
+    body: FspLoginDto;
+    path?: never;
+    query?: never;
+    url: '/profile/fsp-login';
+};
+
+export type ProfilesControllerFspLoginErrors = {
+    /**
+     * Код входа не подошёл, уже использован или просрочен
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли candidate
+     */
+    403: ApiErrorDto;
+    /**
+     * Реестр ФСП сейчас недоступен
+     */
+    503: ApiErrorDto;
+};
+
+export type ProfilesControllerFspLoginError = ProfilesControllerFspLoginErrors[keyof ProfilesControllerFspLoginErrors];
+
+export type ProfilesControllerFspLoginResponses = {
+    200: FspLinkResultDtoOutput;
+};
+
+export type ProfilesControllerFspLoginResponse = ProfilesControllerFspLoginResponses[keyof ProfilesControllerFspLoginResponses];
 
 export type ProfilesControllerResumeDraftData = {
     body: {

@@ -626,6 +626,80 @@
         "tags": ["Profiles"]
       }
     },
+    "/profile/fsp-login": {
+      "post": {
+        "operationId": "ProfilesController_fspLogin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FspLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FspLinkResultDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Код входа не подошёл, уже использован или просрочен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли candidate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Реестр ФСП сейчас недоступен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Profiles"]
+      }
+    },
     "/profile/resume-draft": {
       "post": {
         "operationId": "ProfilesController_resumeDraft",
@@ -3372,6 +3446,17 @@
         },
         "required": ["fspId", "showFsp"],
         "additionalProperties": false
+      },
+      "FspLoginDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": ["code"]
       },
       "ResumeDraftDto_Output": {
         "type": "object",

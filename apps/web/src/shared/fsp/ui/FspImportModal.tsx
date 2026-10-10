@@ -5,7 +5,15 @@ import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { participantDetails } from "@/shared/fsp/model/participant";
 import { FspHistory } from "@/shared/fsp/ui/FspHistory";
-import { Button, Group, Modal, Stack, Switch, Text } from "@mantine/core";
+import {
+  Button,
+  Group,
+  Modal,
+  ScrollArea,
+  Stack,
+  Switch,
+  Text,
+} from "@mantine/core";
 import { observer } from "mobx-react-lite";
 
 import type { CandidateProfile } from "@hh/contracts";
@@ -45,7 +53,10 @@ export const FspImportModal = observer(
           <Text size="sm" fw={600}>
             {participantDetails(participant)}
           </Text>
-          <FspHistory achievements={participant.achievements} />
+          {/* Длинная история не должна растягивать модалку за экран. */}
+          <ScrollArea type="hover" mah={320}>
+            <FspHistory achievements={participant.achievements} />
+          </ScrollArea>
           <Switch
             label="Показывать достижения ФСП работодателям"
             description="Позже переключается в видимости профиля."

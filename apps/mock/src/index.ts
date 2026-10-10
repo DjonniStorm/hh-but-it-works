@@ -1,6 +1,8 @@
 import { openapi } from "@elysiajs/openapi";
 import { Elysia, t } from "elysia";
 
+import { authorizePage } from "./authorize-page";
+
 // Перечисления руками: mock не зависит от @hh/types (CJS-сборка, bun её не тянет).
 // Значения те же, что FspAchievementKind / FspAchievementLevel / FspSportRank в @hh/types.
 const kindEnum = t.Enum(
@@ -109,6 +111,41 @@ const participants: Record<string, Participant> = {
         organizer: "ФСП",
       },
     ],
+  },
+  // Ещё тестовые участники вне сида: другие разряд, рейтинг и типы документов.
+  "fsp-test2": {
+    fspId: "fsp-test2",
+    name: "Анна Проверкина",
+    email: "seed.test2@candidates.hh.test",
+    sportRank: "rank1",
+    rating: 512,
+    achievements: [
+      {
+        title: "Олимпиада ФСП для тестов",
+        year: 2025,
+        place: 2,
+        kind: "olympiad",
+        level: "regional",
+        organizer: "ФСП Тест",
+      },
+      {
+        title: "Диплом за командное выступление",
+        year: 2024,
+        place: null,
+        kind: "diploma",
+        level: null,
+        organizer: "Тестовый политех",
+      },
+    ],
+  },
+  // Без разряда, без рейтинга и без достижений: кейс «истории ФСП нет» из ТЗ.
+  "fsp-test3": {
+    fspId: "fsp-test3",
+    name: "Пустой Участник",
+    email: "seed.test3@candidates.hh.test",
+    sportRank: null,
+    rating: null,
+    achievements: [],
   },
   "fsp-demo": {
     fspId: "fsp-demo",
@@ -355,6 +392,20 @@ const notFoundSchema = t.Object(
   { description: "Участник в реестре не найден" },
 );
 
+// OIDC-вход: одноразовые коды живут пять минут — как у настоящего провайдера.
+const authCodeTtlMs = 5 * 60 * 1000;
+const authCodes = new Map<
+  string,
+  { sub: string; email: string; name: string; expiresAt: number }
+>();
+
+// Страница входа — HTML, а не JSON: без явного контент-типа браузер покажет исходник.
+const htmlResponse = (page: string, statusCode = 200): Response =>
+  new Response(page, {
+    status: statusCode,
+    headers: { "Content-Type": "text/html; charset=utf-8" },
+  });
+
 new Elysia()
   // Swagger UI на /docs, JSON на /docs/json — как у API.
   .use(
@@ -445,6 +496,180 @@ new Elysia()
       response: {
         200: participantSchema,
         404: notFoundSchema,
+      },
+    },
+  )
+  // Страница входа: эмуляция Keycloak. GET отдаёт форму,
+  // POST проверяет почту и выдаёт code (пароль любой).
+  .get(
+    "/authorize",
+    ({ query }) => {
+      const redirectUri = query.redirect_uri ?? "";
+      const page = (error: string | null): string =>
+        authorizePage({
+          redirectUri,
+          state: query.state ?? "",
+          clientId: query.client_id ?? "",
+          email: "",
+          error,
+        });
+      if (!redirectUri) {
+        return htmlResponse(
+          page(
+            "Не передан redirect_uri — приложение отправило запрос неверно.",
+          ),
+          400,
+        );
+      }
+      return htmlResponse(page(null));
+    },
+    {
+      query: t.Object({
+        redirect_uri: t.Optional(
+          t.String({
+            description:
+              "Куда вернуть code, например http://localhost:5173/profile/fsp-callback",
+          }),
+        ),
+        state: t.Optional(
+          t.String({
+            description: "Защита от подмены редиректа: вернётся как есть",
+          }),
+        ),
+        client_id: t.Optional(t.String()),
+      }),
+      detail: {
+        // HTML-страница, не API: в Swagger не показываем.
+        hide: true,
+      },
+    },
+  )
+  .post(
+    "/authorize",
+    ({ body }) => {
+      const redirectUri = body.redirect_uri ?? "";
+      const page = (error: string | null): string =>
+        authorizePage({
+          redirectUri,
+          state: body.state ?? "",
+          clientId: body.client_id ?? "",
+          email: body.email ?? "",
+          error,
+        });
+      if (!redirectUri) {
+        return htmlResponse(
+          page(
+            "Не передан redirect_uri — приложение отправило запрос неверно.",
+          ),
+          400,
+        );
+      }
+      const email = (body.email ?? "").trim().toLowerCase();
+      if (!email || !body.password) {
+        return htmlResponse(page("Впишите почту и пароль."), 400);
+      }
+      const row = Object.values(participants).find((participant) => {
+        return participant.email === email;
+      });
+      if (!row) {
+        return htmlResponse(
+          page("В реестре нет участника с такой почтой."),
+          404,
+        );
+      }
+      const code = crypto.randomUUID();
+      authCodes.set(code, {
+        sub: row.fspId,
+        email: row.email,
+        name: row.name,
+        expiresAt: Date.now() + authCodeTtlMs,
+      });
+      const separator = redirectUri.includes("?") ? "&" : "?";
+      const location = `${redirectUri}${separator}${new URLSearchParams({ code, state: body.state ?? "" }).toString()}`;
+      return new Response(null, {
+        status: 302,
+        headers: { Location: location },
+      });
+    },
+    {
+      body: t.Object({
+        email: t.Optional(
+          t.String({ description: "Почта участника в реестре" }),
+        ),
+        password: t.Optional(
+          t.String({
+            description: "Пароль: в эмуляции любой, проверяется только почта",
+          }),
+        ),
+        redirect_uri: t.Optional(t.String()),
+        state: t.Optional(t.String()),
+        client_id: t.Optional(t.String()),
+      }),
+      detail: {
+        // HTML-форма, не API: в Swagger не показываем.
+        hide: true,
+      },
+    },
+  )
+  // Серверная часть OIDC-флоу: обмен code на идентификатор участника.
+  .post(
+    "/token",
+    ({ body, status }) => {
+      if (body.grant_type !== "authorization_code") {
+        return status(400, {
+          error: "unsupported_grant_type",
+          error_description: "Поддерживается только authorization_code",
+        });
+      }
+      const now = Date.now();
+      for (const [key, value] of authCodes) {
+        if (value.expiresAt <= now) {
+          authCodes.delete(key);
+        }
+      }
+      const issued = authCodes.get(body.code);
+      if (!issued) {
+        return status(400, {
+          error: "invalid_grant",
+          error_description: "Код не подошёл, уже использован или просрочен",
+        });
+      }
+      // Код одноразовый: повторный обмен невозможен.
+      authCodes.delete(body.code);
+      return {
+        sub: issued.sub,
+        email: issued.email,
+        name: issued.name,
+        token_type: "Bearer" as const,
+      };
+    },
+    {
+      body: t.Object({
+        grant_type: t.String({
+          description: "Только authorization_code",
+          example: "authorization_code",
+        }),
+        code: t.String({ description: "Код, полученный на /authorize" }),
+        client_id: t.Optional(t.String()),
+        client_secret: t.Optional(t.String()),
+      }),
+      detail: {
+        summary: "Обмен code на данные участника",
+        description:
+          "Эмуляция OIDC token-endpoint Keycloak: по одноразовому code возвращает " +
+          "sub (это и есть ФСП ID), почту и имя участника.",
+      },
+      response: {
+        200: t.Object({
+          sub: t.String({ description: "Идентификатор участника — ФСП ID" }),
+          email: t.String({ description: "Почта участника в реестре" }),
+          name: t.String({ description: "Имя участника" }),
+          token_type: t.Literal("Bearer"),
+        }),
+        400: t.Object({
+          error: t.String(),
+          error_description: t.String(),
+        }),
       },
     },
   )

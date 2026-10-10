@@ -73,11 +73,6 @@ export const ContactsPanel = ({
           data={gradeOptions}
           {...form.getInputProps("claimedGrade")}
         />
-        <TextInput
-          label="ID участника ФСП"
-          description="По нему показываем историю достижений. Найти себя по почте можно ниже."
-          {...form.getInputProps("fspId")}
-        />
         <FspPanel profile={profile} />
         <TextInput
           label="Телефон"
