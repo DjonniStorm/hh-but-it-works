@@ -107,7 +107,7 @@ API при старте засеивает 15 компаний с потребн
 | Кандидат     | `seed.b101@candidates.hh.test`      | backend, Middle, подтверждённые навыки  |
 | Кандидат     | `seed.f202@candidates.hh.test`      | frontend, Senior, подтверждённые навыки |
 
-На проде: `DEMO_PASSWORD=…` в `/opt/hh/infra/prod/.env`, затем `docker compose -p hh-prod -f infra/prod/docker-compose.yml up -d --build api`. Убрать значение и пересоздать api значит закрыть вход.
+На проде: `DEMO_PASSWORD=…` в `/opt/hh/infra/prod/.env`, затем `dc up -d --build api` (`dc` — команда из раздела про прод, с `--env-file infra/prod/.env`). Убрать значение и пересоздать api значит закрыть вход.
 
 ## Ranking
 
