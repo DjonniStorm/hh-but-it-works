@@ -354,7 +354,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "javascript",
     title: "JavaScript",
-    tested: false,
+    tested: true,
     specializations: [frontend],
   },
   {
@@ -366,7 +366,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "css",
     title: "CSS",
-    tested: false,
+    tested: true,
     specializations: [frontend],
   },
   {
@@ -504,7 +504,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "pytorch",
     title: "PyTorch",
-    tested: false,
+    tested: true,
     specializations: [data],
   },
   {
@@ -516,7 +516,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "airflow",
     title: "Airflow",
-    tested: false,
+    tested: true,
     specializations: [data],
   },
   {

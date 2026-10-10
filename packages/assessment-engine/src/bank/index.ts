@@ -6,8 +6,10 @@ import {
 } from "@hh/types";
 
 import type { Template } from "../types";
+import { airflow } from "./airflow";
 import { algorithms } from "./algorithms";
 import { csharp } from "./csharp";
+import { css } from "./css";
 import { django } from "./django";
 import { docker } from "./docker";
 import { dotnet } from "./dotnet";
@@ -15,6 +17,7 @@ import { git } from "./git";
 import { go } from "./go";
 import { httpApi } from "./http-api";
 import { java } from "./java";
+import { javascript } from "./javascript";
 import { kafka } from "./kafka";
 import { kubernetes } from "./kubernetes";
 import { linux } from "./linux";
@@ -23,6 +26,7 @@ import { owasp } from "./owasp";
 import { pandas } from "./pandas";
 import { postgresql } from "./postgresql";
 import { python } from "./python";
+import { pytorch } from "./pytorch";
 import { react } from "./react";
 import { redis } from "./redis";
 import { spring } from "./spring";
@@ -56,6 +60,10 @@ const bySkill = {
   git,
   "system-design": systemDesign,
   алгоритмы: algorithms,
+  javascript,
+  css,
+  airflow,
+  pytorch,
 };
 
 export type CatalogSlug = keyof typeof bySkill;
