@@ -48,6 +48,8 @@ export const publicUserSchema = z.object({
   email: z.email(),
   role: roleSchema,
   emailVerifiedAt: z.iso.datetime().nullable(),
+  // null только у старой сессии в браузере, пока /auth/me не обновил её.
+  consentAt: z.iso.datetime().nullable(),
 });
 
 export const sessionSchema = z.object({

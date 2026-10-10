@@ -1,3 +1,5 @@
+import { Specialization, skillCatalog } from "@hh/types";
+
 export const industryOptions = [
   "Финтех",
   "E-commerce",
@@ -11,34 +13,19 @@ export const industryOptions = [
   "Другое",
 ];
 
-// Подсказки для TagsInput. Свой навык можно ввести и не из списка.
-export const skillSuggestions = [
-  "TypeScript",
-  "JavaScript",
-  "React",
-  "Vue",
-  "Node.js",
-  "NestJS",
-  "Python",
-  "FastAPI",
-  "Django",
-  "Go",
-  "Java",
-  "Spring",
-  "PostgreSQL",
-  "SQL",
-  "Redis",
-  "Kafka",
-  "Docker",
-  "Kubernetes",
-  "Linux",
-  "Pandas",
-  "PyTorch",
-  "Spark",
-  "Сети",
-  "Pentest",
-  "OWASP",
-  "Алгоритмы",
-  "System Design",
-  "Playwright",
-];
+function isSpecialization(value: string): value is Specialization {
+  return Object.values(Specialization).includes(value as Specialization);
+}
+
+// Подсказки TagsInput: каталог выбранной специализации. Свой навык вводится с клавиатуры.
+export function skillSuggestionsFor(specialization: string | null): string[] {
+  const rows =
+    specialization && isSpecialization(specialization)
+      ? skillCatalog.filter((skill) => {
+          return skill.specializations.includes(specialization);
+        })
+      : skillCatalog;
+  return rows.map((skill) => {
+    return skill.title;
+  });
+}

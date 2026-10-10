@@ -245,7 +245,9 @@ export class ProfilesService implements OnModuleInit {
         where: { slug: item.slug },
       });
       if (!existing) {
-        await this.skills.save(this.skills.create(item));
+        await this.skills.save(
+          this.skills.create({ slug: item.slug, title: item.title }),
+        );
       }
     }
   }

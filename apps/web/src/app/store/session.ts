@@ -37,6 +37,7 @@ function isStoredSession(value: unknown): value is {
     email: string;
     role: string;
     emailVerifiedAt: string | null;
+    consentAt?: string | null;
   };
 } {
   if (typeof value !== "object" || value === null) {
@@ -59,6 +60,9 @@ function isStoredSession(value: unknown): value is {
     typeof record.email === "string" &&
     typeof record.role === "string" &&
     (record.emailVerifiedAt === null ||
-      typeof record.emailVerifiedAt === "string")
+      typeof record.emailVerifiedAt === "string") &&
+    (record.consentAt === undefined ||
+      record.consentAt === null ||
+      typeof record.consentAt === "string")
   );
 }

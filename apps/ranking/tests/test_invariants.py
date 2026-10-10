@@ -90,9 +90,9 @@ def test_feature_order_matches_score_breakdown_fields():
 def test_skill_catalog_slug_and_title_canonicalize_alike():
     from taxonomy import canonical_skill
 
-    catalog = REPO / "apps/api/src/modules/profiles/skill-catalog.ts"
+    catalog = REPO / "packages/types/src/skill-catalog.ts"
     entries = re.findall(
-        r'\{ slug: "([^"]+)", title: "([^"]+)" \}',
+        r'slug: "([^"]+)",\s*title: "([^"]+)"',
         catalog.read_text(encoding="utf-8"),
     )
     assert entries, "skill-catalog.ts пуст или формат изменился"

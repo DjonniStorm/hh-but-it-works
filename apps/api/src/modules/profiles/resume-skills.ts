@@ -77,7 +77,11 @@ const knownSkills: KnownSkill[] = [
   { title: "CSS", aliases: ["css3?"] },
   { title: "SCSS", aliases: ["s[ac]ss", "scss/sass"] },
   { title: "Tailwind CSS", aliases: [String.raw`tailwind(?:\s*css)?`] },
-  { title: "Vue.js", aliases: [String.raw`vue(?:\.?js)?(?:\s*[23])?`] },
+  {
+    slug: "vue",
+    title: "Vue",
+    aliases: [String.raw`vue(?:\.?js)?(?:\s*[23])?`],
+  },
   { title: "Angular", aliases: ["angular(?:js)?"] },
   { title: "Svelte", aliases: ["svelte(?:kit)?"] },
   { title: "Next.js", aliases: [String.raw`next\.?js`] },
