@@ -1,14 +1,13 @@
 import pytest
 
 from factories import candidate, need
-from schemas import RankingContext
+from schemas import RankingContext, ScoreBreakdown
 from scoring import (
     _best_skill_score,
     _competency_fit,
     _experience_fit,
     _fsp_fit,
     _grade_fit,
-    _personalization_fit,
     _salary_fit,
     _semantic_fit,
     _set_overlap_fit,
@@ -215,24 +214,11 @@ def test_competency_all_weights_zero_is_neutral():
     assert value == 0.68
 
 
-def test_personalization_without_boosts_is_neutral():
-    assert _personalization_fit(candidate(), need(), RankingContext()) == 0.5
-
-
-def test_personalization_positive_boost_rewards_match():
-    boosted = _personalization_fit(candidate(), need(), RankingContext(skillBoosts={"python": 1.0}))
-    assert boosted > 0.5
-
-
-def test_personalization_boost_rewards_candidate_who_has_the_skill():
-    context = RankingContext(skillBoosts={"cobol": 1.0})
-    with_cobol = _personalization_fit(
-        candidate(skills=[{"id": "cobol", "verified": True, "level": 1.0, "confidence": 1.0}]),
-        need(),
-        context,
-    )
-    without = _personalization_fit(candidate(), need(), context)
-    assert with_cobol > without
+def test_personalization_is_out_of_the_model_until_feedback_exists():
+    # Слагаемое персонализации выведено из формулы в rules-v1.2.0: boost'ам
+    # неоткуда прийти из контракта. Контекст API остаётся точкой расширения.
+    score_pair(candidate(), need(), RankingContext(skillBoosts={"python": 1.0}))
+    assert "personalization" not in ScoreBreakdown.model_fields
 
 
 def test_set_overlap_rules():
@@ -428,23 +414,6 @@ def test_competency_boost_changes_the_weighting():
     assert up > plain > down
 
 
-def test_negative_skill_boost_prefers_candidates_without_the_skill():
-    context = RankingContext(skillBoosts={"python": -1.0})
-    with_python = _personalization_fit(candidate(), need(), context)
-    without = _personalization_fit(candidate(skills=[]), need(), context)
-    assert without > with_python
-
-
-def test_zero_boost_is_ignored():
-    assert _personalization_fit(candidate(), need(), RankingContext(skillBoosts={"python": 0.0})) == 0.5
-
-
-def test_context_reaches_score_pair_components():
-    plain = score_pair(candidate(), need())
-    boosted = score_pair(candidate(), need(), RankingContext(skillBoosts={"python": 1.0}))
-    assert boosted.components.personalization >= plain.components.personalization
-
-
 def test_rank_candidates_puts_eligible_candidates_first():
     items = rank_candidates(
         [candidate(id="hidden", availability="hidden"), candidate(id="visible")],
@@ -491,22 +460,17 @@ def test_best_skill_reverse_relation_is_discounted():
     assert reverse == pytest.approx(0.68 * 0.8)
 
 
-def test_personalization_mixes_skill_and_competency_boosts():
-    only_skill = _personalization_fit(candidate(), need(), RankingContext(skillBoosts={"python": 1.0}))
-    mixed = _personalization_fit(
+def test_context_competency_boost_stays_inside_the_scale():
+    # Персонализация выведена из формулы; competencyBoosts остаётся живым
+    # модификатором внутри слагаемого компетенций (см. _competency_fit).
+    plain = _competency_fit(candidate(), need(), RankingContext())
+    boosted = _competency_fit(
         candidate(),
         need(),
         RankingContext(skillBoosts={"python": 1.0}, competencyBoosts={"databases": 1.0}),
     )
-    only_competency = _personalization_fit(
-        candidate(),
-        need(),
-        RankingContext(competencyBoosts={"databases": 1.0}),
-    )
-    assert only_skill != mixed
-    assert only_competency != mixed
-    # Все три комбинации остаются в пределах шкалы.
-    assert all(0.0 <= value <= 1.0 for value in (only_skill, mixed, only_competency))
+    assert 0.0 <= plain <= 1.0
+    assert 0.0 <= boosted <= 1.0
 
 
 def test_best_skill_score_grows_with_level_confidence_and_verification():

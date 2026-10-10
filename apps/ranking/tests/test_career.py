@@ -180,7 +180,7 @@ def test_career_endpoint_returns_model_version():
     )
     assert response.status_code == 200
     body = response.json()
-    assert body["modelVersion"] == "rules-v1.1.0"
+    assert body["modelVersion"] == "rules-v1.2.0"
     assert isinstance(body["actions"], list)
     assert isinstance(body["topGaps"], list)
 

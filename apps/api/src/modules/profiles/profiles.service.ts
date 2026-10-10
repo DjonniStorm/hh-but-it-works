@@ -308,6 +308,7 @@ export class ProfilesService implements OnModuleInit {
           specialization: input.specialization,
           claimedGrade: input.claimedGrade,
           listed: false,
+          softSkills: input.softSkills,
           ...links,
           ...expectations(input),
         }),
@@ -328,10 +329,12 @@ export class ProfilesService implements OnModuleInit {
     existing.specialization = input.specialization;
     existing.claimedGrade = input.claimedGrade;
     existing.fspId = links.fspId;
+    existing.phone = links.phone;
     existing.telegram = links.telegram;
     existing.github = links.github;
     existing.linkedin = links.linkedin;
     existing.website = links.website;
+    existing.softSkills = input.softSkills;
     Object.assign(existing, expectations(input));
     // Иначе listed не трогаем: на биржу выводит только подтверждение.
     return profiles.save(existing);
@@ -479,12 +482,16 @@ export class ProfilesService implements OnModuleInit {
       specialization: profile?.specialization ?? null,
       claimedGrade: profile?.claimedGrade ?? null,
       fspId: profile?.fspId ?? null,
+      phone: profile?.phone ?? null,
       telegram: profile?.telegram ?? null,
       github: profile?.github ?? null,
       linkedin: profile?.linkedin ?? null,
       website: profile?.website ?? null,
+      softSkills: profile?.softSkills ?? [],
       desiredSalaryFrom: profile?.desiredSalaryFrom ?? null,
       experienceYears: profile?.experienceYears ?? null,
+      education: profile?.education ?? [],
+      experience: profile?.experience ?? [],
       workFormats: profile?.workFormats ?? [],
       searchStatus: profile?.searchStatus ?? SearchStatus.OpenToOffers,
       showExperience: profile?.showExperience ?? true,
@@ -515,6 +522,7 @@ export class ProfilesService implements OnModuleInit {
 
 function blankLinks(input: SaveProfileInput): {
   fspId: string | null;
+  phone: string | null;
   telegram: string | null;
   github: string | null;
   linkedin: string | null;
@@ -522,6 +530,7 @@ function blankLinks(input: SaveProfileInput): {
 } {
   return {
     fspId: blank(input.fspId),
+    phone: blank(input.phone),
     telegram: blank(input.telegram),
     github: blank(input.github),
     linkedin: blank(input.linkedin),
@@ -535,6 +544,8 @@ function expectations(
   CandidateProfile,
   | "desiredSalaryFrom"
   | "experienceYears"
+  | "education"
+  | "experience"
   | "workFormats"
   | "searchStatus"
   | "showExperience"
@@ -545,6 +556,8 @@ function expectations(
   return {
     desiredSalaryFrom: input.desiredSalaryFrom,
     experienceYears: input.experienceYears,
+    education: input.education,
+    experience: input.experience,
     workFormats: input.workFormats,
     searchStatus: input.searchStatus,
     showExperience: input.showExperience,

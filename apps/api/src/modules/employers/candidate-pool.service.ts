@@ -17,10 +17,10 @@ import {
   gradeOrder,
 } from "@hh/types";
 
+import { FspClient } from "../../common/fsp/fsp.client";
 import { CandidateProfile } from "../profiles/candidate-profile.entity";
 import { CandidateSkill } from "../profiles/candidate-skill.entity";
 import { Skill } from "../profiles/skill.entity";
-import { FspClient } from "./fsp.client";
 
 // Кого работодатель видит на бирже: тест сдан (listed), грейд подтверждён, кандидат
 // не скрылся. Подборка, счётчик и приглашение проверяют одно и то же условие.

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 2,
+  "source": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "revision": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42",
+  "maxSeqLength": 128,
+  "opset": 17,
+  "quantization": "dynamic-int8",
+  "pooling": "mean-with-attention-mask+l2-normalize",
+  "similarity": "cosine",
+  "artifact": {
+    "name": "embedder-int8.onnx",
+    "sha256": "887a0e67218e5110f14f99418ce6fb051e092495cba9d84a017590c8d08f10ba",
+    "parts": 2,
+    "partMaxBytes": 94371840
+  },
+  "files": {
+    "embedder-int8.onnx.0000": "8bd6840cc9e609ef6933da4503d88d3a8d7456bbe29d1a83675ec60e9c15822e",
+    "embedder-int8.onnx.0001": "b3f636750dff6de683d1fb5f9b2498290b43e3aab52f46d1bc99039e86b259c7",
+    "tokenizer.json": "3a56def25aa40facc030ea8b0b87f3688e4b3c39eb8b45d5702b3a1300fe2a20"
+  },
+  "build": {
+    "torch": "2.8.0",
+    "transformers": "4.57.6",
+    "onnxruntime": "1.19.2"
+  },
+  "referenceCosine": 0.990045
+}

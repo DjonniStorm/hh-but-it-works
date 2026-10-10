@@ -5,6 +5,7 @@ import { Outlet } from "react-router";
 
 import { RouteFallback } from "./RouteFallback";
 
+// Фон auth-страниц рисуют сами страницы: seed берётся из их полей (почта, токен).
 export const AuthLayout = () => {
   return (
     <RequestOverlay fullScreen>

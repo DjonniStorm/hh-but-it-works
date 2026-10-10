@@ -10,7 +10,7 @@ from hypothesis import strategies as st
 
 from factories import candidate, need
 from schemas import CandidateSnapshot, HiringNeedSnapshot, ScoreBreakdown
-from scoring import eligibility, rank_candidates, score_pair
+from scoring import MODEL_VERSION, eligibility, rank_candidates, score_pair
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO = ROOT.parent.parent
@@ -53,13 +53,13 @@ def _typescript_breakdown() -> list[tuple[str, float]]:
 
 def test_qualification_weights_sum_to_one():
     weights = _python_weights("qualification")
-    assert len(weights) == 11
+    assert len(weights) == 10
     assert sum(weights) == pytest.approx(1.0)
 
 
 def test_opportunity_weights_sum_to_one():
     weights = _python_weights("opportunity")
-    assert len(weights) == 6
+    assert len(weights) == 3
     assert sum(weights) == pytest.approx(1.0)
 
 
@@ -138,7 +138,7 @@ def test_non_model_metadata_cannot_change_a_candidate_score():
 
 def test_model_version_is_reported_on_every_item():
     items = rank_candidates([candidate()], need())
-    assert {item.modelVersion for item in items} == {"rules-v1.1.0"}
+    assert {item.modelVersion for item in items} == {MODEL_VERSION}
 
 
 def test_eligible_items_sort_before_rejected_ones():

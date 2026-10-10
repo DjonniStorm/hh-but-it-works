@@ -8,7 +8,7 @@ import type {
   MatchBreakdown,
   MatchGroup,
 } from "@hh/contracts";
-import { SearchStatus, SkillLevel, SkillVerification } from "@hh/types";
+import { Grade, SearchStatus, SkillLevel, SkillVerification } from "@hh/types";
 
 // По таймауту отдаём 503, а фронт повторяет загрузку подборки до трёх раз (loadRetry).
 // Поэтому ждём недолго: зависший ranking держит оверлей примерно втрое дольше этого числа.
@@ -53,6 +53,16 @@ const availabilityByStatus: Record<SearchStatus, string> = {
   [SearchStatus.Hidden]: "hidden",
 };
 
+// Грейд потребности — единственный в контракте носитель требований по стажу.
+// Разворачиваем его в experienceMin/Max: без этого слагаемое опыта в формуле
+// ранжирователя вырождается в нейтральную константу и кандидат с релевантным
+// стажем работодателя не поднимается в списке.
+const gradeExperience: Record<Grade, { min: number; max: number }> = {
+  [Grade.Junior]: { min: 1, max: 3 },
+  [Grade.Middle]: { min: 3, max: 6 },
+  [Grade.Senior]: { min: 5, max: 15 },
+};
+
 // Разбор по группам контракта. Веса взяты из scoring.py, чтобы UI повторял
 // реальный расчёт сервиса, а не оценку, придуманную на стороне Nest.
 const breakdownGroups: {
@@ -77,9 +87,7 @@ const breakdownGroups: {
         label: "Подтверждённые обязательные",
         weight: 0.09,
       },
-      { key: "niceSkills", label: "Бонусные навыки", weight: 0.03 },
-      { key: "desiredSkills", label: "Желаемый стек", weight: 0.1 },
-      { key: "personalization", label: "Персонализация", weight: 0.01 },
+      { key: "niceSkills", label: "Бонусные навыки", weight: 0.04 },
     ],
   },
   {
@@ -96,11 +104,9 @@ const breakdownGroups: {
   {
     group: "preferences",
     parts: [
-      { key: "salary", label: "Зарплата", weight: 0.35 },
-      { key: "workMode", label: "Формат работы", weight: 0.22 },
-      { key: "location", label: "Локация", weight: 0.12 },
-      { key: "employmentType", label: "Тип занятости", weight: 0.08 },
-      { key: "targetRole", label: "Целевая роль", weight: 0.13 },
+      { key: "salary", label: "Зарплата", weight: 0.5 },
+      { key: "workMode", label: "Формат работы", weight: 0.31 },
+      { key: "targetRole", label: "Целевая роль", weight: 0.19 },
     ],
   },
 ];
@@ -185,13 +191,15 @@ export function toRankRequest(
       gradeMax: need.gradeTo,
       mustSkills: need.mustSkills,
       niceSkills: need.niceSkills,
+      experienceMin: gradeExperience[need.gradeFrom].min,
+      experienceMax: gradeExperience[need.gradeTo].max,
       competencyWeights: Object.fromEntries([
         ...need.mustSkills.map((skill) => [skill, 1]),
         ...need.niceSkills.map((skill) => [skill, 0.35]),
       ]),
       salaryMin: need.salaryFrom,
       salaryMax: need.salaryTo,
-      workModes: [need.workFormat],
+      workModes: need.workFormats,
       text: need.description,
       // Бюджет и формат работы в потребности жёсткие: без совпадения кандидат
       // остаётся в подборке, но уходит в конец с причиной в «рисках».

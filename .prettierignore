@@ -5,3 +5,6 @@ apps/web/src/shared/api/generated
 # Immutable ML bundles are byte-addressed; formatting calibrator.json breaks
 # the SHA-256 recorded in model.meta.json.
 apps/ranking/evaluation/artifacts
+# Same contract for the embedder: embedder.meta.json records the SHA-256 of
+# tokenizer.json as scripts/build_embedder.py wrote it.
+apps/ranking/evaluation/models

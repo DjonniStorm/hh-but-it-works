@@ -19,6 +19,8 @@ const kindHints: Record<AttemptItem["kind"], string> = {
   order: "Расставьте шаги по порядку.",
 };
 
+const choiceKey = /^[1-9]$/;
+
 export const TestingQuestion = ({
   item,
   secondsLeft,
@@ -70,8 +72,12 @@ export const TestingQuestion = ({
         onSubmit(draft);
         return;
       }
+      // Только цифры 1–9: Number("Escape") — NaN, он проходит сравнения и попадает в ответ как null.
+      if (!choiceKey.test(event.key)) {
+        return;
+      }
       const key = Number(event.key);
-      if (key < 1 || key > item.choices.length || key > 9) {
+      if (key > item.choices.length) {
         return;
       }
       const index = key - 1;

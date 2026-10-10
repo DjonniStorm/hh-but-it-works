@@ -1,6 +1,8 @@
 import { notifier } from "@/app/store/notifier";
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
+import { useSettledValue } from "@/shared/decor/model/use-settled-value";
+import { ArtBackdrop } from "@/shared/decor/ui/ArtBackdrop";
 import { focusFirstError } from "@/shared/lib/focus-first-error";
 import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
@@ -37,6 +39,11 @@ export const RegisterPage = observer(() => {
     },
     validate: schemaResolver(registerSchema, { sync: true }),
   });
+  // Фон собирается по хешу почты, как на входе: раскладка успокаивается вместе с вводом.
+  // Хук до раннего return — иначе React увидит разное число хуков между рендерами.
+  // Хук возвращает значение, без деструктуризации — иначе это разбор строки.
+  const settledEmail = useSettledValue(form.values.email);
+  const backdropSeed = settledEmail.includes("@") ? settledEmail : "guest";
 
   if (auth.accessToken) {
     return <Navigate to={ROUTES.HOME} replace />;
@@ -67,6 +74,7 @@ export const RegisterPage = observer(() => {
 
   return (
     <Center mih="100vh" p="md">
+      <ArtBackdrop seed={backdropSeed} />
       {/* noValidate: ошибки показывает форма, а не всплывашка браузера на type="email". */}
       <Paper
         component="form"

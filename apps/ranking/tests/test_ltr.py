@@ -149,10 +149,39 @@ def test_train_ltr_rejects_empty_dataset(tmp_path):
     assert "Dataset is empty" in (result.stdout + result.stderr)
 
 
+def _llm_dataset(
+    tmp_path: Path,
+    groups: int = 4,
+    per_group: int = 8,
+    group_offset: int = 0,
+    name: str = "llm.jsonl",
+    label_source: str = "llm_judge_v1",
+) -> Path:
+    rows = []
+    for group in range(group_offset, group_offset + groups):
+        need = backend_need(id=f"n{group}")
+        for index in range(per_group):
+            item = synthetic_candidate(group * per_group + index)
+            score = score_pair(item, need).matchScore
+            rows.append({
+                "need": need.model_dump(mode="json"),
+                "candidate": item.model_dump(mode="json"),
+                "label": min(3, int(score * 4)),
+                "labelConfidence": 0.8,
+                "labelSource": label_source,
+            })
+    path = tmp_path / name
+    path.write_text(
+        "\n".join(json.dumps(row, ensure_ascii=False) for row in rows),
+        encoding="utf-8",
+    )
+    return path
+
+
 @pytest.mark.ml
-def test_synthetic_or_unspecified_labels_cannot_be_production_approved(tmp_path):
+def test_llm_labels_cannot_be_production_approved(tmp_path):
     pytest.importorskip("lightgbm", reason="LightGBM ставится из requirements-ml.txt")
-    dataset = _dataset(tmp_path, groups=2, per_group=5)
+    dataset = _llm_dataset(tmp_path)
     result = subprocess.run(
         [
             sys.executable,
@@ -167,6 +196,93 @@ def test_synthetic_or_unspecified_labels_cannot_be_production_approved(tmp_path)
     )
     assert result.returncode != 0
     assert "human_double_annotation_v1" in (result.stdout + result.stderr)
+
+
+@pytest.mark.ml
+def test_llm_approved_requires_independent_calibration(tmp_path):
+    pytest.importorskip("lightgbm", reason="LightGBM ставится из requirements-ml.txt")
+    dataset = _llm_dataset(tmp_path)
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(TRAIN),
+            str(dataset),
+            "--llm-approved",
+            "--output",
+            str(tmp_path / "model.txt"),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0
+    assert "llm_judge_v1" in (result.stdout + result.stderr)
+
+
+@pytest.mark.ml
+def test_llm_approved_requires_exclusively_llm_labels(tmp_path):
+    pytest.importorskip("lightgbm", reason="LightGBM ставится из requirements-ml.txt")
+    dataset = _llm_dataset(tmp_path, label_source="controlled_synthetic_v1")
+    calibration = _llm_dataset(tmp_path, groups=2, name="llm-calibration.jsonl")
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(TRAIN),
+            str(dataset),
+            "--llm-approved",
+            "--calibration-dataset",
+            str(calibration),
+            "--output",
+            str(tmp_path / "model.txt"),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0
+    assert "exclusively llm_judge_v1" in (result.stdout + result.stderr)
+
+
+@pytest.mark.ml
+def test_llm_approved_unlocks_artifact_with_provenance(tmp_path):
+    pytest.importorskip("lightgbm", reason="LightGBM ставится из requirements-ml.txt")
+    pytest.importorskip("sklearn", reason="scikit-learn ставится из requirements-ml.txt")
+    train = _llm_dataset(tmp_path, name="llm-train.jsonl")
+    calibration = _llm_dataset(tmp_path, groups=2, group_offset=10, name="llm-calibration.jsonl")
+    model = tmp_path / "model.txt"
+    metadata = tmp_path / "model.meta.json"
+    calibrator = tmp_path / "calibrator.json"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(TRAIN),
+            str(train),
+            "--calibration-dataset",
+            str(calibration),
+            "--llm-approved",
+            "--model-version",
+            "ltr-v9.9.9-llm",
+            "--output",
+            str(model),
+            "--metadata",
+            str(metadata),
+            "--calibrator",
+            str(calibrator),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+
+    meta = json.loads(metadata.read_text(encoding="utf-8"))
+    assert meta["productionApproved"] is True
+    assert meta["approvalSource"] == "llm_judge_v1"
+    assert meta["labelMetadata"]["sources"] == {"llm_judge_v1": 32}
+    assert meta["calibration"]["labels"]["sources"] == {"llm_judge_v1": 16}
+
+    ranker = LTRRanker(model, metadata, calibrator, mode="hybrid")
+    assert ranker.status["modelLoaded"] is True
+    assert ranker.status["productionApproved"] is True
+    assert ranker.production_approved is True
 
 
 def test_train_ltr_metadata_identifies_model_and_data(tmp_path):
@@ -239,7 +355,7 @@ def test_train_ltr_fits_loadable_isotonic_calibrator(tmp_path):
     ranker = LTRRanker(model, metadata, calibrator, mode="ltr")
     assert ranker.status["modelLoaded"] is True
     assert ranker.status["calibratorLoaded"] is True
-    assert ranker.model_version == "ltr-v1.1.0-calibrated"
+    assert ranker.model_version == "ltr-v1.2.0-calibrated"
 
     fail_closed = LTRRanker(model, metadata, tmp_path / "missing.json")
     assert fail_closed.status["modelLoaded"] is False

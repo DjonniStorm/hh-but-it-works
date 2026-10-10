@@ -1,6 +1,10 @@
 #!/usr/bin/env sh
 set -eu
 
+# Документация (README/AGENT_HANDOFF) зовёт скрипт из корня репозитория —
+# фиксируем cwd, чтобы относительные пути evaluation/... работали откуда угодно.
+cd "$(dirname "$0")/.."
+
 python -m compileall .
 
 # slow — бюджет производительности; порог лежит в evaluation/performance_budget.json,

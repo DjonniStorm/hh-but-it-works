@@ -10,20 +10,22 @@
 
 ## 1. Статус на 2026-10-08
 
-| Блок                      | Состояние                                                              |
-| ------------------------- | ---------------------------------------------------------------------- |
-| Сервис `POST /rank`       | Rules/shadow/hybrid/LTR; ready image запускает demo hybrid             |
-| `POST /career/analyze`    | Counterfactual-действия на том же активном ранкере                     |
-| `GET /health`             | Работает, отдаёт `modelVersion`                                        |
-| Интеграция с Nest         | Работает, маппинг в `apps/api/src/modules/employers/ranking.client.ts` |
-| UI-объяснения             | Работают: `breakdown`, `reasons`, `risks` → «Почему подходит»          |
-| Тесты Python              | 239 pytest (238 fast + 1 slow), включая 6 ML smoke                     |
-| Docker-образ              | Pre-trained bundle, GHCR multi-arch publish, без обучения на старте    |
-| LTR (lightgbm)            | Demo hybrid готов; production lock остаётся видимым в metadata/health  |
-| Мониторинг                | Latency/pool/score/agreement/drift без PII на каждый `/rank`           |
-| Semantic/competency/fresh | Живые fallback/sections/freshness передаются из Nest                   |
-| Тесты Nest/веб            | ML-граница: 5 API contract tests + 3 web mapping/label tests           |
-| CI                        | Ranking image: test + bundle verify + multi-arch GHCR publish          |
+| Блок                      | Состояние                                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------- |
+| Сервис `POST /rank`       | Rules/shadow/hybrid/LTR; ready image запускает demo hybrid                            |
+| `POST /career/analyze`    | Counterfactual-действия на том же активном ранкере                                    |
+| `GET /health`             | Работает, отдаёт `modelVersion`                                                       |
+| Интеграция с Nest         | Работает, маппинг в `apps/api/src/modules/employers/ranking.client.ts`                |
+| UI-объяснения             | Работают: `breakdown`, `reasons`, `risks` → «Почему подходит»                         |
+| Тесты Python              | 258 pytest (248 основной контур + 9 ML + 1 slow), покрытие 91 %                       |
+| Docker-образ              | Pre-trained bundle `ltr-v1.4.0-llm`, GHCR multi-arch publish, без обучения            |
+| LTR (lightgbm)            | Дефолт — llm-approved `ltr-v1.4.0-llm`; human tier ждёт разметки                      |
+| Мониторинг                | Latency/pool/score/agreement/drift без PII на каждый `/rank`                          |
+| Semantic/competency/fresh | Локальный ONNX-embedding в середине lexical band + fallback; живые sections/freshness |
+| Опыт кандидата            | Живой: `experienceMin/Max` разворачиваются из грейда вакансии                         |
+| Мёртвые слагаемые         | Выведены из формулы в `rules-v1.2.0` (локация/занятость/стек/персонал.)               |
+| Тесты Nest/веб            | ML-граница: 5 API contract tests + 3 web mapping/label tests                          |
+| CI                        | Workflow есть, но Actions выключен — раны не выполняются, проверки вручную            |
 
 **Ни один сервис, БД или Nest-модуль не добавлялся.** `ranking` остаётся stateless: ни хранилища, ни очередей, ни LLM в горячем пути.
 
@@ -34,7 +36,7 @@
 ### 2.1 Сервис
 
 - `schemas.py` — Pydantic-модели входа/выхода: `RankRequest` (алиасы `vacancy` и `hiringNeed`, ровно одна из двух), `CandidateSnapshot`, `HiringNeedSnapshot`, `RankingContext`, `ScoreBreakdown`, `RankItem`, `CareerAnalyzeRequest/Response`.
-- `scoring.py` — весь скоринг: hard filters (`eligibility`), три под-оценки, геометрическая сборка `matchScore`, reason/warning-коды, сортировка `rank_candidates`. Версия модели `MODEL_VERSION = "rules-v1.1.0"` — единая точка истины, её же отдаёт `/health`.
+- `scoring.py` — весь скоринг: hard filters (`eligibility`), три под-оценки, геометрическая сборка `matchScore`, reason/warning-коды, сортировка `rank_candidates`. Версия модели `MODEL_VERSION = "rules-v1.2.0"` — единая точка истины, её же отдаёт `/health`.
 - `career.py` — `analyze_career`: сильные матчи сейчас, действия (профит/улучшение), пробелы по навыкам.
 - `taxonomy.py` — нормализация имён навыков (латиница/кириллица/`c++`/`go`), таблица `RELATED`, `canonical_skill`, `skill_match`.
 - `ltr.py` — безопасная загрузка артефактов, checksum/schema/feature-code guard, rules/shadow/hybrid/LTR и fail-closed fallback.
@@ -50,7 +52,7 @@
 - `evaluation/performance.py` — синтетическая нагрузка, avg latency и throughput.
 - `evaluation/gold.py` — real-vacancy-grounded controlled synthetic: 21 публичная обезличенная вакансия, 168 вымышленных профилей, независимые от rules multidimensional labels и entity-disjoint splits. Это не human gold.
 - `evaluation/open_data.py` + `data_quality.py` — PII-free normalization локальных open-data выгрузок и quality gates.
-- `evaluation/human_labels.py` — blind CSV, двойная независимая разметка и обязательный adjudication конфликтов.
+- `evaluation/human_labels.py` — blind CSV, двойная независимая разметка, adjudication-протокол и гейты импорта (PII, полнота, ≥2 кандидата на need, среднее согласие ≥ 0.6); батч-001 и гайд — `evaluation/annotation/README.md`.
 - `evaluation/train_ltr.py` + `features.py` — offline LTR по breakdown и rules-агрегатам, isotonic calibration, выход `model.txt` + `model.meta.json` + безопасный `calibrator.json`.
 - `evaluation/evaluate_ltr.py` — held-out сравнение rules/pure LTR/hybrid и два quality gate.
 - `evaluation/data/sanity_gold.jsonl` — 12 пар, 3 группы, метки 0..3.
@@ -58,7 +60,7 @@
 - `scripts/check_ml.sh` — reproducibility → ML tests → atomic promotion → FastAPI hybrid smoke → held-out gates.
 - `scripts/promote_ml.sh` — атомарная локальная публикация model/metadata/calibrator/report только после gate.
 
-### 2.3 Покрытие тестами (239 pytest, 91.42 % statement coverage)
+### 2.3 Покрытие тестами (233 pytest, 91.08 % statement coverage)
 
 `tests/test_ranking.py` — 22 теста: каноникализация алиассов, порядок кандидатов, все hard filters, verified vs claimed grade, строгие must-have, бонус verified-навыка, нейтральность FSP, обратная совместимость `vacancy`, ошибки валидации, `health`, легаси-поле `score`, комбинация `hiringNeed`+`vacancy`, hidden-кандидат, relocation, intent по availability/freshness.
 `tests/test_career.py` — 4 теста: counterfactual-действие, приоритет верификации над прокачкой, пустой рынок, посторонняя специализация.
@@ -96,18 +98,22 @@ flowchart LR
 
 ```text
 qualification = 0.09·специализация + 0.14·грейд        + 0.20·must
-              + 0.09·must(только verified)             + 0.03·nice
+              + 0.09·must(только verified)             + 0.04·nice
               + 0.12·компетенции                       + 0.10·assessment
               + 0.09·опыт                              + 0.07·semantic
-              + 0.06·fsp                               + 0.01·персонализация   = 1.00
+              + 0.06·fsp                                                  = 1.00
 
-opportunity   = 0.35·зарплата + 0.22·формат + 0.12·локация
-              + 0.08·занятость + 0.13·целевая роль + 0.10·желаемый стек         = 1.00
+opportunity   = 0.50·зарплата + 0.31·формат + 0.19·целевая роль            = 1.00
 
 intent        = availability[1.0 | 0.90 | 0.58 | 0] · (0.62 + 0.38·freshness)
 
 matchScore    = eligibility_ok ? Q^0.55 · O^0.30 · I^0.15 : 0
 ```
+
+В `rules-v1.2.0` из формулы выведены слагаемые без источника данных из
+контракта (локация, тип занятости, желаемый стек, персонализация) и веса
+перенормированы обратно в 1.00; списанная доля персонализации (0.01) ушла
+`nice`, оставшиеся 0.30 opportunity — пропорционально трем живым слагаемым.
 
 `matchScore` — **геометрическое** среднее с нулевым показателем намеренно: слабое звено роняет итог сильнее, чем линейная компенсация. Нелинейность `Q^0.55` даёт «плюс за крохи» в верхней части шкалы.
 
@@ -138,7 +144,7 @@ Reasons (почему подходит, максимум 7) / warnings (риск
 
 ### 3.4 Детерминизм
 
-Ни случайности, ни часов, ни внешних вызовов внутри `score_pair`. Один и тот же вход → побайтово тот же выход, поэтому и `rules-v1.1.0` в `/health`, и золотой набор детерминированы. Это же главный актив для будущих тестов (см. §6).
+Ни случайности, ни часов, ни внешних вызовов внутри `score_pair`. Один и тот же вход → побайтово тот же выход, поэтому и `rules-v1.2.0` в `/health`, и золотой набор детерминированы. Это же главный актив для будущих тестов (см. §6).
 
 ---
 
@@ -176,37 +182,51 @@ sh scripts/promote_ml.sh
 
 ## 5. Разрывы между моделью и живым контрактом
 
-Модель полная, но Nest передаёт часть полей с дефолтами. Проверено чтением `ranking.client.ts`:
+Проверено чтением `ranking.client.ts`. Приёмка issue #36 «ни одного слагаемого
+без данных» закрыта двумя способами: сигнал подключён либо слагаемое выкинуто
+из формулы.
 
-| Сигнал                         | В модели                                        | В живом запросе   | Эффект                                                            |
-| ------------------------------ | ----------------------------------------------- | ----------------- | ----------------------------------------------------------------- |
-| `semanticSimilarity`           | `0.07·semantic`, embedding или lexical fallback | тексты передаются | перестал быть константой; precomputed embedding всё ещё поддержан |
-| `context.skillBoosts/…`        | `0.01·персонализация`, дефолт 0.5               | не передаётся     | константа 0.5 до feedback integration                             |
-| `profileFreshness`             | в `intent`, шкала 1.0/0.7/0.4                   | передаётся        | считается Nest от последнего assessment/profile signal            |
-| `competencyWeights` (need)     | `0.12·компетенции`                              | передаются        | must=1.0, nice=0.35                                               |
-| `competencies` (candidate)     | score секций теста                              | передаются        | reason `strong_competency:*` при score ≥ 0.75                     |
-| `experienceMin/Max`            | `0.09·опыт`                                     | не передаются     | всегда дефолт 0.80                                                |
-| `locations`, `employmentTypes` | `0.12·локация`, `0.08·занятость`                | не передаются     | нейтральный 0.75                                                  |
-| `desiredSkills`                | `0.10·желаемый стек`                            | не передаются     | нейтральный 0.75                                                  |
-| `salaryMax`, `relocation`      | в `opportunity`                                 | не передаются     | грубее оценка зарплаты/локации                                    |
+| Сигнал                         | В модели                                                                 | В живом запросе   | Решение в rules-v1.2.0                                                 |
+| ------------------------------ | ------------------------------------------------------------------------ | ----------------- | ---------------------------------------------------------------------- |
+| `semanticSimilarity`           | `0.07·semantic`: precomputed → локальный ONNX-embedding в band → lexical | тексты передаются | подключён; embedding локальный, без сети и LLM                         |
+| `profileFreshness`             | в `intent`, шкала 1.0/0.7/0.4                                            | передаётся        | подключён, считается Nest от assessment/profile signal                 |
+| `competencyWeights` (need)     | `0.12·компетенции`                                                       | передаются        | подключены: must=1.0, nice=0.35                                        |
+| `competencies` (candidate)     | score секций теста                                                       | передаются        | подключены; reason `strong_competency:*` при score ≥ 0.75              |
+| `experienceMin/Max`            | `0.09·опыт`                                                              | передаются        | подключены: грейд вакансии разворачивается в стаж 1–3/3–6/5–15 лет     |
+| `context.competencyBoosts`     | модификатор внутри `0.12·компетенции`                                    | принимается API   | живой, но Nest пока не шлёт context                                    |
+| `locations`, `employmentTypes` | были `0.12`/`0.08` в opportunity                                         | полей нет         | **выведены из формулы** (в схеме остались для eligibility-гейта)       |
+| `desiredSkills`                | было `0.10` в opportunity                                                | полей нет         | **выведено из формулы**                                                |
+| `context.skillBoosts`          | была `0.01·персонализация`                                               | полей нет         | **выведено из формулы**; `skillBoosts` — зарезервированный API-контрол |
+| `salaryMax` кандидата          | ветка внутри `0.50·зарплата`                                             | поля нет          | ветка мертва, слагаемое живо (кандидат шлёт `salaryMin`)               |
+| `relocation`                   | eligibility-гейт `location_incompatible`                                 | поля нет          | гейт дремлет (`strictLocation=false`, `locations` пустые)              |
 
-Итог: в живом запросе работают специализация, грейд, навыки, секции assessment, freshness, lexical semantic fallback, профильный FSP, зарплата, формат и целевая роль. Из подготовленных сигналов не подключена только session personalization.
+Итог: в живом запросе работают специализация, грейд, опыт, навыки, секции
+assessment, freshness, semantic (локальный embedding в неоднозначном lexical
+band, иначе lexical fallback), профильный FSP, зарплата, формат и целевая
+роль — формула полностью на данных. Из подготовленных, но не подключённых
+возможностей остались: session personalization (нужна петля dismiss/invite) и
+кандидатский верхний порог зарплаты.
 
-Дополнительно: без артефактов `ModelVersion` в ответе — `rules-v1.1.0`. Готовый образ — `hybrid-v1.1.0-ltr0.25`; pure artifact отдельно виден как `ltr-v1.1.0-calibrated`. При любой ошибке загрузки или предикта запрос получает rules fallback и честную версию `rules-v1.1.0`.
+Дополнительно: без артефактов `ModelVersion` в ответе — `rules-v1.2.0`. Готовый
+образ — `hybrid-v1.2.0-ltr0.25`; pure artifact виден как `ltr-v1.4.0-llm-calibrated`.
+При любой ошибке загрузки или предикта запрос получает rules fallback и
+честную версию `rules-v1.2.0`.
 
 ---
 
 ## 6. Ограничения и риски
 
 1. **Gold-набор — regression, а не рыночный.** Основной набор содержит 168 controlled-synthetic пар вокруг 21 реальной публичной вакансии; кандидаты и labels всё ещё синтетические.
-2. **Demo hybrid активирован явным override.** На entity-disjoint holdout он не уступает rules по NDCG@5 и более чем вдвое улучшает calibration RMSE. Metadata и `/health` честно показывают `productionApproved=false`, `unapprovedOverride=true`.
-3. **Lexical semantic — fallback, не embedding.** Он объясним и живой, но не понимает глубокую семантику; внешний embedding может переопределить его без изменения контракта.
-4. **CI есть для ranking image.** Workflow проверяет код и bundle, затем публикует multi-arch GHCR image; остальной monorepo всё ещё не имеет полного общего CI.
-5. **Nest покрыт только на ML-границе.** Пять contract tests фиксируют live-сигналы, отсутствие PII, verified-only pool, UI-веса, freshness-границы и порядок/версию `shortlist`; остальная бизнес-логика Nest пока без unit tests.
-6. **Web покрыт только на ML-границе.** Три unit tests фиксируют динамические reason-коды, группу ФСП и передачу freshness; React-компоненты карточки отдельно не тестируются.
-7. **Fallback при недоступности — `503`.** Подборка не отдаётся вообще. Альтернатива (показать список без оценок) не реализована — это продуктовое решение, не ошибка.
-8. **Набор причин хрупок:** `reasons[:7]`/`warnings[:8]` обрезают молча, порядок кодов = порядок построения, а не значимость.
-9. **Рыночных judgments пока нет.** Инфраструктура open-data ingestion, synthetic bootstrap, double annotation, sample weights, calibration и activation lock готова; следующий внешний шаг — разметить обезличенные пары экспертами.
+2. **Demo hybrid активирован llm-approved дефолтом (без override).** На entity-disjoint holdout гейт пройден: LTR +0.019 NDCG@5 к rules, hybrid +0.011, calibration RMSE ltr/rules ≈ 0 против 0.30 у rules (v1.2.0, synthetic). С 2026-10-10 дефолтный артефакт образа — `ltr-v1.4.0-llm` (`approvalSource: llm_judge_v1`, обучен после подключения embedding): `/health` показывает `productionApproved=true`, `unapprovedOverride=false`; `RANKING_ALLOW_UNAPPROVED_MODEL` из Dockerfile удалён. Это llm-тир, не human: human-approved бандл — следующая ступень после разметки batch-001 экспертами. llm_gold_test маленький (3 need-группы), поэтому +0.012 NDCG@5 — проверка активации, а не рыночный uplift.
+3. **Параметры LTR подобраны под синтетический holdout.** Простая модель (200 деревьев, 3 листа, seed 42) выбрана после того, как глубокая конфигурация перестала бить rules после перенормировки `rules-v1.2.0`. Это честно задокументировано, но переобучение на синтетику возможно: на human-labeled judgments параметры надо подбирать заново.
+4. **Semantic — локальный embedding, не сетевой сервис.** `scoring._semantic_fit` сначала берёт precomputed `semanticSimilarity`; для пар без него лексический score в band `[0.20, 0.60]` решает закоммиченный int8 ONNX-энкодер (`evaluation/models/`, `paraphrase-multilingual-MiniLM-L12-v2`, pinned revision, sha в `embedder.meta.json`), вне band — прежний детерминированный lexical fallback. Сеть, LLM и очереди не участвуют; любой сбой (нет `onnxruntime`/`tokenizers`, битый sha файла, `RANKING_EMBEDDINGS=off`) закрывает фичу (`embeddingReady=false` в `/health`) и пара scoring падает на lexical — формула не ломается.
+5. **CI выключен на аккаунте.** Файл `ranking-image.yml` остался в репо (push в `dev`/`main` + tags), но Actions отключён: раны вечно в `queued`, отсюда отказ от PR-тегов и smoke-run в облаке. Проверки только локально (`check.sh`/`check_ml.sh`/`pnpm test`), GHCR-тег `:dev` может отставать от репозитория; общий CI monorepo так и не появился.
+6. **Nest покрыт только на ML-границе.** Пять contract tests фиксируют live-сигналы (включая experienceMin/Max из грейда), отсутствие PII, verified-only pool, UI-веса, freshness-границы и порядок/версию `shortlist`; остальная бизнес-логика Nest пока без unit tests.
+7. **Web покрыт только на ML-границе.** Три unit tests фиксируют динамические reason-коды, группу ФСП и передачу freshness; React-компоненты карточки отдельно не тестируются.
+8. **Fallback при недоступности — `503`.** Подборка не отдаётся вообще. Альтернатива (показать список без оценок) не реализована — это продуктовое решение, не ошибка.
+9. **Набор причин хрупок:** `reasons[:7]`/`warnings[:8]` обрезают молча, порядок кодов = порядок построения, а не значимость.
+10. **Рыночных judgments пока нет.** Инфраструктура open-data ingestion, synthetic bootstrap, double annotation, sample weights, calibration и activation lock готова; `evaluation/annotation/batch-001` (168 пар) и гайд аннотатора готовы к отправке экспертам. LLM-судья уже разметил эти пары как `llm_judge_v1` (`evaluation/data/llm_gold*.jsonl` + провенанс), но честная сверка показала полное совпадение со сценарным порядком (Kendall tau 1.0) — это проверка пайплайна, а не внешний сигнал; human-разметка по-прежнему нужна.
+11. **Legacy-бандлы оставлены как история.** `ltr-v1.1.0`, `ltr-v1.2.0` и `ltr-v1.3.0-llm` обучены под feature-код до embedding: при загрузке текущей версии они честно фейлятся по SHA-256 fingerprint (`different feature code`) и уходят в rules fallback, поэтому `check_ml.sh` верифицирует только активный `ltr-v1.4.0-llm`. Их закоммиченные `promotion-report.json` по-прежнему гейтятся в `test_pretrained_distribution.py`. Не трогать и не копировать в свежий релиз — см. `evaluation/artifacts/README.md`.
 
 ---
 
@@ -230,12 +250,83 @@ sh scripts/promote_ml.sh
 - Пороги качества и скорости живут рядом с кодом и валят прогон сами: `scripts/check.sh` — покрытие ≥ 90 %, `evaluation/benchmark.py --min-ndcg/--min-mrr`, бюджет `evaluation/performance_budget.json`. Ответ `/rank` зафиксирован снапшотом `tests/snapshots/` (обновить: `UPDATE_SNAPSHOTS=1 pytest tests/test_snapshot.py`).
 - Медлительные и ML-прогоны не в основном контуре: `pytest -m "not slow"` в `check.sh`, обучение LTR помечено `ml` и требует `requirements-ml.txt`.
 - Ни в коем случае не добавляй в `apps/ranking`: БД, Redis, очереди, HTTP-вызовы в `score_pair`, LLM в горячем пути.
-- Корневые рабочие ML-артефакты (`model.txt`, `model.meta.json`, `calibrator.json`, `promotion-report.json`) и локальные кэши в git не попадают. Только immutable release bundles в `evaluation/artifacts/ltr-v*/` коммитятся и проверяются по SHA-256.
+- Корневые рабочие ML-артефакты (`model.txt`, `model.meta.json`, `calibrator.json`, `promotion-report.json`) и локальные кэши в git не попадают. Только immutable release bundles в `evaluation/artifacts/ltr-v*/` коммитятся и проверяются по SHA-256. Исключение — модель эмбеддера `evaluation/models/`: в git идут части `embedder-int8.onnx.NNNN` (≤90 MiB, GitHub-лимит 100 МБ), собранный `embedder-int8.onnx` gitignored; пересборка — `scripts/build_embedder.py`.
 
 ### 7.3 Что делать дальше
 
-Заведённые issues по ML-части, в порядке приоритета:
+Заведённые issues по ML-части:
 
 1. [#34 — план полного покрытия тестами](https://github.com/DjonniStorm/hh-but-it-works/issues/34): **completed** (PR #38, 183 теста, покрытие 98 %).
-2. [#35 — интеграционные тесты Nest ↔ ranking и CI](https://github.com/DjonniStorm/hh-but-it-works/issues/35): маппинг адаптера, `shortlist`, веб-переводы, workflow.
-3. [#36 — довести модель до идеала](https://github.com/DjonniStorm/hh-but-it-works/issues/36): ML-продукт готов локально и в Docker: deterministic data, LTR, portable isotonic, rules/shadow/hybrid/LTR rollout, atomic promotion, held-out gates, drift/agreement monitoring, fallback. Внешний остаток — human-labeled judgments и подключение дополнительных сигналов в Nest-контракте.
+2. [#35 — интеграционные тесты Nest ↔ ranking и CI](https://github.com/DjonniStorm/hh-but-it-works/issues/35): частично закрыт локально (5 contract tests + 3 web tests + ranking image workflow); осталось — unit-тесты бизнес-логики Nest и общий CI monorepo.
+3. [#36 — довести модель до идеала](https://github.com/DjonniStorm/hh-but-it-works/issues/36): локально закрыты разделы 1 (мёртвые слагаемые: опыт подключён из грейда, остальное выкинуто и перенормировано), 2 (gold/holdout/бенчмарк-гейты), 3 (LTR с fallback и версионированием), 4 (изотоническая калибровка), 6 (мониторинг), 7 (бюджет latency тестом). Human-labels: пайплайн, batch-001 и llm-тир (`--llm-approved`, бандл `ltr-v1.4.0-llm`) готовы (`evaluation/annotation/README.md`), осталось только получить human-разметку от экспертов; semantic поднят до локального embedding (band + lexical fallback). Внешнее: петля feedback (dismiss/invite) для персонализации, продуктовые решения по §8.
+
+### 7.4 Хэндофф следующему агенту (rules-v1.2.0 → human-labels → embeddings)
+
+Сделано в этой сессии (всё локально, коммит на `dev`, пуш не делался):
+
+1. **Опыт для демо.** `ranking.client.ts` разворачивает `gradeFrom/gradeTo` в `experienceMin/Max` (junior 1–3, middle 3–6, senior 5–15): кандидат с релевантным стажем поднимается за счёт `0.09·опыт`. Проверка: `apps/api/test/ranking.client.test.cjs` (первый тест) фиксирует 3..15 для middle..senior.
+2. **Мёртвые сигналы закрыты.** Из формулы выкинуты `location` (0.12), `employmentType` (0.08), `desiredSkills` (0.10), `personalization` (0.01); веса перенормированы (`nice` 0.03→0.04; opportunity → 0.50/0.31/0.19). `MODEL_VERSION = rules-v1.2.0`. Удалены `_personalization_fit`, поля `ScoreBreakdown` и `FEATURE_ORDER` под них; `RankingContext` и eligibility-гейты остались (см. §5).
+3. **Артефакты переобучены.** Новый бандл `evaluation/artifacts/ltr-v1.2.0` (простая модель 200×3, seed 42 — глубокая после перенормировки не проходила гейт uplift). Гейт: ltr +0.019 NDCG@5, hybrid +0.011, calibration RMSE ratio ≈ 0. Старый `ltr-v1.1.0` оставлен как история.
+4. **Снапшоты/версии.** `tests/snapshots/rank_response.json` перегенерирован (`UPDATE_SNAPSHOTS=1`); все тестовые assert'ы версий переведены на v1.2.0; `hybrid-`версия выводится из `RULES_MODEL_VERSION` (магии в `ltr.py` больше нет).
+5. **Human-labels этап закрыт инфраструктурно + llm-тир** (ветка `feat/ranking-rules-v1.2.0-experience`). `human_labels.py` принимает adjudication-строки (`adjudicator:<имя>`), считает попарное согласие аннотаторов и валит батч при `--min-agreement` (по умолчанию 0.6), PII в rationale/annotator_id, неполноте разметки и need меньше чем из двух кандидатов; экспорт пишет `pairs.manifest.json` (sha256 датасета). Готов `evaluation/annotation/batch-001` (168 пар из gold) + гайд `evaluation/annotation/README.md`. Дополнительно введён явный llm-тир: импорт с `--label-source llm_judge_v1 --min-annotators 1`, обучение `train_ltr.py --llm-approved` (только llm_judge_v1, независимый calibration, `approvalSource` в metadata) и первый бандл `evaluation/artifacts/ltr-v1.3.0-llm` (gates: ltr/hybrid +0.012 NDCG@5 на llm_gold_test, activation без override). Честная сверка: llm-разметка воспроизвела сценарный порядок (tau 1.0, exact match 87.5 %) — внешнего сигнала она не добавила, но именно этот бандл теперь является дефолтным артефактом образа (см. §6.2).
+
+6. **Serving default — llm-approved.** Dockerfile указывает на
+   `evaluation/artifacts/ltr-v1.4.0-llm` (до 2026-10-10 — `ltr-v1.3.0-llm`),
+   `RANKING_ALLOW_UNAPPROVED_MODEL` удалён: `/health` даёт
+   `productionApproved=true`, `unapprovedOverride=false`. `verify_artifacts.sh`
+   параметризован (артефакт + датасет) и по умолчанию проверяет активный бандл;
+   `check_ml.sh` получил смоук без override на коммитированном llm-бандле.
+   Это llm-тир approval (`approvalSource: llm_judge_v1`), а не human.
+
+7. **Embeddings вместо лексического semantic.** `scripts/build_embedder.py`
+   (dev-only, `requirements-embedder.txt`) экспортирует
+   `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` в ONNX
+   opset 17 и делает dynamic int8 (112.7 MiB) — модель режется на части
+   `embedder-int8.onnx.NNNN` по ≤90 MiB, потому что GitHub жёстко отклоняет
+   файлы >100 МБ; в git идут только части + `tokenizer.json` +
+   `embedder.meta.json` (pinned revision, sha256 каждой части и whole-файла,
+   referenceCosine 0.99 против torch), assembled `embedder-int8.onnx`
+   gitignored и собирается лоадером из проверенных частей (устаревший файл
+   пересобирается автоматически). `embedding_similarity.py` лениво грузит
+   session/tokenizer CPU и держит LRU-кэш 4096 текстов. В `scoring.py`
+   embedding решает только пары с lexical в band `[0.20, 0.60]`
+   (`SEMANTIC_EMBEDDING_BAND`), наружу контракт не изменился (вес 0.07,
+   reason `semantic_overlap:*` — lexical); `MODEL_CODE_FILES` пополнился,
+   `/health` отдаёт `embeddingReady`. Тесты:
+   `tests/test_embedding_similarity.py` (доступность, сборка из частей,
+   fail-closed на битом sha, band/fallback на моках, реальная separability
+   related/unrelated).
+
+8. **Бандл переобучен под embedding и промоунут.** `ltr-v1.4.0-llm` обучен
+   `train_ltr.py --llm-approved` на тех же `llm_gold_*` сплитах с новым
+   feature-кодом; гейты на `llm_gold_test`: ltr/hybrid +0.0124 NDCG@5,
+   calibration RMSE ratio ≈ 0. Дефолт переключён (Dockerfile, defaults
+   `verify_artifacts.sh`/`check_ml.sh`), legacy-бандлы из проверки выведены
+   (см. §6.11).
+
+Как проверять перед следующими правками:
+
+```bash
+export PATH="/Users/ruslanvaliullov/projects/FSP/rank-venv/bin:$PATH"
+cd apps/ranking
+sh scripts/check.sh    # compileall + pytest ≥90% + gold + benchmark + performance
+sh scripts/check_ml.sh # детерминизм gold + bundle + ml-тесты + promote + smoke + held-out гейты
+```
+
+E2E последняя сессия (2026-10-10): дефолтный образ собирается с
+`ltr-v1.4.0-llm` — `/health` без override отдаёт `productionApproved=true`,
+`unapprovedOverride=false`, `embeddingReady=true` и
+`artifactVersion: ltr-v1.4.0-llm-calibrated`, `/rank` отвечает
+`hybrid-v1.2.0-ltr0.25` (версия гибрида складывается из rules-серии);
+`/career/analyze` и 422 на мусорном теле — работают; compose-путь
+`infra/dev` поднимает ranking с той же моделью. CI: Actions на аккаунте
+выключен, поэтому от PR-тегов `pr-<номер>` и облачного smoke-run отказались
+(`ranking-image.yml` откачен к состоянию на `dev`); проверка PR — вручную:
+`check.sh` + `check_ml.sh` + `pnpm test` + локальный compose.
+
+Из известного «не доделано» осознанно:
+
+- `reasons`/`warnings` сортируются порядком построения, а не по вкладу (§6.9) — кандидат №36 §5;
+- персонализация ждёт дизайн петли feedback (§6.3): слепой негативный буст по навыкам отклонённого демпфирует весь пул;
+- human-labeled judgments: llm-проход batch-001 готов (`llm_gold*`, бандл `ltr-v1.4.0-llm`), но это не замена людям — ждём CSV с human-разметкой от экспертов;
+- `salaryMax` кандидата и `relocation` — поля контракта, которых нет; вернуть их = правка `@hh/contracts` + форма.

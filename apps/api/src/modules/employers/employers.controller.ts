@@ -8,8 +8,10 @@ import {
   ParseUUIDPipe,
   Post,
   Put,
+  Query,
+  StreamableFile,
 } from "@nestjs/common";
-import { ApiNoContentResponse } from "@nestjs/swagger";
+import { ApiNoContentResponse, ApiOkResponse } from "@nestjs/swagger";
 import { ZodResponse } from "nestjs-zod";
 
 import { Role } from "@hh/types";
@@ -21,6 +23,8 @@ import {
   invalidBody,
   invalidId,
 } from "../../common/openapi/api-errors.decorator";
+import { ResumePdfQueryDto } from "../profiles/dto";
+import { ProfilePdfService, pdfFile } from "../profiles/profile-pdf";
 import { User } from "../users/user.entity";
 import {
   CandidateSearchDto,
@@ -54,6 +58,7 @@ export class EmployersController {
   constructor(
     private readonly employers: EmployersService,
     private readonly invitations: InvitationsService,
+    private readonly pdf: ProfilePdfService,
   ) {}
 
   @Get("company")
@@ -185,6 +190,26 @@ export class EmployersController {
   @ZodResponse({ status: 200, type: InvitationListDto })
   listInvitations(@CurrentUser() user: User) {
     return this.invitations.list(user.id);
+  }
+
+  // Резюме открывается вместе с контактом: только после принятия приглашения (ТЗ 2.2.2).
+  @Get("invitations/:id/resume.pdf")
+  @ApiOkResponse({
+    content: {
+      "application/pdf": { schema: { type: "string", format: "binary" } },
+    },
+  })
+  @ApiErrors({
+    400: `${invalidId} или неизвестный шаблон`,
+    404: "Приглашение не найдено, ещё не принято или принадлежит другой компании",
+  })
+  async invitationResume(
+    @CurrentUser() user: User,
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Query() query: ResumePdfQueryDto,
+  ): Promise<StreamableFile> {
+    const profileId = await this.invitations.acceptedCandidate(user.id, id);
+    return pdfFile(await this.pdf.renderProfile(profileId, query.template));
   }
 
   @Post("invitations/:id/withdraw")

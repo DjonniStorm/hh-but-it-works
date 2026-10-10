@@ -1,7 +1,7 @@
 import { formatGradeRange } from "@/pages/employer/model/grade-range";
 import { SkillList } from "@/pages/employer/ui/SkillList";
 import { SummaryItem } from "@/pages/employer/ui/SummaryItem";
-import { specializationLabel, workFormatLabel } from "@/shared/lib/labels";
+import { formatWorkFormats, specializationLabel } from "@/shared/lib/labels";
 import { Group, Paper } from "@mantine/core";
 
 import { type HiringNeed, formatSalary } from "@hh/contracts";
@@ -18,7 +18,7 @@ export const NeedSummary = ({ need }: { need: HiringNeed }) => {
           {formatSalary(need.salaryFrom, need.salaryTo)}
         </SummaryItem>
         <SummaryItem label="Формат">
-          {workFormatLabel[need.workFormat]}
+          {formatWorkFormats(need.workFormats)}
         </SummaryItem>
         <SkillList label="Обязательные навыки" skills={need.mustSkills} />
         {need.niceSkills.length > 0 ? (

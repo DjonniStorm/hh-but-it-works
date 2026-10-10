@@ -5,6 +5,7 @@ import {
   Grade,
   IntegrityFlag,
   InvitationStatus,
+  ResumeTemplate,
   Role,
   SearchStatus,
   SkillLevel,
@@ -76,13 +77,22 @@ export const apiErrorSchema = z.object({
   errors: z.array(validationIssueSchema).optional(),
 });
 
-export const specializationSchema = z.enum(Specialization);
-export const gradeSchema = z.enum(Grade);
+export const specializationSchema = z.enum(
+  Specialization,
+  "Выберите специализацию",
+);
+export const gradeSchema = z.enum(Grade, "Выберите грейд");
 export const skillLevelSchema = z.enum(SkillLevel);
 export const skillVerificationSchema = z.enum(SkillVerification);
 export const workFormatSchema = z.enum(WorkFormat, "Выберите формат работы");
 export const invitationStatusSchema = z.enum(InvitationStatus);
 export const searchStatusSchema = z.enum(SearchStatus);
+export const resumeTemplateSchema = z.enum(ResumeTemplate);
+
+// Оформление PDF-профиля выбирают при скачивании. Без параметра — Ditto.
+export const resumePdfQuerySchema = z.object({
+  template: resumeTemplateSchema.default(ResumeTemplate.Ditto),
+});
 
 export const profileSkillSchema = z.object({
   skillId: z.uuid(),
@@ -95,18 +105,103 @@ export const profileSkillSchema = z.object({
 
 const linkField = z.string().trim().max(120, "Слишком длинная ссылка");
 
+const resumeYearSchema = z
+  .number("Укажите год")
+  .int("Только целый год")
+  .min(1950, "Год не раньше 1950")
+  .max(2035, "Год не позже 2035");
+
+// Пустой «по» в форме — "", на сервер уходит null: по настоящее время.
+const optionalEndYearSchema = z
+  .union([z.literal(""), resumeYearSchema])
+  .nullable()
+  .transform((value) => {
+    return value === "" ? null : value;
+  });
+
+function yearsInOrder(entry: {
+  fromYear: number;
+  toYear: number | null;
+}): boolean {
+  return entry.toYear === null || entry.toYear >= entry.fromYear;
+}
+
+export const educationEntrySchema = z.object({
+  school: z.string().max(80),
+  program: z.string().max(80),
+  fromYear: z.number().int().min(1950).max(2035),
+  toYear: z.number().int().min(1950).max(2035).nullable(),
+});
+
+export const experienceEntrySchema = z.object({
+  company: z.string().max(80),
+  role: z.string().max(80),
+  fromYear: z.number().int().min(1950).max(2035),
+  toYear: z.number().int().min(1950).max(2035).nullable(),
+  summary: z.string().max(280),
+});
+
+export const saveEducationEntrySchema = z
+  .object({
+    school: z
+      .string()
+      .trim()
+      .min(1, "Укажите учебное заведение")
+      .max(80, "Слишком длинное название"),
+    program: z
+      .string()
+      .trim()
+      .min(1, "Укажите программу")
+      .max(80, "Слишком длинное название"),
+    fromYear: resumeYearSchema,
+    toYear: optionalEndYearSchema,
+  })
+  .refine(yearsInOrder, {
+    message: "Год окончания не раньше начала",
+    path: ["toYear"],
+  });
+
+export const saveExperienceEntrySchema = z
+  .object({
+    company: z
+      .string()
+      .trim()
+      .min(1, "Укажите компанию")
+      .max(80, "Слишком длинное название"),
+    role: z
+      .string()
+      .trim()
+      .min(1, "Укажите должность")
+      .max(80, "Слишком длинное название"),
+    fromYear: resumeYearSchema,
+    toYear: optionalEndYearSchema,
+    summary: z
+      .string()
+      .trim()
+      .min(1, "Коротко опишите, чем занимались")
+      .max(280, "Слишком длинный текст"),
+  })
+  .refine(yearsInOrder, {
+    message: "Год окончания не раньше начала",
+    path: ["toYear"],
+  });
+
 export const candidateProfileSchema = z.object({
   displayName: z.string(),
   specialization: specializationSchema.nullable(),
   claimedGrade: gradeSchema.nullable(),
   fspId: z.string().max(64).nullable(),
+  phone: z.string().max(40).nullable(),
   telegram: z.string().max(120).nullable(),
   github: z.string().max(120).nullable(),
   linkedin: z.string().max(120).nullable(),
   website: z.string().max(120).nullable(),
+  softSkills: z.array(z.string()),
   // Ожидания кандидата: по ним подборка сверяет вилку и формат работодателя.
   desiredSalaryFrom: z.number().int().positive().nullable(),
   experienceYears: z.number().min(0).nullable(),
+  education: z.array(educationEntrySchema),
+  experience: z.array(experienceEntrySchema),
   workFormats: z.array(workFormatSchema),
   searchStatus: searchStatusSchema,
   showExperience: z.boolean(),
@@ -151,16 +246,22 @@ const optionalYearsSchema = z
   });
 
 export const saveContactsSchema = z.object({
-  displayName: z.string().trim().min(1, "Укажите имя"),
+  displayName: z.string().trim().min(1, "Укажите ФИО"),
   specialization: specializationSchema,
   claimedGrade: gradeSchema,
   fspId: z.string().trim().max(64, "Слишком длинный ID"),
+  phone: z.string().trim().max(40, "Слишком длинный номер"),
   telegram: linkField,
   github: linkField,
   linkedin: linkField,
   website: linkField,
+  softSkills: z
+    .array(z.string().trim().min(1).max(60, "Слишком длинное качество"))
+    .max(20, "Не больше 20 качеств"),
   desiredSalaryFrom: optionalSalarySchema,
   experienceYears: optionalYearsSchema,
+  education: z.array(saveEducationEntrySchema).max(8),
+  experience: z.array(saveExperienceEntrySchema).max(12),
   workFormats: z.array(workFormatSchema).max(3),
   searchStatus: searchStatusSchema,
   showExperience: z.boolean(),
@@ -195,16 +296,31 @@ export const saveProfileSchema = saveContactsSchema.extend({
 // Черновик из текста резюме. В профиль не пишется, пока кандидат не сохранит форму.
 export const resumeDraftSchema = z.object({
   displayName: z.string().max(80).nullable(),
+  specialization: specializationSchema.nullable(),
   experienceYears: z.number().min(0).max(40).nullable(),
   claimedGrade: gradeSchema.nullable(),
+  phone: z.string().max(40).nullable(),
   telegram: z.string().max(120).nullable(),
   github: z.string().max(120).nullable(),
+  linkedin: z.string().max(120).nullable(),
+  website: z.string().max(120).nullable(),
+  desiredSalaryFrom: z.number().int().positive().nullable(),
+  workFormats: z.array(workFormatSchema),
+  searchStatus: searchStatusSchema.nullable(),
   skills: z.array(
     z.object({
       slug: z.string(),
       title: z.string(),
     }),
   ),
+  softSkills: z.array(z.string()),
+  // Год начала учёбы hh.ru не пишет, только год выпуска: тогда fromYear — null.
+  education: z.array(
+    educationEntrySchema.extend({
+      fromYear: educationEntrySchema.shape.fromYear.nullable(),
+    }),
+  ),
+  experience: z.array(experienceEntrySchema),
 });
 
 // Модель работодателя: профиль компании, потребности, подборка, приглашения.
@@ -276,7 +392,10 @@ const hiringNeedShape = {
     "Добавьте хотя бы один обязательный навык",
   ),
   niceSkills: skillListSchema,
-  workFormat: workFormatSchema,
+  workFormats: z
+    .array(workFormatSchema)
+    .min(1, "Выберите хотя бы один формат работы")
+    .max(3),
   ...salaryShape,
   description: z.string().trim().max(2000, "Слишком длинное описание"),
 };
@@ -616,8 +735,11 @@ export type Health = z.infer<typeof healthSchema>;
 export type ValidationIssue = z.infer<typeof validationIssueSchema>;
 export type ApiError = z.infer<typeof apiErrorSchema>;
 export type CandidateProfile = z.infer<typeof candidateProfileSchema>;
+export type EducationEntry = z.infer<typeof educationEntrySchema>;
+export type ExperienceEntry = z.infer<typeof experienceEntrySchema>;
 export type SaveProfileInput = z.infer<typeof saveProfileSchema>;
 export type ResumeDraft = z.infer<typeof resumeDraftSchema>;
+export type ResumePdfQuery = z.infer<typeof resumePdfQuerySchema>;
 export type CompanyProfile = z.infer<typeof companyProfileSchema>;
 export type HiringNeedInput = z.infer<typeof hiringNeedInputSchema>;
 export type HiringNeed = z.infer<typeof hiringNeedSchema>;

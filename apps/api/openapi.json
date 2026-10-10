@@ -534,7 +534,18 @@
     "/profile/export.pdf": {
       "get": {
         "operationId": "ProfilesController_exportPdf",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "template",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "ditto",
+              "type": "string",
+              "enum": ["ditto", "gengar", "pikachu"]
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -546,6 +557,16 @@
               }
             },
             "description": ""
+          },
+          "400": {
+            "description": "Неизвестный шаблон",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Access-токен отсутствует, истёк или пользователь удалён",
@@ -2023,6 +2044,90 @@
         "tags": ["Employers"]
       }
     },
+    "/employer/invitations/{id}/resume.pdf": {
+      "get": {
+        "operationId": "EmployersController_invitationResume",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "template",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "ditto",
+              "type": "string",
+              "enum": ["ditto", "gengar", "pikachu"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "description": "Параметр id в пути не является UUID или неизвестный шаблон",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Access-токен отсутствует, истёк или пользователь удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ только для роли employer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Приглашение не найдено, ещё не принято или принадлежит другой компании",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Employers"]
+      }
+    },
     "/employer/invitations/{id}/withdraw": {
       "post": {
         "operationId": "EmployersController_withdraw",
@@ -2607,6 +2712,11 @@
             "maxLength": 64,
             "nullable": true
           },
+          "phone": {
+            "type": "string",
+            "maxLength": 40,
+            "nullable": true
+          },
           "telegram": {
             "type": "string",
             "maxLength": 120,
@@ -2627,6 +2737,12 @@
             "maxLength": 120,
             "nullable": true
           },
+          "softSkills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "desiredSalaryFrom": {
             "type": "integer",
             "exclusiveMinimum": 0,
@@ -2637,6 +2753,68 @@
             "type": "number",
             "minimum": 0,
             "nullable": true
+          },
+          "education": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "school": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "program": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "fromYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035
+                },
+                "toYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035,
+                  "nullable": true
+                }
+              },
+              "required": ["school", "program", "fromYear", "toYear"],
+              "additionalProperties": false
+            }
+          },
+          "experience": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "company": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "role": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "fromYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035
+                },
+                "toYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035,
+                  "nullable": true
+                },
+                "summary": {
+                  "type": "string",
+                  "maxLength": 280
+                }
+              },
+              "required": ["company", "role", "fromYear", "toYear", "summary"],
+              "additionalProperties": false
+            }
           },
           "workFormats": {
             "type": "array",
@@ -2737,12 +2915,16 @@
           "specialization",
           "claimedGrade",
           "fspId",
+          "phone",
           "telegram",
           "github",
           "linkedin",
           "website",
+          "softSkills",
           "desiredSalaryFrom",
           "experienceYears",
+          "education",
+          "experience",
           "workFormats",
           "searchStatus",
           "showExperience",
@@ -2766,6 +2948,11 @@
             "maxLength": 80,
             "nullable": true
           },
+          "specialization": {
+            "type": "string",
+            "enum": ["backend", "frontend", "data", "security", null],
+            "nullable": true
+          },
           "experienceYears": {
             "type": "number",
             "minimum": 0,
@@ -2777,6 +2964,11 @@
             "enum": ["junior", "middle", "senior", null],
             "nullable": true
           },
+          "phone": {
+            "type": "string",
+            "maxLength": 40,
+            "nullable": true
+          },
           "telegram": {
             "type": "string",
             "maxLength": 120,
@@ -2785,6 +2977,34 @@
           "github": {
             "type": "string",
             "maxLength": 120,
+            "nullable": true
+          },
+          "linkedin": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "desiredSalaryFrom": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "nullable": true
+          },
+          "workFormats": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["office", "hybrid", "remote"]
+            }
+          },
+          "searchStatus": {
+            "type": "string",
+            "enum": ["actively-looking", "open-to-offers", "hidden", null],
             "nullable": true
           },
           "skills": {
@@ -2802,15 +3022,94 @@
               "required": ["slug", "title"],
               "additionalProperties": false
             }
+          },
+          "softSkills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "education": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "school": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "program": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "fromYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035,
+                  "nullable": true
+                },
+                "toYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035,
+                  "nullable": true
+                }
+              },
+              "required": ["school", "program", "fromYear", "toYear"],
+              "additionalProperties": false
+            }
+          },
+          "experience": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "company": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "role": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "fromYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035
+                },
+                "toYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035,
+                  "nullable": true
+                },
+                "summary": {
+                  "type": "string",
+                  "maxLength": 280
+                }
+              },
+              "required": ["company", "role", "fromYear", "toYear", "summary"],
+              "additionalProperties": false
+            }
           }
         },
         "required": [
           "displayName",
+          "specialization",
           "experienceYears",
           "claimedGrade",
+          "phone",
           "telegram",
           "github",
-          "skills"
+          "linkedin",
+          "website",
+          "desiredSalaryFrom",
+          "workFormats",
+          "searchStatus",
+          "skills",
+          "softSkills",
+          "education",
+          "experience"
         ],
         "additionalProperties": false
       },
@@ -2833,6 +3132,10 @@
             "type": "string",
             "maxLength": 64
           },
+          "phone": {
+            "type": "string",
+            "maxLength": 40
+          },
           "telegram": {
             "type": "string",
             "maxLength": 120
@@ -2848,6 +3151,15 @@
           "website": {
             "type": "string",
             "maxLength": 120
+          },
+          "softSkills": {
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            }
           },
           "desiredSalaryFrom": {
             "anyOf": [
@@ -2877,6 +3189,89 @@
               }
             ],
             "nullable": true
+          },
+          "education": {
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "school": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "program": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "fromYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035
+                },
+                "toYear": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [""]
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 1950,
+                      "maximum": 2035
+                    }
+                  ],
+                  "nullable": true
+                }
+              },
+              "required": ["school", "program", "fromYear", "toYear"]
+            }
+          },
+          "experience": {
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "company": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "role": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "fromYear": {
+                  "type": "integer",
+                  "minimum": 1950,
+                  "maximum": 2035
+                },
+                "toYear": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [""]
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 1950,
+                      "maximum": 2035
+                    }
+                  ],
+                  "nullable": true
+                },
+                "summary": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 280
+                }
+              },
+              "required": ["company", "role", "fromYear", "toYear", "summary"]
+            }
           },
           "workFormats": {
             "maxItems": 3,
@@ -2947,12 +3342,16 @@
           "specialization",
           "claimedGrade",
           "fspId",
+          "phone",
           "telegram",
           "github",
           "linkedin",
           "website",
+          "softSkills",
           "desiredSalaryFrom",
           "experienceYears",
+          "education",
+          "experience",
           "workFormats",
           "searchStatus",
           "showExperience",
@@ -3739,9 +4138,14 @@
                     "minLength": 1
                   }
                 },
-                "workFormat": {
-                  "type": "string",
-                  "enum": ["office", "hybrid", "remote"]
+                "workFormats": {
+                  "minItems": 1,
+                  "maxItems": 3,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": ["office", "hybrid", "remote"]
+                  }
                 },
                 "salaryFrom": {
                   "type": "integer",
@@ -3782,7 +4186,7 @@
                 "gradeTo",
                 "mustSkills",
                 "niceSkills",
-                "workFormat",
+                "workFormats",
                 "salaryFrom",
                 "salaryTo",
                 "description",
@@ -3833,9 +4237,14 @@
               "minLength": 1
             }
           },
-          "workFormat": {
-            "type": "string",
-            "enum": ["office", "hybrid", "remote"]
+          "workFormats": {
+            "minItems": 1,
+            "maxItems": 3,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["office", "hybrid", "remote"]
+            }
           },
           "salaryFrom": {
             "type": "integer",
@@ -3861,7 +4270,7 @@
           "gradeTo",
           "mustSkills",
           "niceSkills",
-          "workFormat",
+          "workFormats",
           "salaryFrom",
           "salaryTo",
           "description"
@@ -3903,9 +4312,14 @@
               "minLength": 1
             }
           },
-          "workFormat": {
-            "type": "string",
-            "enum": ["office", "hybrid", "remote"]
+          "workFormats": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 3,
+            "items": {
+              "type": "string",
+              "enum": ["office", "hybrid", "remote"]
+            }
           },
           "salaryFrom": {
             "type": "integer",
@@ -3946,7 +4360,7 @@
           "gradeTo",
           "mustSkills",
           "niceSkills",
-          "workFormat",
+          "workFormats",
           "salaryFrom",
           "salaryTo",
           "description",

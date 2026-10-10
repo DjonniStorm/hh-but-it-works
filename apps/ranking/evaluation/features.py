@@ -19,12 +19,8 @@ FEATURE_ORDER = [
     "fspEvidence",
     "salary",
     "workMode",
-    "location",
-    "employmentType",
     "targetRole",
-    "desiredSkills",
     "freshness",
-    "personalization",
     # Rules aggregates are useful priors. A future human-labeled LTR model can
     # learn corrections instead of rediscovering the whole baseline formula.
     "qualificationScore",
@@ -38,6 +34,7 @@ MODEL_CODE_FILES = [
     ROOT / "scoring.py",
     ROOT / "taxonomy.py",
     ROOT / "text_similarity.py",
+    ROOT / "embedding_similarity.py",
     ROOT / "schemas.py",
     Path(__file__).resolve(),
 ]

@@ -138,11 +138,20 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("calibrator.json"),
     )
-    parser.add_argument("--model-version", default="ltr-v1.1.0")
-    parser.add_argument(
+    parser.add_argument("--model-version", default="ltr-v1.2.0")
+    approval = parser.add_mutually_exclusive_group()
+    approval.add_argument(
         "--production-approved",
         action="store_true",
         help="mark artifact deployable; accepted only for double human annotations",
+    )
+    approval.add_argument(
+        "--llm-approved",
+        action="store_true",
+        help=(
+            "mark artifact deployable on llm_judge_v1 labels; explicit lower "
+            "approval tier, independent calibration still required"
+        ),
     )
     return parser.parse_args()
 
@@ -177,14 +186,22 @@ def main() -> None:
             "--production-approved requires an independent human-labeled "
             "calibration dataset"
         )
+    if args.llm_approved and set(training_label_metadata["sources"]) != {"llm_judge_v1"}:
+        raise SystemExit("--llm-approved requires exclusively llm_judge_v1 labels")
+    if args.llm_approved and args.calibration_dataset is None:
+        raise SystemExit(
+            "--llm-approved requires an independent llm_judge_v1 calibration dataset"
+        )
 
     training_parameters = {
         "objective": "lambdarank",
         "metric": "ndcg",
-        "n_estimators": 180,
-        "learning_rate": 0.05,
-        "num_leaves": 31,
-        "min_child_samples": 5,
+        # Простая модель выбрана намеренно: на синтетическом holdout глубокие
+        # конфигурации не били rules, а 3 листа стабильно проходят гейт uplift.
+        "n_estimators": 200,
+        "learning_rate": 0.1,
+        "num_leaves": 3,
+        "min_child_samples": 3,
         "reg_lambda": 1.0,
         "random_state": 42,
         "deterministic": True,
@@ -230,6 +247,10 @@ def main() -> None:
                 "--production-approved requires human_double_annotation_v1 "
                 "calibration labels"
             )
+        if args.llm_approved and set(calibration_label_metadata["sources"]) != {
+            "llm_judge_v1"
+        }:
+            raise SystemExit("--llm-approved requires llm_judge_v1 calibration labels")
         raw_scores = [float(value) for value in ranker.predict(calibration_x)]
         if len(set(raw_scores)) < 2:
             raise SystemExit("Model predictions are constant; isotonic calibration is impossible")
@@ -282,11 +303,21 @@ def main() -> None:
         "datasetSha256": file_sha256(args.dataset),
         "modelSha256": file_sha256(args.output),
         "calibration": calibration_metadata,
-        "productionApproved": args.production_approved,
+        "productionApproved": args.production_approved or args.llm_approved,
+        "approvalSource": (
+            "human_double_annotation_v1"
+            if args.production_approved
+            else "llm_judge_v1"
+            if args.llm_approved
+            else None
+        ),
         "activationGate": (
             "Approved from double human annotation; independent held-out uplift "
             "must still pass promotion."
             if args.production_approved
+            else "Approved from llm_judge_v1 labels (explicit lower tier); "
+            "independent held-out uplift must still pass promotion."
+            if args.llm_approved
             else "Shadow/evaluation only: requires double human annotation and "
             "independent held-out uplift for hybrid/LTR activation."
         ),

@@ -7,25 +7,61 @@
 ## Готовый запуск без обучения
 
 Версионированные `model.txt`, metadata, calibrator и held-out report лежат в
-[`evaluation/artifacts/ltr-v1.1.0`](evaluation/artifacts/ltr-v1.1.0). Обычная
+[`evaluation/artifacts/ltr-v1.2.0`](evaluation/artifacts/ltr-v1.2.0). Обычная
 Docker-сборка только устанавливает runtime и копирует готовую модель — LightGBM
 training и scikit-learn при сборке/запуске не выполняются.
 
-После публикации workflow `Publish pre-trained ranking image` команда запускает
-готовый multi-arch образ:
+Workflow `Publish pre-trained ranking image` публикует готовый multi-arch
+образ по push в `dev`, **но сейчас Actions на аккаунте выключен** — раны не
+выполняются, GHCR-тег `:dev` может отставать от репозитория. Всегда сверяй
+`modelVersion` в `/health` (должен быть `hybrid-v1.2.0-ltr0.25`):
 
 ```bash
 docker pull ghcr.io/djonnistorm/hh-but-it-works-ranking:dev
 docker run --rm -p 8000:8000 \
   ghcr.io/djonnistorm/hh-but-it-works-ranking:dev
+curl -s localhost:8000/health   # modelLoaded: true, modelVersion: hybrid-v1.2.0-ltr0.25
+curl -s -X POST localhost:8000/rank -H 'content-type: application/json' \
+  --data @apps/ranking/examples/rank-request.json
+```
+
+Надёжный путь без CI — собрать локально из клона; сборка только копирует
+committed artifacts, ничего не обучает:
+
+```bash
+docker compose --env-file infra/dev/.env.example \
+  -f infra/dev/docker-compose.yml up -d --build ranking
+```
+
+Для private GHCR один раз нужен `docker login ghcr.io`; package можно сделать public
+в GitHub Packages.
+
+### Проверка PR: CI выключен, всё вручную
+
+Воркфлоу `ranking-image.yml` есть, но Actions отключён — раны не выполняются
+и PR-теги не публикуются. Ревьюер проверяет локально:
+
+```bash
+cd apps/ranking && sh scripts/check.sh && sh scripts/check_ml.sh  # тесты + ML-гейты
+pnpm test                                                          # api + web контракт
+docker compose --env-file infra/dev/.env.example \
+  -f infra/dev/docker-compose.yml up -d --build ranking            # образ с моделью
 curl -s localhost:8000/health
 ```
 
-Или весь dev stack из клона: `docker compose --env-file infra/dev/.env.example
--f infra/dev/docker-compose.yml up`. Compose использует готовый GHCR-образ, а
-локальная сборка всё равно копирует committed artifacts без обучения. Для
-private GHCR один раз нужен `docker login ghcr.io`; package можно сделать public
-в GitHub Packages.
+Демо-запрос (`examples/rank-request.json`) содержит трёх кандидатов: middle с
+4 годами опыта идёт первым, junior с 1.1 года — вторым, junior ниже
+`experienceMin` — третьим с пониженным компонентом `experience`.
+
+### Локальный запуск без Docker
+
+```bash
+pip install -r apps/ranking/requirements-runtime-ml.txt
+cd apps/ranking && uvicorn main:app --port 8000   # hybrid + committed bundle
+```
+
+Без артефактов сервис честно откатывается на pure rules (`rules-v1.2.0`) —
+`/health` покажет `modelLoaded: false`.
 
 ## Контекст продукта
 
@@ -81,10 +117,9 @@ Related technologies могут давать мягкий relevance, но **не
 - verified evidence;
 - competency scores;
 - assessment;
-- experience;
-- precomputed semantic similarity или объяснимый lexical fallback по текстам;
-- профильный FSP evidence bonus с силой и количеством достижений;
-- session personalization.
+- experience (для Nest диапазон лет разворачивается из грейда вакансии, см. INTEGRATION);
+- precomputed semantic similarity, локальный ONNX-embedding в неоднозначном lexical band или объяснимый lexical fallback по текстам;
+- профильный FSP evidence bonus с силой и количеством достижений.
 
 ### OpportunityFit
 
@@ -92,10 +127,9 @@ Related technologies могут давать мягкий relevance, но **не
 
 - salary;
 - work mode;
-- location;
-- employment type;
-- target specialization;
-- desired stack.
+- target specialization.
+
+Локация, тип занятости и желаемый стек **выведены из формулы в `rules-v1.2.0`**: в контракте нет полей, которыми их заполнить (см. HANDOFF §5).
 
 ### IntentScore
 
@@ -114,7 +148,12 @@ Related technologies могут давать мягкий relevance, но **не
 
 `RankRequest.context` принимает короткоживущие `skillBoosts` и `competencyBoosts` в диапазоне `[-1, 1]`.
 
-Это позволяет backend после `Подходит / Не подходит` уточнить текущую выдачу без online retraining. Событие при этом должно логироваться backend-ом для будущего обучения.
+Слагаемое персонализации выведено из формулы в `rules-v1.2.0`: boost'ам неоткуда
+прийти из текущего контракта, и константа в формуле — худшее состояние.
+`competencyBoosts` остаётся живым модификатором внутри слагаемого компетенций;
+`skillBoosts` зарезервирован под будущую петлю обратной связи (dismiss/invite,
+issue #36 §6) и на score сейчас не влияет. Событие «Подходит / Не подходит»
+backend логирует `InteractionEvent` для будущего обучения.
 
 ## Explainability
 
@@ -165,9 +204,9 @@ LLM **не находится в hot path**.
 
 ## Semantic retrieval
 
-Если передан `semanticSimilarity`, сервис использует его как precomputed feature. Если embedding отсутствует, Nest передаёт описание потребности и обезличенный текст из специализации/навыков кандидата, а ranking считает детерминированный lexical coverage/Jaccard fallback и возвращает совпавшие термы в reason codes. Без обоих текстов остаётся нейтральный `0.65`.
+Если передан `semanticSimilarity`, сервис использует его как precomputed feature. Для пар без него Nest передаёт описание потребности и обезличенный текст из специализации/навыков кандидата, а ranking сначала считает детерминированный lexical coverage/Jaccard: при score вне band `[0.20, 0.60]` (явный match/mismatch) остаётся lexical, внутри band решение принимает локальный int8 ONNX-энкодер (`evaluation/models/embedder-int8.onnx`, `paraphrase-multilingual-MiniLM-L12-v2` с pinned revision) — cosine переводится в ту же шкалу `[0, 1]`. Сетевых вызовов и LLM нет; недоступность модели (`onnxruntime`/`tokenizers`, несовпадение sha с `embedder.meta.json`, `RANKING_EMBEDDINGS=off`) детектируется по `embeddingReady` в `/health` и молча возвращает lexical. Совпавшие lexical-термы по-прежнему уходят в reason codes (`semantic_overlap:*`), без обоих текстов остаётся нейтральный `0.65`.
 
-Рекомендованная интеграция позже:
+Рекомендованная интеграция позже (для масштаба, сейчас не требуется):
 
 - embeddings пересчитываются при изменении профиля/HiringNeed;
 - хранятся в Postgres/pgvector;
@@ -181,17 +220,17 @@ LTR-контур работает как production-safe shadow/hybrid:
 - `evaluation/gold.py` воспроизводимо строит controlled-synthetic набор вокруг обезличенных публичных вакансий и делит его по `need.id`/source entity на train/calibration/test;
 - relevance-метки задаются явными сценариями qualification/intent, независимо от rules-score; `labelConfidence` используется как sample weight;
 - `evaluation/open_data.py` нормализует локальные JSON-выгрузки, отбрасывая работодателя, адреса и контакты; `data_quality.py` ставит PII/leakage gate;
-- `evaluation/human_labels.py` экспортирует blind CSV и принимает только согласованные двойные оценки, отправляя конфликты на adjudication;
+- `evaluation/human_labels.py` экспортирует blind CSV (готовый батч `evaluation/annotation/batch-001`, гайд аннотатора `evaluation/annotation/README.md`) и принимает двойные оценки с adjudication-решениями, валит батч при PII, неполноте или согласии ниже 0.6;
 - `evaluation/train_ltr.py` учит LightGBM LambdaRank только на train и fit-ит `IsotonicRegression` только на calibration;
 - `evaluation/evaluate_ltr.py` сравнивает rules, pure LTR и hybrid на untouched test по NDCG/Precision/MRR и диагностике калибровки;
 - runtime загружает `model.txt`, `model.meta.json` и безопасный `calibrator.json`, проверяет schema, feature order, SHA-256 кода признаков и артефактов;
-- любая ошибка загрузки/предикта безопасно возвращает `rules-v1.1.0`; hard filters LTR не переопределяет.
+- любая ошибка загрузки/предикта безопасно возвращает `rules-v1.2.0`; hard filters LTR не переопределяет.
 - `scripts/promote_ml.sh` атомарно публикует локальные артефакты только после entity/group-disjoint quality gate;
 - Docker runtime build копирует проверенный versioned artifact bundle и никогда не обучает модель.
 
 `evaluation/data/gold*.jsonl` — **controlled-synthetic benchmark**, а не человеческий gold. Потребности основаны на небольшой атрибутированной выборке открытых вакансий, кандидаты вымышлены, метки независимы от rules. Набор проверяет pipeline и ловит регрессии, но не доказывает production uplift. Карточка и provenance: [`evaluation/data/README.md`](evaluation/data/README.md), [`evaluation/data/SOURCES.json`](evaluation/data/SOURCES.json).
 
-Training metadata содержит `productionApproved=false`. Обычный runtime не даст такому артефакту влиять на выдачу: запрос `hybrid`/`ltr` будет понижен до `shadow`. Готовый demo-образ намеренно задаёт `RANKING_ALLOW_UNAPPROVED_MODEL=true`, поэтому сразу показывает hybrid; `/health` честно сохраняет `productionApproved=false` и `unapprovedOverride=true`. Флаг `--production-approved` принимается только для `human_double_annotation_v1`.
+Training metadata содержит `productionApproved` и `approvalSource`. Обычный runtime не даёт неутверждённому артефакту влиять на выдачу: запрос `hybrid`/`ltr` будет понижен до `shadow`. Готовый образ по умолчанию собирается с llm-approved бандлом `ltr-v1.4.0-llm` (`approvalSource: llm_judge_v1`), поэтому `/health` честно показывает `productionApproved=true`, `unapprovedOverride=false` без каких-либо override-переменных. Флаг `--production-approved` принимается только для `human_double_annotation_v1`; отдельный, более слабый флаг `--llm-approved` принимает только `llm_judge_v1` — см. `evaluation/annotation/README.md` и `evaluation/artifacts/`.
 
 Режимы `RANKING_MODE`:
 
@@ -202,7 +241,7 @@ Training metadata содержит `productionApproved=false`. Обычный ru
 | `hybrid` | `0.75·rules + 0.25·calibrated LTR`; human-approved или явный demo override |
 | `ltr`    | Pure LTR для offline evaluation и будущего rollout на human-labeled data   |
 
-Вес hybrid задаётся `RANKING_LTR_WEIGHT` и валидируется в `[0,1]`. Без валидных или human-approved артефактов активный ответ fail-closed остаётся rules/shadow. Единственное исключение — явный `RANKING_ALLOW_UNAPPROVED_MODEL=true`, включённый в готовом demo-образе.
+Вес hybrid задаётся `RANKING_LTR_WEIGHT` и валидируется в `[0,1]`. Без валидных или approved (human/llm) артефактов активный ответ fail-closed остаётся rules/shadow; явный `RANKING_ALLOW_UNAPPROVED_MODEL=true` остаётся только как debugging-инструмент и в дефолтный образ не входит.
 
 Scikit-learn нужен только при обучении. Serving использует LightGBM и собственный JSON isotonic runtime без pickle/joblib. Локально:
 

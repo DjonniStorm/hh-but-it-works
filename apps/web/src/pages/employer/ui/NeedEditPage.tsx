@@ -22,7 +22,7 @@ export const NeedEditPage = observer(() => {
   }
 
   return (
-    <Stack gap="lg" maw={860}>
+    <Stack gap="lg" maw={860} mx="auto">
       <Stack gap={4}>
         <BackToNeeds />
         <Title order={2}>{need.title}</Title>

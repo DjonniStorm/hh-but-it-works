@@ -108,7 +108,7 @@ def test_hybrid_blends_rules_and_ltr_without_losing_explanations():
     assert run.items[0].matchScore == expected
     assert run.items[0].reasons == rules.reasons
     assert run.mode == "hybrid"
-    assert run.model_version == "hybrid-v1.1.0-ltr0.25"
+    assert run.model_version == "hybrid-v1.2.0-ltr0.25"
     assert set(run.diagnostics) == {
         "rankingAgreement",
         "topKOverlap",

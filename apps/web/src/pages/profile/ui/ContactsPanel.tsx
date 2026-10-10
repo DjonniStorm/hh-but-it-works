@@ -1,119 +1,45 @@
-import { useEffect, useRef } from "react";
-
-import { notifier } from "@/app/store/notifier";
-import { useStore } from "@/app/store/store-context";
-import { StoreKey } from "@/app/store/store-key";
-import { applyContactDraft } from "@/pages/profile/model/apply-resume-draft";
 import {
   gradeOptions,
   specializationOptions,
 } from "@/pages/profile/model/options";
-import { contactInput } from "@/pages/profile/model/save-contacts";
-import {
-  assessedFromProfile,
-  saveSkills,
-} from "@/pages/profile/model/save-skills";
 import type {
-  ContactValues,
-  ResumeDraftHit,
-} from "@/pages/profile/model/types";
+  ProfileForm,
+  ProfileSubmit,
+} from "@/pages/profile/model/use-profile-form";
 import { ContactIcon } from "@/pages/profile/ui/ContactIcon";
-import { ExpectationsFields } from "@/pages/profile/ui/ExpectationsFields";
 import { ProfileDownload } from "@/pages/profile/ui/ProfileDownload";
 import { ResumeUpload } from "@/pages/profile/ui/ResumeUpload";
 import { VisibilityFields } from "@/pages/profile/ui/VisibilityFields";
-import { focusFirstError } from "@/shared/lib/focus-first-error";
 import { mutedTextColor } from "@/shared/theme";
 import {
   Button,
   Paper,
   Select,
   Stack,
+  TagsInput,
   Text,
   TextInput,
   Title,
 } from "@mantine/core";
-import { schemaResolver, useForm } from "@mantine/form";
 
-import { type CandidateProfile, saveContactsSchema } from "@hh/contracts";
+import type { CandidateProfile } from "@hh/contracts";
 
+// Первая плитка анкеты: кто кандидат, как с ним связаться и что видно в подборке.
 export const ContactsPanel = ({
   profile,
   email,
-  draft,
+  form,
+  submit,
 }: {
   profile: CandidateProfile;
   email: string;
-  draft: ResumeDraftHit | null;
+  form: ProfileForm;
+  submit: ProfileSubmit;
 }) => {
-  const profiles = useStore(StoreKey.Profile);
-  const seenDraft = useRef<number | null>(null);
-  const form = useForm<ContactValues>({
-    initialValues: {
-      displayName: profile.displayName,
-      specialization: profile.specialization ?? "",
-      claimedGrade: profile.claimedGrade ?? "",
-      fspId: profile.fspId ?? "",
-      telegram: profile.telegram ?? "",
-      github: profile.github ?? "",
-      linkedin: profile.linkedin ?? "",
-      website: profile.website ?? "",
-      desiredSalaryFrom: profile.desiredSalaryFrom ?? "",
-      experienceYears: profile.experienceYears ?? "",
-      // Обычный массив: у observable klona уходит в символ MobX и зацикливается.
-      workFormats: profile.workFormats.slice(),
-      searchStatus: profile.searchStatus,
-      showExperience: profile.showExperience,
-      showSalary: profile.showSalary,
-      showFsp: profile.showFsp,
-      showUnverifiedSkills: profile.showUnverifiedSkills,
-    },
-    validate: schemaResolver(saveContactsSchema, { sync: true }),
-  });
-
-  const onSubmit = form.onSubmit(
-    (values) => {
-      // Резолвер уже проверил специализацию и грейд. В типе формы они шире.
-      const skills =
-        profiles.readSkills?.() ?? assessedFromProfile(profile.skills);
-      void profiles.save(
-        {
-          ...contactInput(values),
-          skills: saveSkills(skills),
-        },
-        {
-          onSuccess: () => {
-            notifier.showSuccess("Контакты сохранены");
-          },
-        },
-      );
-    },
-    (errors) => {
-      focusFirstError(form, errors);
-    },
-  );
-
-  useEffect(() => {
-    profiles.bindContacts(() => {
-      return form.getValues();
-    });
-    return () => {
-      profiles.bindContacts(null);
-    };
-  }, [form, profiles]);
-
-  useEffect(() => {
-    if (!draft || seenDraft.current === draft.at) {
-      return;
-    }
-    seenDraft.current = draft.at;
-    applyContactDraft(form, draft.draft, profile.verifiedGrade);
-  }, [draft, form, profile.verifiedGrade]);
-
   return (
     <Paper
       component="form"
-      onSubmit={onSubmit}
+      onSubmit={submit("Контакты сохранены")}
       shadow="md"
       withBorder
       p="xl"
@@ -129,7 +55,7 @@ export const ContactsPanel = ({
         </Text>
         <TextInput label="Почта" value={email} readOnly />
         <TextInput
-          label="Имя"
+          label="ФИО"
           autoComplete="name"
           withAsterisk
           {...form.getInputProps("displayName")}
@@ -150,6 +76,13 @@ export const ContactsPanel = ({
           label="ID участника ФСП"
           description="Сохраним здесь. Историю запросим при подтверждении перед биржей."
           {...form.getInputProps("fspId")}
+        />
+        <TextInput
+          label="Телефон"
+          type="tel"
+          autoComplete="tel"
+          placeholder="+7 (900) 000-00-00"
+          {...form.getInputProps("phone")}
         />
         <TextInput
           label="Telegram"
@@ -175,7 +108,12 @@ export const ContactsPanel = ({
           leftSection={<ContactIcon kind="website" />}
           {...form.getInputProps("website")}
         />
-        <ExpectationsFields form={form} />
+        <TagsInput
+          label="Софт-скиллы"
+          description="Enter после каждого качества. Подборка их не учитывает."
+          maxTags={20}
+          {...form.getInputProps("softSkills")}
+        />
         <VisibilityFields form={form} />
         <Text>
           {profile.listed

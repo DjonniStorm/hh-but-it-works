@@ -36,6 +36,7 @@ ALIASES: dict[str, set[str]] = {
     # кандидата, который шлётся заголовком.
     "http_api": {"http api", "http и api", "http-api"},
     "testing": {"testing", "тестирование", "тесты"},
+    "csharp": {"csharp", "c#", "c sharp"},
 }
 
 # Partial relations are deliberately conservative: related tech is not a substitute

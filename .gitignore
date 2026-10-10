@@ -5,11 +5,16 @@ dist
 __pycache__
 .pytest_cache
 .venv
+# Венв apps/ranking по примеру из docs/dev/AGENT_HANDOFF.md (создаётся внутри репо)
+rank-venv/
 # Артефакты offline-обучения LTR (см. apps/ranking/README.md)
 apps/ranking/model.txt
 apps/ranking/model.meta.json
 apps/ranking/calibrator.json
 apps/ranking/promotion-report.json
+# Собранная из частей модель эмбеддера: git хранит только *.onnx.NNNN
+# (GitHub отклоняет файлы >100 МБ), сборка — при первом лоаде.
+apps/ranking/evaluation/models/embedder-int8.onnx
 # Не коммитим исходные выгрузки/ручную разметку с потенциальным PII.
 apps/ranking/evaluation/data/raw/
 apps/ranking/evaluation/data/private/

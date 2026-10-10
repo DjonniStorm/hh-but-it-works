@@ -10,6 +10,7 @@ import { RequestOverlay } from "@/app/store/request-overlay";
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { waitingInvitations } from "@/pages/invitations/model/answer";
+import { ArtBackdrop } from "@/shared/decor/ui/ArtBackdrop";
 import { RouteFallback } from "@/shared/router/RouteFallback";
 import { ROUTES } from "@/shared/router/routes";
 import { currentPath, returnTo } from "@/shared/router/use-return-path";
@@ -81,6 +82,8 @@ export const AuthedShell = observer(() => {
       }}
       padding="md"
     >
+      {/* Фон приложения: статичный набор по хешу почты, под контентом и уведомлениями. */}
+      <ArtBackdrop seed={auth.user?.email ?? "guest"} variant="app" />
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between" wrap="nowrap">
           <Group gap="lg" wrap="nowrap">

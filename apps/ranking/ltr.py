@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Sequence
 
 from calibration import IsotonicCalibrator
+from embedding_similarity import embedding_available
 from evaluation.features import FEATURE_ORDER, extract_features, model_code_sha256
 from schemas import CandidateSnapshot, HiringNeedSnapshot, RankingContext, RankItem
 from scoring import MODEL_VERSION as RULES_MODEL_VERSION
@@ -189,7 +190,7 @@ class LTRRanker:
     def artifact_version(self) -> str:
         if self.model is None:
             return RULES_MODEL_VERSION
-        version = str(self.metadata.get("modelVersion", "ltr-v1.1.0"))
+        version = str(self.metadata.get("modelVersion", "ltr-v1.2.0"))
         return f"{version}-calibrated" if self.calibrator is not None else version
 
     @property
@@ -197,7 +198,8 @@ class LTRRanker:
         if self.model is None or self.active_mode in {"rules", "shadow"}:
             return RULES_MODEL_VERSION
         if self.active_mode == "hybrid":
-            return f"hybrid-v1.1.0-ltr{self.blend_weight:.2f}"
+            rules_series = RULES_MODEL_VERSION.removeprefix("rules-")
+            return f"hybrid-{rules_series}-ltr{self.blend_weight:.2f}"
         return self.artifact_version
 
     @property
@@ -226,6 +228,7 @@ class LTRRanker:
             "artifactVersion": self.artifact_version,
             "productionApproved": self.production_approved,
             "unapprovedOverride": self.allow_unapproved,
+            "embeddingReady": embedding_available(),
             "blendWeight": self.blend_weight,
             "readyForRequestedMode": (
                 self.active_mode == self.requested_mode

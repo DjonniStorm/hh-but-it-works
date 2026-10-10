@@ -67,12 +67,27 @@ export type CandidateProfileDtoOutput = {
     specialization: 'backend' | 'frontend' | 'data' | 'security' | null;
     claimedGrade: 'junior' | 'middle' | 'senior' | null;
     fspId: string | null;
+    phone: string | null;
     telegram: string | null;
     github: string | null;
     linkedin: string | null;
     website: string | null;
+    softSkills: Array<string>;
     desiredSalaryFrom: number | null;
     experienceYears: number | null;
+    education: Array<{
+        school: string;
+        program: string;
+        fromYear: number;
+        toYear: number | null;
+    }>;
+    experience: Array<{
+        company: string;
+        role: string;
+        fromYear: number;
+        toYear: number | null;
+        summary: string;
+    }>;
     workFormats: Array<'office' | 'hybrid' | 'remote'>;
     searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden';
     showExperience: boolean;
@@ -96,13 +111,34 @@ export type CandidateProfileDtoOutput = {
 
 export type ResumeDraftDtoOutput = {
     displayName: string | null;
+    specialization: 'backend' | 'frontend' | 'data' | 'security' | null;
     experienceYears: number | null;
     claimedGrade: 'junior' | 'middle' | 'senior' | null;
+    phone: string | null;
     telegram: string | null;
     github: string | null;
+    linkedin: string | null;
+    website: string | null;
+    desiredSalaryFrom: number | null;
+    workFormats: Array<'office' | 'hybrid' | 'remote'>;
+    searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden' | null;
     skills: Array<{
         slug: string;
         title: string;
+    }>;
+    softSkills: Array<string>;
+    education: Array<{
+        school: string;
+        program: string;
+        fromYear: number | null;
+        toYear: number | null;
+    }>;
+    experience: Array<{
+        company: string;
+        role: string;
+        fromYear: number;
+        toYear: number | null;
+        summary: string;
     }>;
 };
 
@@ -111,12 +147,27 @@ export type SaveProfileDto = {
     specialization: 'backend' | 'frontend' | 'data' | 'security';
     claimedGrade: 'junior' | 'middle' | 'senior';
     fspId: string;
+    phone: string;
     telegram: string;
     github: string;
     linkedin: string;
     website: string;
+    softSkills: Array<string>;
     desiredSalaryFrom: '' | number | null;
     experienceYears: '' | number | null;
+    education: Array<{
+        school: string;
+        program: string;
+        fromYear: number;
+        toYear: '' | number | null;
+    }>;
+    experience: Array<{
+        company: string;
+        role: string;
+        fromYear: number;
+        toYear: '' | number | null;
+        summary: string;
+    }>;
     workFormats: Array<'office' | 'hybrid' | 'remote'>;
     searchStatus: 'actively-looking' | 'open-to-offers' | 'hidden';
     showExperience: boolean;
@@ -288,7 +339,7 @@ export type HiringNeedListDtoOutput = {
         gradeTo: 'junior' | 'middle' | 'senior';
         mustSkills: Array<string>;
         niceSkills: Array<string>;
-        workFormat: 'office' | 'hybrid' | 'remote';
+        workFormats: Array<'office' | 'hybrid' | 'remote'>;
         salaryFrom: number;
         salaryTo: number;
         description: string;
@@ -305,7 +356,7 @@ export type HiringNeedInputDto = {
     gradeTo: 'junior' | 'middle' | 'senior';
     mustSkills: Array<string>;
     niceSkills: Array<string>;
-    workFormat: 'office' | 'hybrid' | 'remote';
+    workFormats: Array<'office' | 'hybrid' | 'remote'>;
     salaryFrom: number;
     salaryTo: number;
     description: string;
@@ -318,7 +369,7 @@ export type HiringNeedDtoOutput = {
     gradeTo: 'junior' | 'middle' | 'senior';
     mustSkills: Array<string>;
     niceSkills: Array<string>;
-    workFormat: 'office' | 'hybrid' | 'remote';
+    workFormats: Array<'office' | 'hybrid' | 'remote'>;
     salaryFrom: number;
     salaryTo: number;
     description: string;
@@ -788,11 +839,17 @@ export type ProfilesControllerResumeDraftResponse = ProfilesControllerResumeDraf
 export type ProfilesControllerExportPdfData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        template?: 'ditto' | 'gengar' | 'pikachu';
+    };
     url: '/profile/export.pdf';
 };
 
 export type ProfilesControllerExportPdfErrors = {
+    /**
+     * Неизвестный шаблон
+     */
+    400: ApiErrorDto;
     /**
      * Access-токен отсутствует, истёк или пользователь удалён
      */
@@ -1516,6 +1573,44 @@ export type EmployersControllerCreateInvitationResponses = {
 };
 
 export type EmployersControllerCreateInvitationResponse = EmployersControllerCreateInvitationResponses[keyof EmployersControllerCreateInvitationResponses];
+
+export type EmployersControllerInvitationResumeData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        template?: 'ditto' | 'gengar' | 'pikachu';
+    };
+    url: '/employer/invitations/{id}/resume.pdf';
+};
+
+export type EmployersControllerInvitationResumeErrors = {
+    /**
+     * Параметр id в пути не является UUID или неизвестный шаблон
+     */
+    400: ApiErrorDto;
+    /**
+     * Access-токен отсутствует, истёк или пользователь удалён
+     */
+    401: ApiErrorDto;
+    /**
+     * Доступ только для роли employer
+     */
+    403: ApiErrorDto;
+    /**
+     * Приглашение не найдено, ещё не принято или принадлежит другой компании
+     */
+    404: ApiErrorDto;
+};
+
+export type EmployersControllerInvitationResumeError = EmployersControllerInvitationResumeErrors[keyof EmployersControllerInvitationResumeErrors];
+
+export type EmployersControllerInvitationResumeResponses = {
+    200: Blob | File;
+};
+
+export type EmployersControllerInvitationResumeResponse = EmployersControllerInvitationResumeResponses[keyof EmployersControllerInvitationResumeResponses];
 
 export type EmployersControllerWithdrawData = {
     body?: never;

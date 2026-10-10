@@ -51,6 +51,9 @@ export const TestingChoice = ({
         <span
           aria-hidden
           style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
             width: 18,
             height: 18,
             flexShrink: 0,
@@ -59,7 +62,18 @@ export const TestingChoice = ({
               ? "1px solid var(--mantine-color-fsp-6)"
               : `1px solid ${fieldBorderColor}`,
           }}
-        />
+        >
+          {selected ? (
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path
+                d="M2 6.2 4.7 9 10 3"
+                stroke="#fff"
+                strokeWidth="1.8"
+                strokeLinecap="square"
+              />
+            </svg>
+          ) : null}
+        </span>
       )}
       <span>{label}</span>
     </UnstyledButton>

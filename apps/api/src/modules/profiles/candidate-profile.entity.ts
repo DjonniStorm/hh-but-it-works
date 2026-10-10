@@ -8,6 +8,21 @@ import {
 
 import { Grade, SearchStatus, Specialization, WorkFormat } from "@hh/types";
 
+type EducationRow = {
+  school: string;
+  program: string;
+  fromYear: number;
+  toYear: number | null;
+};
+
+type ExperienceRow = {
+  company: string;
+  role: string;
+  fromYear: number;
+  toYear: number | null;
+  summary: string;
+};
+
 @Entity("candidate_profiles")
 export class CandidateProfile {
   @PrimaryGeneratedColumn("uuid")
@@ -32,7 +47,10 @@ export class CandidateProfile {
   @Column({ type: "varchar", nullable: true })
   fspId!: string | null;
 
-  /** Ссылки агрегатора. Пустая строка с клиента хранится как null. */
+  /** Телефон и ссылки агрегатора. Пустая строка с клиента хранится как null. */
+  @Column({ type: "varchar", length: 40, nullable: true })
+  phone!: string | null;
+
   @Column({ type: "varchar", length: 120, nullable: true })
   telegram!: string | null;
 
@@ -44,6 +62,10 @@ export class CandidateProfile {
 
   @Column({ type: "varchar", length: 120, nullable: true })
   website!: string | null;
+
+  /** Софт-скиллы из формы или резюме. Подборка их не учитывает. */
+  @Column({ type: "text", array: true, default: "{}" })
+  softSkills!: string[];
 
   /** Ожидания кандидата. По ним подборка сверяет вилку и формат работодателя. */
   @Column({ type: "int", nullable: true })
@@ -110,6 +132,13 @@ export class CandidateProfile {
 
   @Column({ type: "real", nullable: true })
   experienceYears!: number | null;
+
+  /** Блоки резюме. В подборку не входят, только анкета и PDF. */
+  @Column({ type: "jsonb", default: () => "'[]'::jsonb" })
+  education!: EducationRow[];
+
+  @Column({ type: "jsonb", default: () => "'[]'::jsonb" })
+  experience!: ExperienceRow[];
 
   /** На биржу выводит подтверждение, не сохранение анкеты. */
   @Column({ default: false })

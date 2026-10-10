@@ -1,0 +1,21 @@
+{
+  "labelSource": "llm_judge_v1",
+  "annotatorId": "llm-judge",
+  "judgeModel": "opencode/mimo-v2.6-flash-free",
+  "blindFrom": "evaluation/data/gold.jsonl",
+  "blindStrippedFields": [
+    "label",
+    "qualificationLabel",
+    "intentLabel",
+    "labelConfidence",
+    "labelSource",
+    "scenario",
+    "sourceDate",
+    "sourceEntityHash"
+  ],
+  "import": "evaluation/human_labels.py import --label-source llm_judge_v1 --min-annotators 1",
+  "splitRule": "mirrors need membership of gold_train/gold_calibration/gold_test (entity-disjoint)",
+  "vsSyntheticOverallExactMatch": 0.875,
+  "vsSyntheticMeanKendallTau": 1.0,
+  "createdOn": "2026-10-10"
+}

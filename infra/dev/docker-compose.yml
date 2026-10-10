@@ -33,9 +33,11 @@ services:
       - "8025:8025"
 
   ranking:
+    # Собираем из исходников текущей копии: GHCR :dev отстаёт (CI выключен),
+    # тянувшийся образ запускал старую модель без эмбеддеров.
     image: ${RANKING_IMAGE:-ghcr.io/djonnistorm/hh-but-it-works-ranking:dev}
     build: ../../apps/ranking
-    pull_policy: missing
+    pull_policy: build
     ports:
       - "8000:8000"
 

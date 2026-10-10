@@ -5,3 +5,7 @@ hypothesis>=6,<7
 # Starlette 1.x TestClient uses the renamed client and only falls back to
 # deprecated httpx 0.x when this package is missing.
 httpx2>=2,<3
+# The base test contour covers embedding_similarity (lazy runtime feature),
+# so plain check.sh needs its deps even without the ML image stack.
+onnxruntime>=1.19,<2
+tokenizers>=0.20,<1

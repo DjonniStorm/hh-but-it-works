@@ -4,6 +4,7 @@ import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { formatDate } from "@/shared/lib/format";
 import { invitationStatusLabel } from "@/shared/lib/labels";
+import { ResumeTemplateMenu } from "@/shared/resume/ui/ResumeTemplateMenu";
 import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
 import { invitationStatusColor } from "@/shared/theme";
@@ -64,7 +65,7 @@ export const InvitationsPage = observer(() => {
   });
 
   return (
-    <Stack gap="lg" maw={1100}>
+    <Stack gap="lg" maw={1100} mx="auto">
       <Stack gap={4}>
         <Title order={2}>Приглашения</Title>
         <Text c="dimmed" size="sm">
@@ -171,6 +172,18 @@ export const InvitationsPage = observer(() => {
                           >
                             Отозвать
                           </Button>
+                        ) : null}
+                        {item.status === InvitationStatus.Accepted ? (
+                          <ResumeTemplateMenu
+                            label="Резюме PDF"
+                            size="xs"
+                            onPick={(template) => {
+                              void invitations.downloadResume(
+                                item.id,
+                                template,
+                              );
+                            }}
+                          />
                         ) : null}
                       </Table.Td>
                     </Table.Tr>

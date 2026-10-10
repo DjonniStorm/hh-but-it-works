@@ -4,6 +4,7 @@
 
 ```bash
 pnpm install
+pnpm build              # пакеты @hh/types и @hh/contracts: без них API не стартует
 docker compose --env-file infra/dev/.env.example -f infra/dev/docker-compose.yml up
 cp apps/api/.env.example apps/api/.env
 
@@ -11,10 +12,14 @@ pnpm --filter @hh/api dev    # :3000
 pnpm --filter @hh/web dev    # :5173
 ```
 
+`docker compose` собирает `ranking` из исходников текущей копии (GHCR-тег
+`:dev` отстаёт — CI выключен).
+
 Рекомендательная система (FastAPI, `:8000`):
 
 ```bash
-sh apps/ranking/scripts/check.sh    # все проверки ML-части
+sh apps/ranking/scripts/check.sh    # все проверки ML-части (нужен Python 3.12,
+                                    # setup окружения: apps/ranking/README.md)
 ```
 
 ## Документация

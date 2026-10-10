@@ -1,0 +1,28 @@
+{
+  "dataset": "evaluation/data/gold.jsonl",
+  "datasetSha256": "ba9e15610c9f7f89d6137ca7ac21f70884dd219c3fcc43d87141b5147f6a8865",
+  "rows": 168,
+  "needs": 21,
+  "candidatesPerNeed": {
+    "min": 8,
+    "max": 8
+  },
+  "fields": [
+    "need_id",
+    "candidate_id",
+    "annotator_id",
+    "qualification_label",
+    "intent_label",
+    "overall_label",
+    "confidence",
+    "rationale"
+  ],
+  "annotatorsRequired": 2,
+  "adjudicatorIdPrefix": "adjudicator:",
+  "scaleVersion": "labels-v1",
+  "scale": {
+    "qualification_label": "0..3",
+    "intent_label": "0..3",
+    "overall_label": "0..3"
+  }
+}
