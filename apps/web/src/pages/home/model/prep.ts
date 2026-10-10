@@ -3,6 +3,8 @@ import { ROUTES } from "@/shared/router/routes";
 import type { CandidateProfile } from "@hh/contracts";
 import { SkillVerification } from "@hh/types";
 
+import { ownSkills } from "./own-skills";
+
 // Ссылки карточки подготовки: пока проверяем механику проявления по наведению,
 // контент тем прилетит вместе со слайдером подготовки.
 export const prepLinks = [
@@ -13,7 +15,7 @@ export const prepLinks = [
 
 // Темы карточки — навыки кандидата, подтверждённые впереди. Пять штук, остальное — «+N».
 export function prepTopics(profile: CandidateProfile | null): string[] {
-  const skills = profile?.skills ?? [];
+  const skills = ownSkills(profile);
   return [...skills]
     .sort((left, right) => {
       return verificationRank(right) - verificationRank(left);
