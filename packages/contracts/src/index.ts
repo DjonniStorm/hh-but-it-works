@@ -19,9 +19,12 @@ export * from "./format";
 
 export const roleSchema = z.enum(Role);
 
+// Правило нового пароля: одно на регистрацию и на сброс.
+export const passwordSchema = z.string().min(8, "Минимум 8 символов");
+
 export const registerSchema = z.object({
   email: z.email("Укажите почту"),
-  password: z.string().min(8, "Минимум 8 символов"),
+  password: passwordSchema,
   role: roleSchema,
   consent: z.literal(true, "Нужно согласие на обработку данных"),
 });
@@ -37,6 +40,15 @@ export const confirmEmailSchema = z.object({
 
 export const resendConfirmationSchema = z.object({
   email: z.email("Укажите почту"),
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z.email("Укажите почту"),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1),
+  password: passwordSchema,
 });
 
 export const refreshSchema = z.object({
@@ -730,6 +742,8 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ConfirmEmailInput = z.infer<typeof confirmEmailSchema>;
 export type ResendConfirmationInput = z.infer<typeof resendConfirmationSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type RefreshInput = z.infer<typeof refreshSchema>;
 export type PublicUser = z.infer<typeof publicUserSchema>;
 export type Session = z.infer<typeof sessionSchema>;

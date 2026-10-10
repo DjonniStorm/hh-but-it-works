@@ -190,8 +190,14 @@ function statusCodeOf(error: unknown): number | null {
   return statusCode;
 }
 
+// 401 этих ручек — неверный пароль или ссылка из письма, а не истёкшая сессия.
 function isCredentialRequest(url: string): boolean {
-  return hasPath(url, ["/auth/login", "/auth/register", "/auth/confirm"]);
+  return hasPath(url, [
+    "/auth/login",
+    "/auth/register",
+    "/auth/confirm",
+    "/auth/password/reset",
+  ]);
 }
 
 // Эти ручки сами работают с refresh-токеном: обновлять сессию ради них бессмысленно.

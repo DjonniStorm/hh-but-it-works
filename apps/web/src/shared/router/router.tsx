@@ -178,6 +178,22 @@ export const router = createBrowserRouter([
             ),
             hydrateFallbackElement: screenFallback,
           },
+          {
+            path: ROUTES.AUTH.FORGOT,
+            lazy: lazyPage(
+              () => import("@/pages/auth/ui/ForgotPasswordPage"),
+              "ForgotPasswordPage",
+            ),
+            hydrateFallbackElement: screenFallback,
+          },
+          {
+            path: ROUTES.AUTH.RESET,
+            lazy: lazyPage(
+              () => import("@/pages/auth/ui/ResetPasswordPage"),
+              "ResetPasswordPage",
+            ),
+            hydrateFallbackElement: screenFallback,
+          },
         ],
       },
       {

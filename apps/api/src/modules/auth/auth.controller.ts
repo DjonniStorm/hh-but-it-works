@@ -13,11 +13,13 @@ import { User } from "../users/user.entity";
 import { AuthService } from "./auth.service";
 import {
   ConfirmEmailDto,
+  ForgotPasswordDto,
   LoginDto,
   PublicUserDto,
   RefreshDto,
   RegisterDto,
   ResendConfirmationDto,
+  ResetPasswordDto,
   SessionDto,
 } from "./dto";
 
@@ -53,6 +55,29 @@ export class AuthController {
   })
   resendConfirmation(@Body() body: ResendConfirmationDto) {
     return this.auth.resendConfirmation(body);
+  }
+
+  // Как и resend: ответ одинаковый для любой почты.
+  @Post("password/forgot")
+  @HttpCode(204)
+  @ApiNoContentResponse()
+  @ApiErrors({
+    400: invalidBody,
+    429: "Письмо на этот адрес уже отправлено, повторная отправка доступна через минуту",
+  })
+  forgotPassword(@Body() body: ForgotPasswordDto) {
+    return this.auth.forgotPassword(body);
+  }
+
+  @Post("password/reset")
+  @HttpCode(204)
+  @ApiNoContentResponse()
+  @ApiErrors({
+    400: invalidBody,
+    401: "Ссылка сброса пароля недействительна, истекла или уже использована",
+  })
+  resetPassword(@Body() body: ResetPasswordDto) {
+    return this.auth.resetPassword(body);
   }
 
   @Post("login")
