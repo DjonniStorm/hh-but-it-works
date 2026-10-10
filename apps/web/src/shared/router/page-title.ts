@@ -6,6 +6,8 @@ export const pageTitle = {
   login: "Вход",
   register: "Регистрация",
   confirm: "Подтверждение почты",
+  forgotPassword: "Восстановление пароля",
+  resetPassword: "Новый пароль",
   home: "Главная",
   profile: "Профиль",
   candidateInvitations: "Приглашения",

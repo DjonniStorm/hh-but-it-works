@@ -11,6 +11,8 @@ export const ROUTES = {
     LOGIN: "/auth/login",
     REGISTER: "/auth/register",
     CONFIRM: "/auth/confirm",
+    FORGOT: "/auth/forgot",
+    RESET: "/auth/reset",
   },
   EMPLOYER: {
     ROOT: "/employer",

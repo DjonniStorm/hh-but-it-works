@@ -16,7 +16,7 @@
 		zone auth {
 			match {
 				method POST
-				path /api/auth/login /api/auth/register /api/auth/confirm /api/auth/confirm/resend
+				path /api/auth/login /api/auth/register /api/auth/confirm /api/auth/confirm/resend /api/auth/password/forgot /api/auth/password/reset
 			}
 			key {remote_host}
 			events {$AUTH_RATE_EVENTS:10}

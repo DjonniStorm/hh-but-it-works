@@ -7,6 +7,8 @@ import Redis from "ioredis";
 const emailConfirmTtlSeconds = 60 * 60 * 24;
 const refreshTtlSeconds = 60 * 60 * 24 * 7;
 const confirmResendCooldownSeconds = 60;
+const passwordResetTtlSeconds = 60 * 60;
+const passwordResetCooldownSeconds = 60;
 
 @Injectable()
 export class SessionStore implements OnModuleDestroy {
@@ -43,21 +45,62 @@ export class SessionStore implements OnModuleDestroy {
     return result === "OK";
   }
 
-  async saveRefresh(token: string, userId: string): Promise<void> {
+  async savePasswordReset(token: string, userId: string): Promise<void> {
     await this.redis.set(
-      this.refreshKey(token),
+      this.passwordResetKey(token),
       userId,
       "EX",
-      refreshTtlSeconds,
+      passwordResetTtlSeconds,
     );
   }
 
-  takeRefresh(token: string): Promise<string | null> {
-    return this.redis.getdel(this.refreshKey(token));
+  takePasswordReset(token: string): Promise<string | null> {
+    return this.redis.getdel(this.passwordResetKey(token));
+  }
+
+  // Письмо сброса не чаще раза в минуту на адрес. false — минута не прошла.
+  async claimPasswordResetSend(email: string): Promise<boolean> {
+    const result = await this.redis.set(
+      this.passwordResetSentKey(email),
+      "1",
+      "EX",
+      passwordResetCooldownSeconds,
+      "NX",
+    );
+    return result === "OK";
+  }
+
+  // Кроме самого токена, его хеш лежит в наборе пользователя: по нему
+  // revokeUserRefresh выходит со всех устройств разом.
+  async saveRefresh(token: string, userId: string): Promise<void> {
+    const userKey = this.userRefreshKey(userId);
+    await this.redis
+      .multi()
+      .set(this.refreshKey(token), userId, "EX", refreshTtlSeconds)
+      .sadd(userKey, hashToken(token))
+      .expire(userKey, refreshTtlSeconds)
+      .exec();
+  }
+
+  async takeRefresh(token: string): Promise<string | null> {
+    const userId = await this.redis.getdel(this.refreshKey(token));
+    if (userId) {
+      await this.redis.srem(this.userRefreshKey(userId), hashToken(token));
+    }
+    return userId;
   }
 
   async dropRefresh(token: string): Promise<void> {
-    await this.redis.del(this.refreshKey(token));
+    await this.takeRefresh(token);
+  }
+
+  async revokeUserRefresh(userId: string): Promise<void> {
+    const userKey = this.userRefreshKey(userId);
+    const hashes = await this.redis.smembers(userKey);
+    const keys = hashes.map((hash) => {
+      return `refresh:${hash}`;
+    });
+    await this.redis.del(userKey, ...keys);
   }
 
   async onModuleDestroy(): Promise<void> {
@@ -72,8 +115,20 @@ export class SessionStore implements OnModuleDestroy {
     return `email-confirm-sent:${hashToken(email)}`;
   }
 
+  private passwordResetKey(token: string): string {
+    return `password-reset:${hashToken(token)}`;
+  }
+
+  private passwordResetSentKey(email: string): string {
+    return `password-reset-sent:${hashToken(email)}`;
+  }
+
   private refreshKey(token: string): string {
     return `refresh:${hashToken(token)}`;
+  }
+
+  private userRefreshKey(userId: string): string {
+    return `user-refresh:${userId}`;
   }
 }
 

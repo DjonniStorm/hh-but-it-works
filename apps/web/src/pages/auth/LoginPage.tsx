@@ -106,6 +106,9 @@ export const LoginPage = observer(() => {
             withAsterisk
             {...form.getInputProps("password")}
           />
+          <Anchor component={Link} to={ROUTES.AUTH.FORGOT} size="sm">
+            Забыли пароль?
+          </Anchor>
           <Button type="submit">Войти</Button>
           {unconfirmedEmail ? (
             <Button

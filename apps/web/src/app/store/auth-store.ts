@@ -1,22 +1,26 @@
 import { client } from "@/shared/api/generated/client.gen";
 import {
   authControllerConfirm,
+  authControllerForgotPassword,
   authControllerLogin,
   authControllerLogout,
   authControllerMe,
   authControllerRefresh,
   authControllerRegister,
   authControllerResendConfirmation,
+  authControllerResetPassword,
 } from "@/shared/api/generated/sdk.gen";
 import { mapPublicUser, mapSession } from "@/shared/api/map-session";
 import { makeAutoObservable } from "mobx";
 
 import type {
   ConfirmEmailInput,
+  ForgotPasswordInput,
   LoginInput,
   PublicUser,
   RegisterInput,
   ResendConfirmationInput,
+  ResetPasswordInput,
   Session,
 } from "@hh/contracts";
 
@@ -78,6 +82,33 @@ export class AuthStore {
       async () => {
         const result = await authControllerResendConfirmation({ body: input });
         readData(result);
+        return undefined;
+      },
+      { loader: true, ...options },
+    );
+  }
+
+  forgotPassword(input: ForgotPasswordInput, options?: CallOptions<void>) {
+    return request(
+      this.root,
+      async () => {
+        const result = await authControllerForgotPassword({ body: input });
+        readData(result);
+        return undefined;
+      },
+      { loader: true, ...options },
+    );
+  }
+
+  // Сервер отзывает все refresh-токены пользователя. Если сброс шёл из
+  // открытой сессии, она тоже больше не обновится: выходим локально.
+  resetPassword(input: ResetPasswordInput, options?: CallOptions<void>) {
+    return request(
+      this.root,
+      async () => {
+        const result = await authControllerResetPassword({ body: input });
+        readData(result);
+        this.clearSession();
         return undefined;
       },
       { loader: true, ...options },

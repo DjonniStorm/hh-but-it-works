@@ -17,10 +17,12 @@ import { User } from "../users/user.entity";
 import { UsersService } from "../users/users.service";
 import {
   ConfirmEmailDto,
+  ForgotPasswordDto,
   LoginDto,
   RefreshDto,
   RegisterDto,
   ResendConfirmationDto,
+  ResetPasswordDto,
 } from "./dto";
 import { SessionStore } from "./session.store";
 
@@ -89,10 +91,40 @@ export class AuthService {
     return toPublicUser(user);
   }
 
+  // Ответ одинаковый для любой почты, лимит до поиска пользователя — как у resendConfirmation.
+  async forgotPassword(input: ForgotPasswordDto): Promise<void> {
+    const email = normalizeEmail(input.email);
+    if (!(await this.sessions.claimPasswordResetSend(email))) {
+      throw new HttpException(
+        "Письмо уже отправлено, повторить можно через минуту",
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+    const user = await this.users.findByEmail(email);
+    if (!user) {
+      return;
+    }
+    const token = randomBytes(32).toString("base64url");
+    await this.sessions.savePasswordReset(token, user.id);
+    // SMTP не ждём: по времени ответа не отличить существующий адрес.
+    void this.mail.sendPasswordReset(email, this.webLink("/auth/reset", token));
+  }
+
+  // Токен одноразовый. После смены пароля все refresh-токены отзываются:
+  // если пароль сбрасывают из-за утечки, старые сессии тоже не нужны.
+  async resetPassword(input: ResetPasswordDto): Promise<void> {
+    const userId = await this.sessions.takePasswordReset(input.token);
+    const user = userId ? await this.users.findById(userId) : null;
+    if (!user) {
+      throw new UnauthorizedException("Ссылка сброса пароля недействительна");
+    }
+    await this.users.resetPassword(user, input.password);
+    await this.sessions.revokeUserRefresh(user.id);
+  }
+
   async login(input: LoginDto): Promise<Session> {
     const user = await this.users.findForLogin(normalizeEmail(input.email));
-    const passwordOk =
-      user !== null && (await this.users.passwordMatches(user, input.password));
+    const passwordOk = await this.users.passwordMatches(user, input.password);
     if (!user || !passwordOk) {
       throw new UnauthorizedException("Неверный email или пароль");
     }
@@ -153,13 +185,11 @@ export class AuthService {
   private async createConfirmationLink(userId: string): Promise<string> {
     const token = randomBytes(32).toString("base64url");
     await this.sessions.saveEmailConfirm(token, userId);
-    return this.confirmationLink(token);
+    return this.webLink("/auth/confirm", token);
   }
 
-  private confirmationLink(token: string): string {
-    const origin =
-      this.config.get<string>("WEB_URL") ?? "http://localhost:5173";
-    return `${origin}/auth/confirm?token=${encodeURIComponent(token)}`;
+  private webLink(path: string, token: string): string {
+    return this.mail.webLink(`${path}?token=${encodeURIComponent(token)}`);
   }
 }
 

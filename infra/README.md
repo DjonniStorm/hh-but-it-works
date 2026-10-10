@@ -27,7 +27,7 @@ docker compose --env-file infra/dev/.env.example -f infra/dev/docker-compose.yml
 
 - Веб и API на одном домене: бандл собран с `VITE_API_URL=/api`, CORS не нужен, код не менялся. Swagger — `https://$DOMAIN/api/docs`.
 - `apps/web/Dockerfile` собирает статику и кладёт её в образ Caddy. Caddy собран через `xcaddy` с плагином [`caddy-ratelimit`](https://github.com/mholt/caddy-ratelimit): в стандартном Caddy лимита частоты нет. Caddyfile монтируется из `infra/prod`, его правка — без пересборки.
-- Лимит: `POST /api/auth/login`, `register`, `confirm`, `confirm/resend` — `AUTH_RATE_EVENTS` запросов с одного IP за `AUTH_RATE_WINDOW` (по умолчанию 10 за минуту). Сверх лимита Caddy отвечает 429 и до api запрос не доходит.
+- Лимит: `POST /api/auth/login`, `register`, `confirm`, `confirm/resend`, `password/forgot`, `password/reset` — `AUTH_RATE_EVENTS` запросов с одного IP за `AUTH_RATE_WINDOW` (по умолчанию 10 за минуту). Сверх лимита Caddy отвечает 429 и до api запрос не доходит.
 - `apps/api/Dockerfile` собирает `packages/*` и api, в рантайм идут только prod-зависимости и `dist`.
 - `ranking` собирается из `apps/ranking`: сборка копирует готовую модель из `evaluation/artifacts`, без обучения.
 - Письма уходят через SMTP из `.env` (Яндекс). Mailpit в проде не поднимается.
