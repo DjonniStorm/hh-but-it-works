@@ -78,7 +78,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "nodejs",
     title: "Node.js",
-    tested: false,
+    tested: true,
     specializations: [backend, frontend],
   },
   {
@@ -126,13 +126,13 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "spring",
     title: "Spring",
-    tested: false,
+    tested: true,
     specializations: [backend],
   },
   {
     slug: "django",
     title: "Django",
-    tested: false,
+    tested: true,
     specializations: [backend],
   },
   {
@@ -204,7 +204,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "kubernetes",
     title: "Kubernetes",
-    tested: false,
+    tested: true,
     specializations: [backend, security],
   },
   {
@@ -228,7 +228,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "git",
     title: "Git",
-    tested: false,
+    tested: true,
     specializations: [backend, frontend, data, security],
   },
   {
@@ -282,7 +282,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "dotnet",
     title: ".NET",
-    tested: false,
+    tested: true,
     specializations: [backend],
   },
   {
@@ -330,7 +330,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "system-design",
     title: "System Design",
-    tested: false,
+    tested: true,
     specializations: [backend],
   },
   {
@@ -348,13 +348,13 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "алгоритмы",
     title: "Алгоритмы",
-    tested: false,
+    tested: true,
     specializations: [backend, frontend, data, security],
   },
   {
     slug: "javascript",
     title: "JavaScript",
-    tested: false,
+    tested: true,
     specializations: [frontend],
   },
   {
@@ -366,7 +366,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "css",
     title: "CSS",
-    tested: false,
+    tested: true,
     specializations: [frontend],
   },
   {
@@ -504,7 +504,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "pytorch",
     title: "PyTorch",
-    tested: false,
+    tested: true,
     specializations: [data],
   },
   {
@@ -516,7 +516,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "airflow",
     title: "Airflow",
-    tested: false,
+    tested: true,
     specializations: [data],
   },
   {
@@ -644,13 +644,9 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
 // Своего банка нет: навык добавляет в попытку секцию этого банка. Результат получает только навык банка,
 // этот остаётся заявленным. SQL здесь нет: у SQL свой банк, он не сводится к PostgreSQL.
 export const relatedSkillSlug: Readonly<Record<string, string>> = {
-  dotnet: "csharp",
   nextjs: "react",
-  nodejs: "typescript",
   nestjs: "typescript",
-  django: "python",
   fastapi: "python",
-  spring: "java",
 };
 
 // Ядро специализации входит в каждую попытку. Лежит здесь, а не в пакете тестов: веб читает его для лобби.
