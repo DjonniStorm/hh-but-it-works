@@ -34,6 +34,7 @@ MODEL_CODE_FILES = [
     ROOT / "scoring.py",
     ROOT / "taxonomy.py",
     ROOT / "text_similarity.py",
+    ROOT / "embedding_similarity.py",
     ROOT / "schemas.py",
     Path(__file__).resolve(),
 ]

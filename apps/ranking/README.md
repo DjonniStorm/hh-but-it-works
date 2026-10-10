@@ -118,7 +118,7 @@ Related technologies могут давать мягкий relevance, но **не
 - competency scores;
 - assessment;
 - experience (для Nest диапазон лет разворачивается из грейда вакансии, см. INTEGRATION);
-- precomputed semantic similarity или объяснимый lexical fallback по текстам;
+- precomputed semantic similarity, локальный ONNX-embedding в неоднозначном lexical band или объяснимый lexical fallback по текстам;
 - профильный FSP evidence bonus с силой и количеством достижений.
 
 ### OpportunityFit
@@ -204,9 +204,9 @@ LLM **не находится в hot path**.
 
 ## Semantic retrieval
 
-Если передан `semanticSimilarity`, сервис использует его как precomputed feature. Если embedding отсутствует, Nest передаёт описание потребности и обезличенный текст из специализации/навыков кандидата, а ranking считает детерминированный lexical coverage/Jaccard fallback и возвращает совпавшие термы в reason codes. Без обоих текстов остаётся нейтральный `0.65`.
+Если передан `semanticSimilarity`, сервис использует его как precomputed feature. Для пар без него Nest передаёт описание потребности и обезличенный текст из специализации/навыков кандидата, а ranking сначала считает детерминированный lexical coverage/Jaccard: при score вне band `[0.20, 0.60]` (явный match/mismatch) остаётся lexical, внутри band решение принимает локальный int8 ONNX-энкодер (`evaluation/models/embedder-int8.onnx`, `paraphrase-multilingual-MiniLM-L12-v2` с pinned revision) — cosine переводится в ту же шкалу `[0, 1]`. Сетевых вызовов и LLM нет; недоступность модели (`onnxruntime`/`tokenizers`, несовпадение sha с `embedder.meta.json`, `RANKING_EMBEDDINGS=off`) детектируется по `embeddingReady` в `/health` и молча возвращает lexical. Совпавшие lexical-термы по-прежнему уходят в reason codes (`semantic_overlap:*`), без обоих текстов остаётся нейтральный `0.65`.
 
-Рекомендованная интеграция позже:
+Рекомендованная интеграция позже (для масштаба, сейчас не требуется):
 
 - embeddings пересчитываются при изменении профиля/HiringNeed;
 - хранятся в Postgres/pgvector;
@@ -220,7 +220,7 @@ LTR-контур работает как production-safe shadow/hybrid:
 - `evaluation/gold.py` воспроизводимо строит controlled-synthetic набор вокруг обезличенных публичных вакансий и делит его по `need.id`/source entity на train/calibration/test;
 - relevance-метки задаются явными сценариями qualification/intent, независимо от rules-score; `labelConfidence` используется как sample weight;
 - `evaluation/open_data.py` нормализует локальные JSON-выгрузки, отбрасывая работодателя, адреса и контакты; `data_quality.py` ставит PII/leakage gate;
-- `evaluation/human_labels.py` экспортирует blind CSV и принимает только согласованные двойные оценки, отправляя конфликты на adjudication;
+- `evaluation/human_labels.py` экспортирует blind CSV (готовый батч `evaluation/annotation/batch-001`, гайд аннотатора `evaluation/annotation/README.md`) и принимает двойные оценки с adjudication-решениями, валит батч при PII, неполноте или согласии ниже 0.6;
 - `evaluation/train_ltr.py` учит LightGBM LambdaRank только на train и fit-ит `IsotonicRegression` только на calibration;
 - `evaluation/evaluate_ltr.py` сравнивает rules, pure LTR и hybrid на untouched test по NDCG/Precision/MRR и диагностике калибровки;
 - runtime загружает `model.txt`, `model.meta.json` и безопасный `calibrator.json`, проверяет schema, feature order, SHA-256 кода признаков и артефактов;
@@ -230,7 +230,7 @@ LTR-контур работает как production-safe shadow/hybrid:
 
 `evaluation/data/gold*.jsonl` — **controlled-synthetic benchmark**, а не человеческий gold. Потребности основаны на небольшой атрибутированной выборке открытых вакансий, кандидаты вымышлены, метки независимы от rules. Набор проверяет pipeline и ловит регрессии, но не доказывает production uplift. Карточка и provenance: [`evaluation/data/README.md`](evaluation/data/README.md), [`evaluation/data/SOURCES.json`](evaluation/data/SOURCES.json).
 
-Training metadata содержит `productionApproved=false`. Обычный runtime не даст такому артефакту влиять на выдачу: запрос `hybrid`/`ltr` будет понижен до `shadow`. Готовый demo-образ намеренно задаёт `RANKING_ALLOW_UNAPPROVED_MODEL=true`, поэтому сразу показывает hybrid; `/health` честно сохраняет `productionApproved=false` и `unapprovedOverride=true`. Флаг `--production-approved` принимается только для `human_double_annotation_v1`.
+Training metadata содержит `productionApproved` и `approvalSource`. Обычный runtime не даёт неутверждённому артефакту влиять на выдачу: запрос `hybrid`/`ltr` будет понижен до `shadow`. Готовый образ по умолчанию собирается с llm-approved бандлом `ltr-v1.4.0-llm` (`approvalSource: llm_judge_v1`), поэтому `/health` честно показывает `productionApproved=true`, `unapprovedOverride=false` без каких-либо override-переменных. Флаг `--production-approved` принимается только для `human_double_annotation_v1`; отдельный, более слабый флаг `--llm-approved` принимает только `llm_judge_v1` — см. `evaluation/annotation/README.md` и `evaluation/artifacts/`.
 
 Режимы `RANKING_MODE`:
 
@@ -241,7 +241,7 @@ Training metadata содержит `productionApproved=false`. Обычный ru
 | `hybrid` | `0.75·rules + 0.25·calibrated LTR`; human-approved или явный demo override |
 | `ltr`    | Pure LTR для offline evaluation и будущего rollout на human-labeled data   |
 
-Вес hybrid задаётся `RANKING_LTR_WEIGHT` и валидируется в `[0,1]`. Без валидных или human-approved артефактов активный ответ fail-closed остаётся rules/shadow. Единственное исключение — явный `RANKING_ALLOW_UNAPPROVED_MODEL=true`, включённый в готовом demo-образе.
+Вес hybrid задаётся `RANKING_LTR_WEIGHT` и валидируется в `[0,1]`. Без валидных или approved (human/llm) артефактов активный ответ fail-closed остаётся rules/shadow; явный `RANKING_ALLOW_UNAPPROVED_MODEL=true` остаётся только как debugging-инструмент и в дефолтный образ не входит.
 
 Scikit-learn нужен только при обучении. Serving использует LightGBM и собственный JSON isotonic runtime без pickle/joblib. Локально:
 

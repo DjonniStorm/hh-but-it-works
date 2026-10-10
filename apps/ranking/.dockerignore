@@ -9,3 +9,7 @@ promotion-report.json
 evaluation/data/raw
 evaluation/data/private
 evaluation/data/annotations
+
+# Собранная из частей модель эмбеддера: в образ идут только части,
+# полный файл собирается в контейнере при первом лоаде.
+evaluation/models/embedder-int8.onnx

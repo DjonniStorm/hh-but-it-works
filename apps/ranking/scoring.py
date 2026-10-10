@@ -13,9 +13,14 @@ from schemas import (
 )
 from taxonomy import canonical_skill, skill_match
 from text_similarity import lexical_similarity, overlap_terms
+from embedding_similarity import embedding_similarity
 
 
 MODEL_VERSION = "rules-v1.2.0"
+# Lexical score band where the pair is too close to call and the local ONNX
+# embedder decides; outside the band embeddings are skipped to keep the
+# hot path fast on large pools.
+SEMANTIC_EMBEDDING_BAND = (0.20, 0.60)
 GRADE_VALUE = {Grade.intern: 0, Grade.junior: 1, Grade.middle: 2, Grade.senior: 3}
 AVAILABILITY_SCORE = {
     Availability.actively_looking: 1.0,
@@ -142,9 +147,16 @@ def _semantic_fit(
         return clamp01((candidate.semanticSimilarity + 1.0) / 2.0)
     if need is None or not candidate.profileText or not need.text:
         return 0.65
+    lexical = lexical_similarity(candidate.profileText, need.text)
+    # Clear matches/mismatches are decided lexically; only pairs in the
+    # uncertain middle band are delegated to the local embedding encoder.
+    if SEMANTIC_EMBEDDING_BAND[0] <= lexical <= SEMANTIC_EMBEDDING_BAND[1]:
+        cosine = embedding_similarity(candidate.profileText, need.text)
+        if cosine is not None:
+            return clamp01((cosine + 1.0) / 2.0)
     # Lexical relevance is less expressive than an embedding, so it occupies
     # a conservative [0.20, 1.00] range instead of pretending to be cosine.
-    return clamp01(0.20 + 0.80 * lexical_similarity(candidate.profileText, need.text))
+    return clamp01(0.20 + 0.80 * lexical)
 
 
 def _fsp_fit(candidate: CandidateSnapshot, need: HiringNeedSnapshot) -> float:

@@ -112,6 +112,7 @@ scikit-learn и обучение ему не нужны. Workflow `ranking-image
 `ghcr.io/djonnistorm/hh-but-it-works-ranking` с тегами `dev`, `main`, git SHA и
 release tag. `docker-compose.yml` использует готовый образ, если он доступен.
 
-Bundled модель controlled-synthetic и в demo-образе явно включена через
-`RANKING_ALLOW_UNAPPROVED_MODEL=true`; `/health` показывает этот override.
-Production должен использовать human-approved artifact или убрать override.
+Артефакт по умолчанию — llm-approved `ltr-v1.4.0-llm`: `/health` показывает
+`productionApproved=true` без override-переменных. Human-approved артефакт —
+следующий tier после двойной human-разметки; `RANKING_ALLOW_UNAPPROVED_MODEL`
+остаётся только debugging-инструментом.
