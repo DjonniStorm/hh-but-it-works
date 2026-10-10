@@ -31,37 +31,23 @@ export type PlanSkill = {
 export type PlannedSection = {
   key: string;
   title: string;
-  detail: string | null;
   level: SkillLevel | null;
   verification: SkillVerification | null;
   verifiedAt: string | null;
   inProfile: boolean;
 };
 
+export type ProxySkill = {
+  slug: string;
+  title: string;
+  via: string;
+};
+
 type Bucket = {
   bankSlug: string;
   title: string;
-  native: boolean;
   skill: PlanSkill | null;
-  also: string[];
 };
-
-// Свой банк, если он есть. Иначе вопросы родственника из relatedSkillSlug.
-export function bankSlugForSkill(slug: string): string | null {
-  const item = bySlug.get(slug);
-  if (item?.tested) {
-    return slug;
-  }
-  const target = relatedSkillSlug[slug];
-  if (target && bySlug.get(target)?.tested) {
-    return target;
-  }
-  return null;
-}
-
-export function skillCanBeTested(slug: string): boolean {
-  return bankSlugForSkill(slug) !== null;
-}
 
 export function sectionIsCore(
   specialization: Specialization | null,
@@ -76,47 +62,31 @@ export function sectionIsCore(
 export function attemptPlan(
   specialization: Specialization | null,
   skills: readonly PlanSkill[],
-): { sections: PlannedSection[]; untested: { slug: string; title: string }[] } {
+): {
+  sections: PlannedSection[];
+  proxies: ProxySkill[];
+  untested: { slug: string; title: string }[];
+} {
   if (!specialization) {
-    return { sections: [], untested: [] };
+    return { sections: [], proxies: [], untested: [] };
   }
   const buckets = new Map<string, Bucket>();
-  const consider = (
-    slug: string,
-    title: string,
-    skill: PlanSkill | null,
-  ): boolean => {
-    const bankSlug = bankSlugForSkill(slug);
-    if (!bankSlug) {
-      return false;
-    }
-    const native = slug === bankSlug;
-    const current = buckets.get(bankSlug);
+  const ensure = (slug: string, skill: PlanSkill | null) => {
+    const title = bySlug.get(slug)?.title ?? slug;
+    const current = buckets.get(slug);
     if (!current) {
-      buckets.set(bankSlug, { bankSlug, title, native, skill, also: [] });
-      return true;
-    }
-    if (native && !current.native) {
-      current.also.push(current.title);
-      current.title = title;
-      current.native = true;
-      current.skill = skill;
-      return true;
-    }
-    if (!native) {
-      current.also.push(title);
-      return true;
+      buckets.set(slug, { bankSlug: slug, title, skill });
+      return;
     }
     if (skill && !current.skill) {
       current.skill = skill;
     }
-    return true;
   };
 
   for (const slug of coreSlugs[specialization]) {
-    const item = bySlug.get(slug);
-    consider(slug, item?.title ?? slug, null);
+    ensure(slug, null);
   }
+  const proxies: ProxySkill[] = [];
   const untested: { slug: string; title: string }[] = [];
   const ordered = skills
     .filter((skill) => {
@@ -126,9 +96,19 @@ export function attemptPlan(
       return left.title.localeCompare(right.title, "ru");
     });
   for (const skill of ordered) {
-    if (!consider(skill.slug, skill.title, skill)) {
-      untested.push({ slug: skill.slug, title: skill.title });
+    const meta = bySlug.get(skill.slug);
+    if (meta?.tested) {
+      ensure(skill.slug, skill);
+      continue;
     }
+    const via = relatedSkillSlug[skill.slug];
+    const viaTitle = via ? bySlug.get(via)?.title : undefined;
+    if (via && bySlug.get(via)?.tested && viaTitle) {
+      ensure(via, null);
+      proxies.push({ slug: skill.slug, title: skill.title, via: viaTitle });
+      continue;
+    }
+    untested.push({ slug: skill.slug, title: skill.title });
   }
   const coreOrder = new Map(
     coreSlugs[specialization].map((slug, index) => {
@@ -154,42 +134,11 @@ export function attemptPlan(
       return {
         key: bucket.bankSlug,
         title: bucket.title,
-        detail: sectionDetail(bucket),
         level: bucket.skill?.level ?? null,
         verification: bucket.skill?.verification ?? null,
         verifiedAt: bucket.skill?.verifiedAt ?? null,
         inProfile: Boolean(bucket.skill),
       };
     });
-  return { sections, untested };
-}
-
-function sectionDetail(bucket: Bucket): string | null {
-  const via = bySlug.get(bucket.bankSlug)?.title ?? bucket.bankSlug;
-  const extra = alsoClause(bucket.also);
-  if (!bucket.native) {
-    if (!extra) {
-      return `вопросы по ${via}`;
-    }
-    return `вопросы по ${via}, ${extra}`;
-  }
-  if (!extra) {
-    return null;
-  }
-  return `этой секцией ${extra}`;
-}
-
-function alsoClause(titles: string[]): string | null {
-  if (titles.length === 0) {
-    return null;
-  }
-  if (titles.length === 1) {
-    return `также проверяется ${titles[0]}`;
-  }
-  return `также проверяются ${joinTitles(titles)}`;
-}
-
-function joinTitles(titles: string[]): string {
-  const head = titles.slice(0, -1).join(", ");
-  return `${head} и ${titles[titles.length - 1]}`;
+  return { sections, proxies, untested };
 }

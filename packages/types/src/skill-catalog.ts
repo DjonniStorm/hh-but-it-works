@@ -3,7 +3,7 @@ import { Specialization } from "./specialization";
 export type SkillCatalogItem = {
   slug: string;
   title: string;
-  // Свой банк вопросов. Без банка навык закрывается тестом, только если он есть в relatedSkillSlug.
+  // Свой банк вопросов. Навык без банка остаётся неподтверждённым.
   tested: boolean;
   specializations: readonly Specialization[];
 };
@@ -13,7 +13,7 @@ const frontend = Specialization.Frontend;
 const data = Specialization.Data;
 const security = Specialization.Security;
 
-// Каталог профиля. tested — свой банк. Родственники без банка — в relatedSkillSlug.
+// Каталог профиля. tested — свой банк. relatedSkillSlug только добавляет чужую секцию.
 export const skillCatalog: readonly SkillCatalogItem[] = [
   {
     slug: "postgresql",
@@ -641,7 +641,7 @@ export const skillCatalog: readonly SkillCatalogItem[] = [
   },
 ];
 
-// Своего банка нет: попытка берёт вопросы этого слага и этой секцией навык подтверждается.
+// Своего банка нет. Попытка добавляет секцию этого слага, подтверждается он, а не заявленный навык.
 // SQL здесь нет: у SQL свой банк, он не сводится к PostgreSQL.
 export const relatedSkillSlug: Readonly<Record<string, string>> = {
   dotnet: "csharp",

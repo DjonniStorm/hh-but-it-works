@@ -45,7 +45,7 @@ export function isCatalogSlug(slug: string): slug is CatalogSlug {
   return slug in bySkill;
 }
 
-// Свой банк, если он есть. Иначе вопросы родственника: .NET отвечает как C#.
+// Свой банк, если он есть. Иначе банк родственника: секция будет его, не заявленного навыка.
 export function bankSlugFor(slug: string): CatalogSlug | null {
   if (isCatalogSlug(slug)) {
     return slug;
@@ -55,16 +55,6 @@ export function bankSlugFor(slug: string): CatalogSlug | null {
     return target;
   }
   return null;
-}
-
-// Навыки анкеты, которые подтверждает секция этого банка. Свой банк сюда не входит.
-export function coveredSkillSlugs(bankSlug: string): string[] {
-  return Object.entries(relatedSkillSlug).flatMap(([source, target]) => {
-    if (target !== bankSlug || isCatalogSlug(source)) {
-      return [];
-    }
-    return [source];
-  });
 }
 
 // Банк в разрезе навык × грейд: из ячейки попытка берёт задания секции.

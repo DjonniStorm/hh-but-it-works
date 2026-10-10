@@ -50,14 +50,11 @@ export const TestingLobby = ({
       <CategoryCard profile={profile} />
       <Stack gap="sm">
         {contactsReady ? (
-          <Text>
-            Специализация {specialization}. В попытке будут такие секции.
-          </Text>
-        ) : (
-          <Text>Сначала сохраните анкету.</Text>
-        )}
-        {contactsReady
-          ? plan.sections.map((section) => {
+          <>
+            <Text>
+              Специализация {specialization}. В попытке будут такие секции.
+            </Text>
+            {plan.sections.map((section) => {
               const level = optionLabel(skillLevelOptions, section.level);
               return (
                 <Group key={section.key} justify="space-between" wrap="nowrap">
@@ -66,11 +63,6 @@ export const TestingLobby = ({
                     {sectionIsCore(profile.specialization, section.key) ? (
                       <Text size="sm" c="dimmed">
                         ядро специализации
-                      </Text>
-                    ) : null}
-                    {section.detail ? (
-                      <Text size="sm" c="dimmed">
-                        {section.detail}
                       </Text>
                     ) : null}
                     {level ? (
@@ -89,22 +81,32 @@ export const TestingLobby = ({
                   ) : null}
                 </Group>
               );
-            })
-          : null}
-        {contactsReady && profileSkills.length === 0 ? (
-          <Text c="dimmed">
-            Навыков в анкете нет: попытка будет только по ядру специализации.
-          </Text>
-        ) : null}
-        {contactsReady
-          ? plan.untested.map((skill) => {
+            })}
+            {profileSkills.length === 0 ? (
+              <Text c="dimmed">
+                Навыков в анкете нет: попытка будет только по ядру
+                специализации.
+              </Text>
+            ) : null}
+            {plan.proxies.map((skill) => {
+              return (
+                <Text key={skill.slug}>
+                  {skill.title} — своих вопросов нет, проверим {skill.via},{" "}
+                  {skill.title} останется неподтверждённым
+                </Text>
+              );
+            })}
+            {plan.untested.map((skill) => {
               return (
                 <Text key={skill.slug}>
                   {skill.title} — теста пока нет, останется неподтверждённым
                 </Text>
               );
-            })
-          : null}
+            })}
+          </>
+        ) : (
+          <Text>Сначала сохраните анкету.</Text>
+        )}
         <Select
           label="Грейд теста"
           description={
