@@ -26,7 +26,10 @@
 
 	# Веб ходит в API на тот же домен (VITE_API_URL=/api), поэтому CORS не нужен.
 	handle_path /api/* {
-		reverse_proxy api:3000
+		reverse_proxy api:3000 {
+			# Снятый префикс: по нему api ставит cookie с Path=/api/auth.
+			header_up X-Forwarded-Prefix /api
+		}
 	}
 
 	handle {

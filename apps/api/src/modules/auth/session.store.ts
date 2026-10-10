@@ -5,10 +5,34 @@ import { ConfigService } from "@nestjs/config";
 import Redis from "ioredis";
 
 const emailConfirmTtlSeconds = 60 * 60 * 24;
-const refreshTtlSeconds = 60 * 60 * 24 * 7;
+export const refreshTtlSeconds = 60 * 60 * 24 * 7;
+// Сколько старый refresh-токен ещё принимается после ротации, см. rotateRefresh.
+const refreshGraceSeconds = 30;
 const confirmResendCooldownSeconds = 60;
 const passwordResetTtlSeconds = 60 * 60;
 const passwordResetCooldownSeconds = 60;
+
+// Атомарно: забрать токен и оставить на него окно, либо найти токен в окне.
+// Отдельные GETDEL и SET дали бы второму из параллельных запросов промежуток,
+// где токена уже нет, а окна ещё нет.
+const rotateRefreshScript = `
+local userId = redis.call("GETDEL", KEYS[1])
+if userId then
+  redis.call("SET", KEYS[2], userId, "EX", ARGV[1])
+  return {userId, "rotated"}
+end
+local graced = redis.call("GET", KEYS[2])
+if graced then
+  return {graced, "grace"}
+end
+return nil
+`;
+
+export type RefreshRotation = {
+  userId: string;
+  // true — токен уже сменили, запрос пришёл в окне после ротации.
+  grace: boolean;
+};
 
 @Injectable()
 export class SessionStore implements OnModuleDestroy {
@@ -82,16 +106,33 @@ export class SessionStore implements OnModuleDestroy {
       .exec();
   }
 
-  async takeRefresh(token: string): Promise<string | null> {
+  // Cookie с refresh общая на все вкладки. Если две вкладки обновляют сессию
+  // одновременно, вторая приходит с токеном, который первая только что сменила.
+  // Такой токен ещё refreshGraceSeconds принимается, но новый refresh по нему
+  // не выдаётся: в cookie уже лежит тот, что выдан первой вкладке.
+  async rotateRefresh(token: string): Promise<RefreshRotation | null> {
+    const result = (await this.redis.eval(
+      rotateRefreshScript,
+      2,
+      this.refreshKey(token),
+      this.refreshGraceKey(token),
+      refreshGraceSeconds,
+    )) as [string, string] | null;
+    if (!result) {
+      return null;
+    }
+    const [userId, outcome] = result;
+    if (outcome === "rotated") {
+      await this.redis.srem(this.userRefreshKey(userId), hashToken(token));
+    }
+    return { userId, grace: outcome === "grace" };
+  }
+
+  async dropRefresh(token: string): Promise<void> {
     const userId = await this.redis.getdel(this.refreshKey(token));
     if (userId) {
       await this.redis.srem(this.userRefreshKey(userId), hashToken(token));
     }
-    return userId;
-  }
-
-  async dropRefresh(token: string): Promise<void> {
-    await this.takeRefresh(token);
   }
 
   async revokeUserRefresh(userId: string): Promise<void> {
@@ -125,6 +166,10 @@ export class SessionStore implements OnModuleDestroy {
 
   private refreshKey(token: string): string {
     return `refresh:${hashToken(token)}`;
+  }
+
+  private refreshGraceKey(token: string): string {
+    return `refresh-grace:${hashToken(token)}`;
   }
 
   private userRefreshKey(userId: string): string {

@@ -59,7 +59,6 @@ export type LoginDto = {
 
 export type SessionDtoOutput = {
     accessToken: string;
-    refreshToken: string;
     user: {
         id: string;
         email: string;
@@ -67,10 +66,6 @@ export type SessionDtoOutput = {
         emailVerifiedAt: string | null;
         consentAt: string | null;
     };
-};
-
-export type RefreshDto = {
-    refreshToken: string;
 };
 
 export type CandidateProfileDtoOutput = {
@@ -734,7 +729,7 @@ export type AuthControllerLoginResponses = {
 export type AuthControllerLoginResponse = AuthControllerLoginResponses[keyof AuthControllerLoginResponses];
 
 export type AuthControllerRefreshData = {
-    body: RefreshDto;
+    body?: never;
     path?: never;
     query?: never;
     url: '/auth/refresh';
@@ -742,11 +737,7 @@ export type AuthControllerRefreshData = {
 
 export type AuthControllerRefreshErrors = {
     /**
-     * Тело запроса не прошло валидацию, замечания в поле errors
-     */
-    400: ApiErrorDto;
-    /**
-     * Refresh-токен недействителен, истёк или уже использован
+     * Cookie hh_refresh нет, или refresh-токен в ней недействителен, истёк или уже использован
      */
     401: ApiErrorDto;
 };
@@ -760,24 +751,11 @@ export type AuthControllerRefreshResponses = {
 export type AuthControllerRefreshResponse = AuthControllerRefreshResponses[keyof AuthControllerRefreshResponses];
 
 export type AuthControllerLogoutData = {
-    body: RefreshDto;
+    body?: never;
     path?: never;
     query?: never;
     url: '/auth/logout';
 };
-
-export type AuthControllerLogoutErrors = {
-    /**
-     * Тело запроса не прошло валидацию, замечания в поле errors
-     */
-    400: ApiErrorDto;
-    /**
-     * Refresh-токен недействителен или истёк
-     */
-    401: ApiErrorDto;
-};
-
-export type AuthControllerLogoutError = AuthControllerLogoutErrors[keyof AuthControllerLogoutErrors];
 
 export type AuthControllerLogoutResponses = {
     204: void;

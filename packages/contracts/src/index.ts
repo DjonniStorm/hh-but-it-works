@@ -51,10 +51,6 @@ export const resetPasswordSchema = z.object({
   password: passwordSchema,
 });
 
-export const refreshSchema = z.object({
-  refreshToken: z.string().min(1),
-});
-
 export const publicUserSchema = z.object({
   id: z.uuid(),
   email: z.email(),
@@ -64,9 +60,9 @@ export const publicUserSchema = z.object({
   consentAt: z.iso.datetime().nullable(),
 });
 
+// Refresh-токен в тело не входит: API кладёт его в HttpOnly-cookie hh_refresh.
 export const sessionSchema = z.object({
   accessToken: z.string(),
-  refreshToken: z.string(),
   user: publicUserSchema,
 });
 
@@ -744,7 +740,6 @@ export type ConfirmEmailInput = z.infer<typeof confirmEmailSchema>;
 export type ResendConfirmationInput = z.infer<typeof resendConfirmationSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
-export type RefreshInput = z.infer<typeof refreshSchema>;
 export type PublicUser = z.infer<typeof publicUserSchema>;
 export type Session = z.infer<typeof sessionSchema>;
 export type Health = z.infer<typeof healthSchema>;

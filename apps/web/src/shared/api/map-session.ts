@@ -3,7 +3,6 @@ import type { Role } from "@hh/types";
 
 export function mapSession(session: {
   accessToken: string;
-  refreshToken: string;
   user: {
     id: string;
     email: string;
@@ -14,7 +13,6 @@ export function mapSession(session: {
 }): Session {
   return {
     accessToken: session.accessToken,
-    refreshToken: session.refreshToken,
     user: mapPublicUser(session.user),
   };
 }

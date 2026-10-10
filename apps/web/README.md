@@ -74,7 +74,7 @@ src/
 
 `ROUTES` в `shared/router/routes.ts`: `/`, `/profile`, `/invitations`, `/settings`, `/legal/consent`, `/auth/{login,register,confirm,forgot,reset}`, `/employer`, `/employer/needs`, `/employer/needs/new`, `/employer/needs/:needId`, `/employer/needs/:needId/edit`, `/employer/search`, `/employer/invitations`, `/employer/company`, `/test`.
 
-`ProtectedRoute` пускает только с токеном, `CandidateRoute`/`EmployerRoute` — по `role`.
+`ProtectedRoute` пускает только с токеном, `CandidateRoute`/`EmployerRoute` — по `role`. Access-токен живёт в памяти, refresh — в HttpOnly-cookie `hh_refresh` от API (`credentials: "include"` в `hey-api.ts`). После перезагрузки сессию восстанавливает `auth.restoreSession()`: его запускает `main.tsx`, а загрузчик `ProtectedRoute` ждёт.
 
 ## Подборка и рекомендации
 
