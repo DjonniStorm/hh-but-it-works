@@ -1,6 +1,10 @@
 #!/usr/bin/env sh
 set -eu
 
+# Вызывается из корня репозитория (см. docs/dev/AGENT_HANDOFF.md) —
+# фиксируем cwd, иначе evaluation/... и scripts/... не находятся.
+cd "$(dirname "$0")/.."
+
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
