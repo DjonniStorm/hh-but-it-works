@@ -119,14 +119,14 @@ docker run -p 8000:8000 hh-ranking-test
 curl -s localhost:8000/health
 ```
 
-Модель уже обучена и лежит в `apps/ranking/evaluation/artifacts/ltr-v1.2.0`.
+Модель уже обучена и лежит в `apps/ranking/evaluation/artifacts/ltr-v1.5.0-llm`.
 Docker build только копирует model/metadata/calibrator/report в минимальный runtime:
 scikit-learn и обучение ему не нужны. Workflow `ranking-image.yml` публикует
 готовые `amd64`/`arm64` образы в
 `ghcr.io/djonnistorm/hh-but-it-works-ranking` с тегами `dev`, `main`, git SHA и
 release tag. `docker-compose.yml` использует готовый образ, если он доступен.
 
-Артефакт по умолчанию — llm-approved `ltr-v1.4.0-llm`: `/health` показывает
+Артефакт по умолчанию — llm-approved `ltr-v1.5.0-llm`: `/health` показывает
 `productionApproved=true` без override-переменных. Human-approved артефакт —
 следующий tier после двойной human-разметки; `RANKING_ALLOW_UNAPPROVED_MODEL`
 остаётся только debugging-инструментом.

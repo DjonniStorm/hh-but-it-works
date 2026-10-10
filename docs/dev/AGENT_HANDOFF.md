@@ -88,8 +88,8 @@ sh apps/ranking/scripts/check.sh            # ML-часть (нужен Python 3
 
 1. В Nest есть contract tests для `ranking.client.ts` и `shortlist`, в web — тесты reason labels; остальная бизнес-логика и React-компоненты не покрыты.
 2. Workflow CI для ranking image есть (`.github/workflows/ranking-image.yml`), но Actions на аккаунте выключен — раны не выполняются, проверки только локальные; общего monorepo CI пока нет.
-3. `apps/ranking` — полное описание состояния в [`apps/ranking/HANDOFF.md`](../../apps/ranking/HANDOFF.md): что сделано, какие сигналы подключены к контракту, а что выведено из формулы (`rules-v1.2.0`), что дальше.
-4. Ranking поддерживает rules/shadow/hybrid/LTR. Готовый versioned artifact хранится в репозитории; Docker не обучает, а копирует llm-approved бандл `ltr-v1.4.0-llm` — гибрид активен без override-переменных (`productionApproved=true`). Эмбеддер для semantic хранится в git частями (`embedder-int8.onnx.NNNN`, лимит GitHub 100 МБ) и собирается при первом лоаде. `ranking-image.yml` публикует multi-arch GHCR image, `scripts/promote_ml.sh` создаёт новую версию, `verify_artifacts.sh` проверяет checksum/held-out gate. Настоящий production artifact требует двойную human-разметку.
+3. `apps/ranking` — полное описание состояния в [`apps/ranking/HANDOFF.md`](../../apps/ranking/HANDOFF.md): что сделано, какие сигналы подключены к контракту, а что выведено из формулы (`rules-v1.3.0`), что дальше.
+4. Ranking поддерживает rules/shadow/hybrid/LTR. Готовый versioned artifact хранится в репозитории; Docker не обучает, а копирует llm-approved бандл `ltr-v1.5.0-llm` — гибрид активен без override-переменных (`productionApproved=true`). Эмбеддер для semantic хранится в git частями (`embedder-int8.onnx.NNNN`, лимит GitHub 100 МБ) и собирается при первом лоаде. `ranking-image.yml` публикует multi-arch GHCR image, `scripts/promote_ml.sh` создаёт новую версию, `verify_artifacts.sh` проверяет checksum/held-out gate. Настоящий production artifact требует двойную human-разметку.
 5. Прод-стенд — `infra/prod` (compose, Caddy), развёртывание описано в `infra/README.md`. Схема базы — `synchronize: true`, миграций нет.
 
 ## 6. Что не делать

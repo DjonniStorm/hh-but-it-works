@@ -7,6 +7,7 @@ import pytest
 from evaluation.features import FEATURE_ORDER, model_code_sha256
 from factories import backend_need, candidate
 from ltr import LTRRanker
+from schemas import CandidateSnapshot, HiringNeedSnapshot
 from scoring import rank_candidates
 
 
@@ -108,12 +109,33 @@ def test_hybrid_blends_rules_and_ltr_without_losing_explanations():
     assert run.items[0].matchScore == expected
     assert run.items[0].reasons == rules.reasons
     assert run.mode == "hybrid"
-    assert run.model_version == "hybrid-v1.2.0-ltr0.25"
+    assert run.model_version == "hybrid-v1.3.0-ltr0.25"
     assert set(run.diagnostics) == {
         "rankingAgreement",
         "topKOverlap",
         "meanAbsoluteScoreDelta",
     }
+
+
+def test_hybrid_preserves_material_rules_priority():
+    payload = json.loads(
+        (Path(__file__).parents[1] / "examples/rank-request.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    parsed_candidates = [
+        CandidateSnapshot.model_validate(item) for item in payload["candidates"]
+    ]
+    parsed_need = HiringNeedSnapshot.model_validate(payload["hiringNeed"])
+    ranker = ranker_with(FakeModel([2.0, -2.0, 0.0]), mode="hybrid")
+
+    result = ranker.rank(parsed_candidates, parsed_need)
+
+    assert [item.candidateId for item in result] == [
+        "candidate-2",
+        "candidate-1",
+        "candidate-3",
+    ]
 
 
 def test_shadow_computes_diagnostics_but_serves_rules_unchanged():

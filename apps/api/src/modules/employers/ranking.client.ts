@@ -19,10 +19,18 @@ function toHundred(value: number): number {
   return Math.round(Math.min(100, Math.max(0, value * 100)));
 }
 
+function clampRatio(value: number): number {
+  return Math.min(1, Math.max(0, value));
+}
+
 export type RankResult = {
   candidateId: string;
   score: number;
   qualification: number;
+  // Дробные значения до округления: подборка сортируется по ним, чтобы
+  // ничья по процентам не превращала порядок в лотерею из порядка строк БД.
+  rawScore: number;
+  rawQualification: number;
   opportunityFit: number;
   reasons: string[];
   risks: string[];
@@ -75,13 +83,13 @@ const breakdownGroups: {
       { key: "specialization", label: "Специализация", weight: 0.09 },
       { key: "grade", label: "Грейд", weight: 0.14 },
       { key: "experience", label: "Опыт", weight: 0.09 },
-      { key: "semantic", label: "Смысловое совпадение", weight: 0.07 },
+      { key: "semantic", label: "Смысловое совпадение", weight: 0.04 },
     ],
   },
   {
     group: "skills",
     parts: [
-      { key: "mustSkills", label: "Обязательные навыки", weight: 0.2 },
+      { key: "mustSkills", label: "Обязательные навыки", weight: 0.26 },
       {
         key: "verifiedMustSkills",
         label: "Подтверждённые обязательные",
@@ -99,7 +107,7 @@ const breakdownGroups: {
   },
   {
     group: "fsp",
-    parts: [{ key: "fspEvidence", label: "Достижения ФСП", weight: 0.06 }],
+    parts: [{ key: "fspEvidence", label: "Достижения ФСП", weight: 0.03 }],
   },
   {
     group: "preferences",
@@ -153,12 +161,20 @@ export class RankingClient {
       if (typeof candidateId !== "string") {
         continue;
       }
-      const score = toHundred(numberOf(item.matchScore, numberOf(item.score)));
+      const rawScore = clampRatio(
+        numberOf(item.matchScore, numberOf(item.score) / 100),
+      );
+      const rawQualification = clampRatio(
+        numberOf(item.qualificationScore, rawScore),
+      );
+      const score = toHundred(rawScore);
       const scoreRatio = score / 100;
       scores.set(candidateId, {
         candidateId,
         score,
-        qualification: toHundred(numberOf(item.qualificationScore, scoreRatio)),
+        rawScore,
+        rawQualification,
+        qualification: toHundred(rawQualification),
         opportunityFit: toHundred(numberOf(item.opportunityFit, scoreRatio)),
         reasons: listOfStrings(item.reasons),
         // Отклонённый кандидат попадает в «риски» причинами eligibility,

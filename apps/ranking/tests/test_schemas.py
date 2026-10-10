@@ -31,7 +31,7 @@ def test_empty_candidate_list_is_valid():
     status, body = rank({"vacancy": need().model_dump(mode="json"), "candidates": []})
     assert status == 200
     assert body["results"] == []
-    assert body["modelVersion"] == "rules-v1.2.0"
+    assert body["modelVersion"] == "rules-v1.3.0"
 
 
 def test_request_size_limits_protect_model_latency():
