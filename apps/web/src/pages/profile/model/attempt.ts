@@ -6,6 +6,7 @@ import type {
 
 import { AttemptStatus, IntegrityFlag } from "@hh/types";
 
+import { gradeOptions, optionLabel, specializationOptions } from "./options";
 import type { FullscreenPause } from "./use-integrity-watch";
 
 export type ActiveAttempt = ActiveAttemptDtoOutput;
@@ -81,4 +82,17 @@ export function totalMinutes(sections: ActiveAttempt["sections"]): number {
 
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("ru-RU");
+}
+
+// Категория попытки для истории: специализация из анкеты и грейд теста.
+// У старых попыток специализации нет, остаётся только грейд.
+export function attemptCategory(
+  item: Pick<AttemptResult, "specialization" | "grade">,
+): string {
+  const grade = optionLabel(gradeOptions, item.grade) ?? item.grade;
+  const specialization = optionLabel(
+    specializationOptions,
+    item.specialization,
+  );
+  return specialization ? `${specialization}, ${grade}` : grade;
 }

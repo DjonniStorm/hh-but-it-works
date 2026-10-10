@@ -3808,6 +3808,11 @@
             "type": "string",
             "enum": ["junior", "middle", "senior"]
           },
+          "specialization": {
+            "type": "string",
+            "enum": ["backend", "frontend", "data", "security", null],
+            "nullable": true
+          },
           "integrity": {
             "type": "integer",
             "minimum": 0,
@@ -3887,6 +3892,7 @@
           "status",
           "score",
           "grade",
+          "specialization",
           "integrity",
           "flags",
           "sections",
@@ -3921,6 +3927,11 @@
                 "grade": {
                   "type": "string",
                   "enum": ["junior", "middle", "senior"]
+                },
+                "specialization": {
+                  "type": "string",
+                  "enum": ["backend", "frontend", "data", "security", null],
+                  "nullable": true
                 },
                 "integrity": {
                   "type": "integer",
@@ -4001,6 +4012,7 @@
                 "status",
                 "score",
                 "grade",
+                "specialization",
                 "integrity",
                 "flags",
                 "sections",

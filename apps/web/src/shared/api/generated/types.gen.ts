@@ -269,6 +269,7 @@ export type AssessmentResultDtoOutput = {
     status: 'passed' | 'failed' | 'annulled';
     score: number;
     grade: 'junior' | 'middle' | 'senior';
+    specialization: 'backend' | 'frontend' | 'data' | 'security' | null;
     integrity: number;
     flags: Array<{
         type: 'tab-hidden' | 'window-blur' | 'fullscreen-exit' | 'fullscreen-denied' | 'copy' | 'ip-change' | 'agent-change' | 'fast-answer';
@@ -291,6 +292,7 @@ export type AssessmentHistoryDtoOutput = {
         status: 'passed' | 'failed' | 'annulled';
         score: number;
         grade: 'junior' | 'middle' | 'senior';
+        specialization: 'backend' | 'frontend' | 'data' | 'security' | null;
         integrity: number;
         flags: Array<{
             type: 'tab-hidden' | 'window-blur' | 'fullscreen-exit' | 'fullscreen-denied' | 'copy' | 'ip-change' | 'agent-change' | 'fast-answer';
