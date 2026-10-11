@@ -109,7 +109,7 @@ senior:  0 / 21 / 275 / 104
 
 Вариативность: у двух попыток middle-бэкенда общих шаблонов 25,2 %, одинаковых формулировок с теми же вариантами 1,2 %.
 
-В новых банках короче всех ячейка Kafka на junior: 6 шаблонов. Redis на junior и Kafka на senior — 7, senior у SQL, Linux, Redis, OWASP и Pandas — по 8. Секция берёт 4, так что попытка собирается. У Kubernetes, Git, System Design и Алгоритмов в каждой ячейке от 10 шаблонов.
+В новых банках короче всех ячейка Kafka на junior: 6 шаблонов. Redis на junior и Kafka на senior — 7, senior у SQL, Linux, Redis, OWASP и Pandas — по 8. Секция берёт 4, так что попытка собирается. У Kubernetes, System Design и Алгоритмов в каждой ячейке от 10 шаблонов, у Git — от 9: в senior их 9.
 
 У JavaScript, CSS, Airflow и PyTorch в каждой ячейке от 10 до 20 шаблонов, короче всех junior у Airflow и PyTorch — по 10. В ядро специализаций они не входят, поэтому цифры выше не меняют.
 

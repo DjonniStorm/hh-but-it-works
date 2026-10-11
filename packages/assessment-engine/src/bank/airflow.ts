@@ -118,7 +118,7 @@ export const airflow: Template[] = [
   ),
   single(
     { id: "af-all-done", topic: "trigger-rules", grades: JM, difficulty: 2 },
-    "Задача cleanup должна запускаться, когда все предшественники закончились, даже если кто-то упал. Какой trigger_rule?",
+    "Задача cleanup удаляет временные файлы и должна запуститься после предшественников при любом их исходе: успех, падение или пропуск. Какой trigger_rule?",
     "all_done",
     ["all_success", "one_success", "none_skipped"],
   ),

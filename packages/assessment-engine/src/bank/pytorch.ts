@@ -310,11 +310,11 @@ export const pytorch: Template[] = [
     "python",
     "Что произойдёт?",
     "x = torch.randn(4, 6)\ny = x.t().view(-1)",
-    "Упадёт с RuntimeError: после t() тензор не непрерывен, нужен reshape или contiguous()",
+    "Упадёт с RuntimeError: после t() тензор не непрерывен",
     [
       "Вернёт тензор формы (24,) в порядке строк x",
       "Вернёт тензор формы (6, 4)",
-      "Вернёт копию x без изменений",
+      "Упадёт с RuntimeError: -1 в view не поддерживается",
     ],
   ),
   code(
@@ -357,13 +357,13 @@ export const pytorch: Template[] = [
   code(
     { id: "pt-inplace", topic: "autograd", grades: S, difficulty: 3 },
     "python",
-    "Что произойдёт на последней строке?",
+    "Что произойдёт?",
     "x = torch.randn(3, requires_grad=True)\ny = x.sigmoid()\ny.mul_(2)\ny.sum().backward()",
-    "Упадёт с RuntimeError: выход sigmoid нужен для backward, а его изменили на месте",
+    "Упадёт на backward: выход sigmoid нужен для градиента, а его изменили на месте",
     [
       "Градиент посчитается, x.grad будет вдвое больше",
       "Градиент посчитается так, будто mul_ не было",
-      "x.grad останется None без ошибки",
+      "Упадёт на mul_: тензор с requires_grad нельзя менять на месте",
     ],
   ),
   single(
