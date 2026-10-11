@@ -138,7 +138,9 @@ export const TestingQuestion = ({
               <Text size="sm">Выбрано {draft.choices.length}</Text>
             ) : null}
           </Group>
-          <Text fz="lg">{item.prompt}</Text>
+          <Text fz="lg" style={{ overflowWrap: "anywhere" }}>
+            {item.prompt}
+          </Text>
           {item.code ? <TestingCode code={item.code} lang={item.lang} /> : null}
           {item.kind === "single" || item.kind === "code" ? (
             <Stack gap="xs" role="radiogroup" aria-label={kindHints[item.kind]}>
