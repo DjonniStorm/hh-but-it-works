@@ -10,6 +10,7 @@ import {
 import {
   allowedGrades,
   defaultTestGrade,
+  lockNote,
 } from "@/pages/profile/model/grade-advice";
 import {
   gradeOptions,
@@ -108,11 +109,7 @@ export const TestingLobby = ({
         )}
         <Select
           label="Грейд теста"
-          description={
-            allowed.length === 1
-              ? "Пока идёт пауза между сменами грейда, доступна пересдача на текущий."
-              : undefined
-          }
+          description={lockNote(profile)}
           data={gradeOptions.map((option) => {
             return { ...option, disabled: !allowed.includes(option.value) };
           })}

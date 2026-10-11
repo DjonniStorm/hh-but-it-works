@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { skillLevelOptions } from "@/pages/profile/model/options";
 import {
@@ -10,7 +10,9 @@ import {
   skillGroups,
 } from "@/pages/profile/model/skill-query";
 import { specializationLabel } from "@/shared/lib/labels";
+import { fieldBorderColor, surfaceColor } from "@/shared/theme";
 import {
+  Box,
   Button,
   Combobox,
   Group,
@@ -19,6 +21,7 @@ import {
   Text,
   TextInput,
   useCombobox,
+  useMatches,
 } from "@mantine/core";
 
 import { SkillLevel, type Specialization } from "@hh/types";
@@ -40,6 +43,14 @@ export const SkillSearch = ({
 }) => {
   const [query, setQuery] = useState("");
   const [level, setLevel] = useState<string | null>(null);
+  // На телефоне список стоит под полем, а не всплывает: всплывающий прыгал от клавиатуры
+  // и не листался пальцем. Открыт он, пока поле в фокусе.
+  const [listOpen, setListOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const phone = useMatches(
+    { base: true, sm: false },
+    { getInitialValueInEffect: false },
+  );
   const combobox = useCombobox({
     onDropdownClose: () => {
       combobox.resetSelectedOption();
@@ -71,6 +82,68 @@ export const SkillSearch = ({
     combobox.closeDropdown();
   };
 
+  const openList = () => {
+    if (phone) {
+      setListOpen(true);
+      return;
+    }
+    combobox.openDropdown();
+  };
+
+  const options = (
+    <>
+      {groups.map((group) => {
+        return (
+          <Combobox.Group key={group.key} label={group.label}>
+            {group.skills.map((skill) => {
+              return (
+                <Combobox.Option key={skill.skillId} value={skill.skillId}>
+                  <Group justify="space-between" wrap="nowrap" gap="xs">
+                    <Text size="sm">{skill.title}</Text>
+                    {skill.tested ? null : (
+                      <Text size="xs" c="dimmed">
+                        без теста
+                      </Text>
+                    )}
+                  </Group>
+                </Combobox.Option>
+              );
+            })}
+          </Combobox.Group>
+        );
+      })}
+      {showCreate ? (
+        <Combobox.Option value={needle}>
+          Такого нет, добавим «{needle}»
+        </Combobox.Option>
+      ) : null}
+      {already ? <Combobox.Empty>Уже в списке</Combobox.Empty> : null}
+      {groups.length === 0 && !showCreate && !already ? (
+        <Combobox.Empty>Ничего не нашли</Combobox.Empty>
+      ) : null}
+    </>
+  );
+
+  const input = (
+    <TextInput
+      ref={inputRef}
+      label="Навык"
+      description="Каталог открыт по специализации. Навык без теста останется неподтверждённым. Если такого нет — добавим ваш вариант."
+      placeholder="PostgreSQL"
+      value={query}
+      onChange={(event) => {
+        setQuery(event.currentTarget.value);
+        openList();
+        combobox.updateSelectedOptionIndex();
+      }}
+      onClick={openList}
+      onFocus={openList}
+      onBlur={() => {
+        setListOpen(false);
+      }}
+    />
+  );
+
   return (
     <Stack gap="sm">
       <Combobox
@@ -81,63 +154,40 @@ export const SkillSearch = ({
           });
           setQuery(skill?.title ?? value);
           combobox.closeDropdown();
+          if (phone) {
+            // Клавиатура уходит, и под полем виден выбор уровня.
+            setListOpen(false);
+            inputRef.current?.blur();
+          }
         }}
       >
-        <Combobox.Target>
-          <TextInput
-            label="Навык"
-            description="Каталог открыт по специализации. Навык без теста останется неподтверждённым. Если такого нет — добавим ваш вариант."
-            placeholder="PostgreSQL"
-            value={query}
-            onChange={(event) => {
-              setQuery(event.currentTarget.value);
-              combobox.openDropdown();
-              combobox.updateSelectedOptionIndex();
-            }}
-            onClick={() => {
-              combobox.openDropdown();
-            }}
-            onFocus={() => {
-              combobox.openDropdown();
-            }}
-          />
-        </Combobox.Target>
-        <Combobox.Dropdown>
-          <Combobox.Options>
-            {groups.map((group) => {
-              return (
-                <Combobox.Group key={group.key} label={group.label}>
-                  {group.skills.map((skill) => {
-                    return (
-                      <Combobox.Option
-                        key={skill.skillId}
-                        value={skill.skillId}
-                      >
-                        <Group justify="space-between" wrap="nowrap" gap="xs">
-                          <Text size="sm">{skill.title}</Text>
-                          {skill.tested ? null : (
-                            <Text size="xs" c="dimmed">
-                              без теста
-                            </Text>
-                          )}
-                        </Group>
-                      </Combobox.Option>
-                    );
-                  })}
-                </Combobox.Group>
-              );
-            })}
-            {showCreate ? (
-              <Combobox.Option value={needle}>
-                Такого нет, добавим «{needle}»
-              </Combobox.Option>
+        {phone ? (
+          <>
+            <Combobox.EventsTarget>{input}</Combobox.EventsTarget>
+            {listOpen ? (
+              <Box
+                mah={240}
+                style={{
+                  overflowY: "auto",
+                  overscrollBehavior: "contain",
+                  background: surfaceColor,
+                  border: `1px solid ${fieldBorderColor}`,
+                }}
+              >
+                <Combobox.Options>{options}</Combobox.Options>
+              </Box>
             ) : null}
-            {already ? <Combobox.Empty>Уже в списке</Combobox.Empty> : null}
-            {groups.length === 0 && !showCreate && !already ? (
-              <Combobox.Empty>Ничего не нашли</Combobox.Empty>
-            ) : null}
-          </Combobox.Options>
-        </Combobox.Dropdown>
+          </>
+        ) : (
+          <>
+            <Combobox.Target>{input}</Combobox.Target>
+            <Combobox.Dropdown>
+              <Combobox.Options mah={320} style={{ overflowY: "auto" }}>
+                {options}
+              </Combobox.Options>
+            </Combobox.Dropdown>
+          </>
+        )}
       </Combobox>
       <Group align="flex-end" wrap="wrap">
         <Select

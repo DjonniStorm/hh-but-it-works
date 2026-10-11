@@ -59,8 +59,8 @@ export const git: Template[] = [
   },
   single(
     { id: "git-pull", topic: "pull", grades: J, difficulty: 1 },
-    "Что делает git pull в настройках по умолчанию?",
-    "git fetch, а затем слияние полученной ветки в текущую",
+    "Что делает git pull?",
+    "git fetch, а затем вливает полученную ветку в текущую",
     [
       "Только git fetch, рабочий каталог не меняется",
       "git push, а затем git fetch",
@@ -308,7 +308,7 @@ export const git: Template[] = [
     ],
   ),
   single(
-    { id: "git-merge-base", topic: "three-way", grades: MS, difficulty: 2 },
+    { id: "git-merge-base", topic: "three-way", grades: JM, difficulty: 2 },
     "Что берёт трёхстороннее слияние, кроме вершин двух веток?",
     "Их общего предка",
     [

@@ -29,14 +29,22 @@ export const TestingRun = ({
   const [sending, setSending] = useState(false);
   const item = attempt.item;
   const sectionIndex = sectionIndexOf(attempt);
+  const section = attempt.sections[sectionIndex];
 
   return (
     <Group align="flex-start" wrap="wrap" gap="xl">
       <TestingSectionRail sections={attempt.sections} current={sectionIndex} />
-      <Stack style={{ flex: "1 1 28rem" }} maw={720}>
+      {/* minWidth 0: без него длинная строка кода растягивает колонку шире телефона. */}
+      <Stack style={{ flex: "1 1 28rem", minWidth: 0 }} maw={720}>
         <Text>
           Вопрос {Math.min(attempt.index + 1, attempt.total)} из {attempt.total}
         </Text>
+        {section ? (
+          <Text size="sm" c="dimmed" hiddenFrom="sm">
+            Секция {sectionIndex + 1} из {attempt.sections.length}:{" "}
+            {section.title}
+          </Text>
+        ) : null}
         {pause ? (
           <Alert color="fspRed" variant="light" title="Вопрос на паузе">
             <Stack gap="sm">

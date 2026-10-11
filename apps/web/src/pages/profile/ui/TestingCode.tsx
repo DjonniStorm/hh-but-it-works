@@ -83,7 +83,7 @@ export const TestingCode = ({
         component="pre"
         ff="inherit"
         fz="sm"
-        style={{ whiteSpace: "pre-wrap", margin: 0 }}
+        style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", margin: 0 }}
       >
         {code}
       </Text>
@@ -93,7 +93,8 @@ export const TestingCode = ({
   return (
     <Box
       fz="sm"
-      style={{ overflowX: "auto" }}
+      // Длинная строка кода листается внутри блока, страница остаётся шириной с экран.
+      style={{ overflowX: "auto", maxWidth: "100%" }}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );

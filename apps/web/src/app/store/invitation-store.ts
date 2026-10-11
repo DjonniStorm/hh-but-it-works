@@ -17,6 +17,10 @@ import { StoreKey } from "./store-key";
 
 type CallOptions<T> = Pick<RequestOptions<T>, "onError" | "onSuccess">;
 
+function sameItems(a: Invitation[], b: Invitation[]): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 // Приглашения работодателя. Сторона кандидата — CandidateInvitationStore.
 export class InvitationStore {
   readonly key = StoreKey.Invitations;
@@ -77,6 +81,32 @@ export class InvitationStore {
       },
       { loader: false, retry: loadRetry, ...options },
     );
+  }
+
+  // Тихое обновление по таймеру: без лоадера и тоста. Пока идёт действие человека, пропускаем.
+  async refresh(): Promise<void> {
+    if (this.root.loading.visible) {
+      return;
+    }
+    this.syncOwner();
+    try {
+      const items = await request(
+        this.root,
+        async () => {
+          const result = await employersControllerListInvitations();
+          return readData(result).items.map(mapInvitation);
+        },
+        { loader: false, silent: true },
+      );
+      // Действие могло начаться во время запроса: его ответ новее, чем этот список.
+      if (!this.root.loading.visible && !sameItems(this.items, items)) {
+        runInAction(() => {
+          this.items = items;
+        });
+      }
+    } catch {
+      // Сбой фонового запроса не мешает: показан прошлый список, следующий тик повторит.
+    }
   }
 
   send(input: InvitationInput, options?: CallOptions<Invitation>) {

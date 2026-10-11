@@ -46,7 +46,7 @@ export const javascript: Template[] = [
       return {
         kind: "code",
         lang: js,
-        prompt: "Что выведет код?",
+        prompt: "Какую строку вернёт typeof?",
         code: `console.log(typeof ${value});`,
         correct,
         wrong: sample(rng, pool, 3),
@@ -163,8 +163,8 @@ export const javascript: Template[] = [
     js,
     "Что произойдёт?",
     "console.log(x);\nlet x = 1;",
-    "Упадёт с ReferenceError: к x нельзя обратиться до объявления",
-    ["Выведет undefined", "Выведет 1", "Выведет null"],
+    "Упадёт с ReferenceError",
+    ["Выведет undefined", "Выведет 1", "Упадёт с SyntaxError"],
   ),
   code(
     { id: "js-shallow", topic: "references", grades: JM, difficulty: 2 },
@@ -255,8 +255,8 @@ export const javascript: Template[] = [
     js,
     "Что произойдёт?",
     'class User {\n  constructor() {\n    this.name = "Ann";\n  }\n  hi() {\n    return this.name;\n  }\n}\nconst hi = new User().hi;\nconsole.log(hi());',
-    "Упадёт с TypeError: this внутри hi равен undefined",
-    ["Выведет Ann", "Выведет undefined", "Выведет пустую строку"],
+    "Упадёт с TypeError",
+    ["Выведет Ann", "Выведет undefined", "Упадёт с ReferenceError"],
   ),
   code(
     { id: "js-arrow-this", topic: "this", grades: M, difficulty: 2 },
@@ -464,15 +464,18 @@ export const javascript: Template[] = [
       "forEach вернёт промис, его достаточно дождаться через await",
     ],
   ),
-  single(
-    { id: "js-unhandled", topic: "async-errors", grades: S, difficulty: 3 },
-    "Что по умолчанию сделает Node.js 18, если промис отклонён и обработчика у него так и не появилось?",
-    "Завершит процесс с ошибкой",
-    [
-      "Тихо проигнорирует ошибку",
-      "Повторит промис ещё раз",
-      "Выведет предупреждение и продолжит работу",
-    ],
+  code(
+    {
+      id: "js-async-sync-start",
+      topic: "event-loop",
+      grades: S,
+      difficulty: 3,
+    },
+    js,
+    "Что появится в консоли, по порядку?",
+    'async function load() {\n  try {\n    return "data";\n  } finally {\n    console.log("cleanup");\n  }\n}\nload().then((value) => console.log(value));\nconsole.log("sync");',
+    "cleanup sync data",
+    ["sync cleanup data", "sync data cleanup", "cleanup data sync"],
   ),
   single(
     {

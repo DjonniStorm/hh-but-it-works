@@ -105,6 +105,7 @@ export type CandidateProfileDtoOutput = {
     verifiedAt: string | null;
     assessmentScore: number | null;
     nextGradeChangeAt: string | null;
+    lockedGrade: 'junior' | 'middle' | 'senior' | null;
     skills: Array<{
         skillId: string;
         slug: string;

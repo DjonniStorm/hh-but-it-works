@@ -25,7 +25,12 @@ export function skillSuggestionsFor(specialization: string | null): string[] {
           return skill.specializations.includes(specialization);
         })
       : skillCatalog;
-  return rows.map((skill) => {
-    return skill.title;
-  });
+  // По алфавиту без учёта регистра: в каталоге навыки идут в порядке добавления.
+  return rows
+    .map((skill) => {
+      return skill.title;
+    })
+    .sort((a, b) => {
+      return a.localeCompare(b, "ru", { sensitivity: "base" });
+    });
 }

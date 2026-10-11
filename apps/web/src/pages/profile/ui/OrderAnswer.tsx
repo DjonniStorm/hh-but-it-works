@@ -33,9 +33,11 @@ export const OrderAnswer = ({
             wrap="nowrap"
             mih={44}
             px="sm"
+            py={6}
             style={{ border: `1px solid ${fieldBorderColor}` }}
           >
-            <Text>
+            {/* Длинный шаг переносится сам и не выталкивает стрелки за край. */}
+            <Text style={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" }}>
               {position + 1}. {steps[stepIndex]}
             </Text>
             <Group gap={4} wrap="nowrap">
