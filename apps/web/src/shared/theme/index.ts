@@ -1,8 +1,11 @@
 import {
   type CSSVariablesResolver,
+  Combobox,
   Input,
   type MantineColorsTuple,
+  Menu,
   PasswordInput,
+  Popover,
   createTheme,
   defaultVariantColorsResolver,
 } from "@mantine/core";
@@ -93,6 +96,11 @@ export const scoreColor = {
   weak: "gray",
 } as const;
 
+const dropdownStyle = {
+  background: surfaceColor,
+  borderColor: fieldBorderColor,
+};
+
 export const theme = createTheme({
   primaryColor: "fsp",
   primaryShade: 6,
@@ -125,6 +133,20 @@ export const theme = createTheme({
           input: { fontVariantLigatures: "none" },
         };
       },
+    }),
+    // Одно оформление всех выпадающих списков. Фон задан явно, а не через --mantine-color-body:
+    // списки рисуются в портале вне обёртки кабинета и иначе становятся серыми, а в профиле белыми.
+    Combobox: Combobox.extend({
+      defaultProps: { shadow: "md" },
+      styles: { dropdown: dropdownStyle },
+    }),
+    Menu: Menu.extend({
+      defaultProps: { shadow: "md" },
+      styles: { dropdown: dropdownStyle },
+    }),
+    Popover: Popover.extend({
+      defaultProps: { shadow: "md" },
+      styles: { dropdown: dropdownStyle },
     }),
     // Mantine убирает кнопку из Tab и подписывает её по-английски.
     // Подпись постоянная: показан ли пароль, Mantine сообщает через aria-pressed.
