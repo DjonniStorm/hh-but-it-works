@@ -26,7 +26,7 @@ export default withMermaid(
         ],
       },
       optimizeDeps: {
-        include: ["mermaid", "fastdom", "cytoscape-fcose"],
+        include: ["mermaid", "fastdom", "cytoscape-fcose", "@panzoom/panzoom"],
       },
     },
     markdown: {
@@ -49,6 +49,7 @@ export default withMermaid(
         useTitleFromFileHeading: true,
         useFolderTitleFromIndexFile: true,
         sortMenusByFrontmatterOrder: true,
+        frontmatterOrderDefaultValue: 100,
         excludePattern: ["excalidraw"],
       }),
       footer: {

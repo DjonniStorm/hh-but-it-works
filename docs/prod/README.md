@@ -12,6 +12,6 @@ npm run dev
 
 ## Писать статьи
 
-Markdown в `site/`. Папки = разделы сайдбара. Картинки Excalidraw кладите **экспортом SVG** в `site/public/diagrams/` и вставляйте `![…](/diagrams/имя.svg)`. Исходники `.excalidraw` — в `site/excalidraw/` (в сайдбар не попадают). Mermaid — в markdown-блоке ` ```mermaid `.
+Markdown в `site/`. Папки = разделы сайдбара. Порядок в меню — поле **`order`** в frontmatter (`---` сверху), не `index`. Без `order` страница уедет в конец. Картинки Excalidraw кладите **экспортом SVG** в `site/public/diagrams/` и вставляйте `![…](/diagrams/имя.svg)`. Исходники `.excalidraw` — в `site/excalidraw/` (в сайдбар не попадают). Mermaid — в markdown-блоке ` ```mermaid `.
 
 Тема: Catppuccin Mocha (тёмная) / Latte (светлая), переключатель в шапке. Vue уже стоит — можно править `site/.vitepress/theme`.
