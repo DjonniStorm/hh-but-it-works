@@ -1,6 +1,6 @@
 # Собирается из корня репозитория: docker build -f apps/web/Dockerfile .
-# Итог — Caddy со статикой SPA. Caddyfile в образ не кладём, его монтирует
-# infra/prod/docker-compose.yml.
+# Итог — Caddy со статикой SPA и документацией docs/prod. Caddyfile в образ
+# не кладём, его монтирует infra/prod/docker-compose.yml.
 
 # В стандартном Caddy нет лимита частоты запросов, собираем с плагином.
 FROM caddy:2.10-builder AS caddy
@@ -32,6 +32,16 @@ ARG VITE_FSP_URL
 ENV VITE_FSP_URL=$VITE_FSP_URL
 RUN pnpm --filter "./packages/*" build && pnpm --filter @hh/web build
 
+# Документация — отдельный npm-проект вне pnpm-workspace.
+FROM node:24-bookworm-slim AS docs
+WORKDIR /docs
+COPY docs/prod/package.json docs/prod/package-lock.json ./
+RUN --mount=type=cache,id=npm,target=/root/.npm npm ci
+COPY docs/prod ./
+RUN npm run build
+
 FROM caddy:2.10-alpine
 COPY --from=caddy /usr/bin/caddy /usr/bin/caddy
 COPY --from=build /app/apps/web/dist /srv
+# Отдаётся на $DOCS_DOMAIN, вне /srv: на домене кабинета документации нет.
+COPY --from=docs /docs/site/.vitepress/dist /docs
