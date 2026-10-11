@@ -57,3 +57,23 @@
 		format console
 	}
 }
+
+# Мок реестра ФСП на своём поддомене: страница входа OIDC (/authorize),
+# Swagger (/docs, JSON — /docs/json) и участники. Пути абсолютные, без префикса.
+{$FSP_DOMAIN} {
+	encode zstd gzip
+
+	reverse_proxy mock:3001
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
