@@ -11,17 +11,17 @@ import { HomeOffer } from "@/pages/home/ui/HomeOffer";
 import { MaterialsSection } from "@/pages/home/ui/MaterialsSection";
 import { PrepCard } from "@/pages/home/ui/PrepCard";
 import { SkillsWidget } from "@/pages/home/ui/SkillsWidget";
-import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import { SimpleGrid, Stack } from "@mantine/core";
-import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Navigate } from "react-router";
 
 import { Role } from "@hh/types";
 
 export const HomePage = observer(() => {
-  useHead({ title: pageTitle.home });
+  usePageSeo(pageSeo.home);
   const auth = useStore(StoreKey.Auth);
   const profiles = useStore(StoreKey.Profile);
 

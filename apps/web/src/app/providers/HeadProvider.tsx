@@ -1,6 +1,6 @@
 import type { PropsWithChildren } from "react";
 
-import { titleTemplate } from "@/shared/router/page-title";
+import { titleTemplate } from "@/shared/seo/brand";
 import { UnheadProvider, createHead } from "@unhead/react/client";
 
 const head = createHead({ init: [{ titleTemplate }] });

@@ -4,17 +4,17 @@ import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { consentRequestHint, consentWhen } from "@/pages/legal/model/consent";
 import { ConsentDocument } from "@/pages/legal/ui/ConsentDocument";
-import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import { Anchor, Paper, Stack, Text, Title } from "@mantine/core";
-import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Link } from "react-router";
 
 import { Role } from "@hh/types";
 
 export const SettingsPage = observer(() => {
-  useHead({ title: pageTitle.settings });
+  usePageSeo(pageSeo.settings);
   const auth = useStore(StoreKey.Auth);
 
   useEffect(() => {

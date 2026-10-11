@@ -3,15 +3,15 @@ import { StoreKey } from "@/app/store/store-key";
 import { needFormValues } from "@/pages/employer/model/need-form";
 import { BackToNeeds } from "@/pages/employer/ui/BackToNeeds";
 import { NeedForm } from "@/pages/employer/ui/NeedForm";
-import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES, needPath } from "@/shared/router/routes";
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import { Stack, Text, Title } from "@mantine/core";
-import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Navigate, useNavigate, useParams } from "react-router";
 
 export const NeedEditPage = observer(() => {
-  useHead({ title: pageTitle.needEdit });
+  usePageSeo(pageSeo.needEdit);
   const { needId = "" } = useParams();
   const employer = useStore(StoreKey.Employer);
   const navigate = useNavigate();

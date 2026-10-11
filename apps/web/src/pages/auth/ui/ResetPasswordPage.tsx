@@ -3,8 +3,9 @@ import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { ArtBackdrop } from "@/shared/decor/ui/ArtBackdrop";
 import { focusFirstError } from "@/shared/lib/focus-first-error";
-import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import {
   Anchor,
   Button,
@@ -16,14 +17,13 @@ import {
   Title,
 } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
-import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Link, useNavigate, useSearchParams } from "react-router";
 
 import { resetPasswordFormSchema } from "../model/reset-password-form";
 
 export const ResetPasswordPage = observer(() => {
-  useHead({ title: pageTitle.resetPassword });
+  usePageSeo(pageSeo.resetPassword);
   const auth = useStore(StoreKey.Auth);
   const navigate = useNavigate();
   const [params] = useSearchParams();

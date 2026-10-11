@@ -58,6 +58,7 @@ src/
                         у работодателя, в модалке и в анкете), ui/FspImportModal
                         (подтверждение привязки), model/participant (шапка карточки)
     router/             routes, router, ProtectedRoute, CandidateRoute, EmployerRoute, RouteError
+    seo/                pageSeo (title + description) и usePageSeo; og:image — public/og.svg
     error/              ErrorStore -> notifier; ErrorScreen — экран ошибки загрузки с одним
                         случайным артом из пула 5 шт. (ErrorArt), отдельный TypeErrorArt
                         лежит в RouteError — всё inline-SVG, без lazy

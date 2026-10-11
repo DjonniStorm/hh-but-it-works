@@ -4,8 +4,9 @@ import { StoreKey } from "@/app/store/store-key";
 import { useSettledValue } from "@/shared/decor/model/use-settled-value";
 import { ArtBackdrop } from "@/shared/decor/ui/ArtBackdrop";
 import { focusFirstError } from "@/shared/lib/focus-first-error";
-import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import {
   Anchor,
   Button,
@@ -22,7 +23,6 @@ import {
   Title,
 } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
-import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Link, Navigate, useNavigate } from "react-router";
 
@@ -30,7 +30,7 @@ import { registerSchema } from "@hh/contracts";
 import { Role } from "@hh/types";
 
 export const RegisterPage = observer(() => {
-  useHead({ title: pageTitle.register });
+  usePageSeo(pageSeo.register);
   const auth = useStore(StoreKey.Auth);
   const navigate = useNavigate();
   const form = useForm({

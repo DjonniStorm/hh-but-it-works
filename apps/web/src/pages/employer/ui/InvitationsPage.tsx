@@ -1,12 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
+import {
+  invitationStatusFilter,
+  invitationStatuses,
+} from "@/pages/employer/model/invitation-filter";
 import { formatDate } from "@/shared/lib/format";
 import { invitationStatusLabel } from "@/shared/lib/labels";
 import { ResumeTemplateMenu } from "@/shared/resume/ui/ResumeTemplateMenu";
-import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import { invitationStatusColor } from "@/shared/theme";
 import {
   Badge,
@@ -20,27 +25,17 @@ import {
   Title,
   useMatches,
 } from "@mantine/core";
-import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
+import { useQueryState } from "nuqs";
 import { Link } from "react-router";
 
 import { formatSalary } from "@hh/contracts";
 import { InvitationStatus } from "@hh/types";
 
-type Filter = "all" | InvitationStatus;
-
-const statuses = [
-  InvitationStatus.Sent,
-  InvitationStatus.Viewed,
-  InvitationStatus.Accepted,
-  InvitationStatus.Declined,
-  InvitationStatus.Withdrawn,
-];
-
 export const InvitationsPage = observer(() => {
-  useHead({ title: pageTitle.employerInvitations });
+  usePageSeo(pageSeo.employerInvitations);
   const invitations = useStore(StoreKey.Invitations);
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useQueryState("status", invitationStatusFilter);
   // Ширину читаем сразу, а не после первого кадра: иначе на десктопе фильтр мелькает столбиком.
   const narrow = useMatches(
     { base: true, sm: false },
@@ -77,11 +72,11 @@ export const InvitationsPage = observer(() => {
       <SegmentedControl
         value={filter}
         onChange={(value) => {
-          setFilter(value as Filter);
+          void setFilter(value as typeof filter);
         }}
         data={[
           { value: "all", label: `Все · ${invitations.items.length}` },
-          ...statuses.map((status) => {
+          ...invitationStatuses.map((status) => {
             return {
               value: status,
               label: `${invitationStatusLabel[status]} · ${count(status)}`,
