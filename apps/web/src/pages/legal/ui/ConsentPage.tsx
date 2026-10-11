@@ -1,12 +1,12 @@
 import { ConsentDocument } from "@/pages/legal/ui/ConsentDocument";
-import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import { Anchor, Center, Paper, Stack } from "@mantine/core";
-import { useHead } from "@unhead/react";
 import { Link } from "react-router";
 
 export const ConsentPage = () => {
-  useHead({ title: pageTitle.consent });
+  usePageSeo(pageSeo.consent);
 
   return (
     <Center mih="100vh" p="md">

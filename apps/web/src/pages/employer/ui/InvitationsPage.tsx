@@ -1,15 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { contactHint } from "@/pages/employer/model/invitation-contact";
+import {
+  invitationStatusFilter,
+  invitationStatuses,
+} from "@/pages/employer/model/invitation-filter";
 import { InvitationActions } from "@/pages/employer/ui/InvitationActions";
 import { InvitationCard } from "@/pages/employer/ui/InvitationCard";
 import { formatDate } from "@/shared/lib/format";
 import { invitationStatusLabel } from "@/shared/lib/labels";
 import { pollIntervalMs, usePolling } from "@/shared/lib/use-polling";
-import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import { invitationStatusColor } from "@/shared/theme";
 import {
   Badge,
@@ -25,27 +30,17 @@ import {
   Title,
   useMatches,
 } from "@mantine/core";
-import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
+import { useQueryState } from "nuqs";
 import { Link } from "react-router";
 
 import { formatSalary } from "@hh/contracts";
 import { InvitationStatus } from "@hh/types";
 
-type Filter = "all" | InvitationStatus;
-
-const statuses = [
-  InvitationStatus.Sent,
-  InvitationStatus.Viewed,
-  InvitationStatus.Accepted,
-  InvitationStatus.Declined,
-  InvitationStatus.Withdrawn,
-];
-
 export const InvitationsPage = observer(() => {
-  useHead({ title: pageTitle.employerInvitations });
+  usePageSeo(pageSeo.employerInvitations);
   const invitations = useStore(StoreKey.Invitations);
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useQueryState("status", invitationStatusFilter);
   // Уже md таблица из семи колонок не влезает: там карточки и фильтр списком.
   // Ширину читаем сразу, а не после первого кадра: иначе на десктопе мелькают карточки.
   const compact = useMatches(
@@ -75,7 +70,7 @@ export const InvitationsPage = observer(() => {
   });
   const filters = [
     { value: "all", label: `Все · ${invitations.items.length}` },
-    ...statuses.map((status) => {
+    ...invitationStatuses.map((status) => {
       return {
         value: status,
         label: `${invitationStatusLabel[status]} · ${count(status)}`,
@@ -100,14 +95,14 @@ export const InvitationsPage = observer(() => {
           value={filter}
           allowDeselect={false}
           onChange={(value) => {
-            setFilter((value ?? "all") as Filter);
+            void setFilter((value ?? "all") as typeof filter);
           }}
         />
       ) : (
         <SegmentedControl
           value={filter}
           onChange={(value) => {
-            setFilter(value as Filter);
+            void setFilter(value as typeof filter);
           }}
           data={filters}
           style={{ alignSelf: "flex-start" }}

@@ -1,0 +1,296 @@
+import { z } from "zod";
+
+// Документ ричтекста — JSON ProseMirror (формат Tiptap). Схема пускает только
+// узлы из белого списка: script в документ физически не помещается, рендер на
+// вебе рисует лишь известные узлы — XSS закрыт с двух сторон.
+const maxRichTextBytes = 50_000;
+const maxRichTextChars = 10_000;
+const maxBlocks = 100;
+const maxInlinesPerBlock = 200;
+const maxListItems = 50;
+
+// Ссылка — только http и https: иначе пройдёт javascript:.
+const richTextLinkSchema = z.object({
+  type: z.literal("link"),
+  attrs: z.object({
+    href: z.url({
+      protocol: /^https?$/,
+      error: "Ссылка целиком, с http:// или https://",
+    }),
+  }),
+});
+
+// Проверка ссылки извне — одна политика для ссылок и картинок: только http(s).
+export function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+// Картинка по внешней ссылке: файлы мы не храним, поэтому в документ попадает
+// только чужой http(s)-URL. data:-картинки и javascript: отбрасывает и схема,
+// и редактор при вставке.
+const richTextImageSchema = z.object({
+  type: z.literal("image"),
+  attrs: z.object({
+    src: z.url({
+      protocol: /^https?$/,
+      error: "Ссылка на картинку целиком, с http:// или https://",
+    }),
+    alt: z.string().max(300).nullish(),
+  }),
+});
+
+const richTextMarkSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("bold") }),
+  z.object({ type: z.literal("italic") }),
+  richTextLinkSchema,
+]);
+
+const richTextNodeSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("text"),
+    text: z.string().max(maxRichTextChars),
+    marks: z.array(richTextMarkSchema).max(5).optional(),
+  }),
+  z.object({ type: z.literal("hardBreak") }),
+]);
+
+const richTextParagraphSchema = z.object({
+  type: z.literal("paragraph"),
+  content: z.array(richTextNodeSchema).max(maxInlinesPerBlock).optional(),
+});
+
+// Заголовок один — второй уровень: для описания компании хватает.
+const richTextHeadingSchema = z.object({
+  type: z.literal("heading"),
+  attrs: z.object({ level: z.literal(2) }),
+  content: z.array(richTextNodeSchema).max(maxInlinesPerBlock).optional(),
+});
+
+// Редактор не даёт вкладывать списки (listItem: nested: false), поэтому
+// элемент списка — только абзацы.
+const richTextListItemSchema = z.object({
+  type: z.literal("listItem"),
+  content: z.array(richTextParagraphSchema).min(1).max(20),
+});
+
+const richTextBulletListSchema = z.object({
+  type: z.literal("bulletList"),
+  content: z.array(richTextListItemSchema).min(1).max(maxListItems),
+});
+
+const richTextOrderedListSchema = z.object({
+  type: z.literal("orderedList"),
+  content: z.array(richTextListItemSchema).min(1).max(maxListItems),
+});
+
+const richTextBlockSchema = z.discriminatedUnion("type", [
+  richTextParagraphSchema,
+  richTextHeadingSchema,
+  richTextBulletListSchema,
+  richTextOrderedListSchema,
+  // Картинка — только верхний уровень: внутри списков и заголовков мест нет.
+  richTextImageSchema,
+]);
+
+export const richTextSchema = z
+  .object({
+    type: z.literal("doc"),
+    content: z.array(richTextBlockSchema).min(1).max(maxBlocks),
+  })
+  .superRefine((doc, ctx) => {
+    if (JSON.stringify(doc).length > maxRichTextBytes) {
+      ctx.addIssue({ code: "custom", message: "Слишком длинный текст" });
+    }
+  });
+
+export type RichTextDoc = z.infer<typeof richTextSchema>;
+export type RichTextBlock = RichTextDoc["content"][number];
+export type RichTextParagraph = Extract<RichTextBlock, { type: "paragraph" }>;
+export type RichTextList = Extract<
+  RichTextBlock,
+  { type: "bulletList" | "orderedList" }
+>;
+export type RichTextListItem = RichTextList["content"][number];
+export type RichTextInline = NonNullable<RichTextParagraph["content"]>[number];
+export type RichTextText = Extract<RichTextInline, { type: "text" }>;
+export type RichTextMark = NonNullable<RichTextText["marks"]>[number];
+
+// Минимум символов считается по тексту документа: пробелы и разметка не в счёт.
+export function richTextMin(min: number, message: string) {
+  return richTextSchema.refine((doc) => {
+    const length = richTextText(doc).replace(/\s+/gu, " ").trim().length;
+    return length >= min;
+  }, message);
+}
+
+// Текст документа: абзацы через пустую строку, элементы списка с маркером.
+// Нужен письму приглашения и превью на главной — там разметки нет.
+export function richTextText(doc: RichTextDoc): string {
+  return doc.content
+    .map((block) => {
+      return blockPlainText(block);
+    })
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+function blockPlainText(block: RichTextBlock): string {
+  // Картинка — только визуал: в письмо и превью на главной она не идёт.
+  if (block.type === "image") {
+    return "";
+  }
+  if (block.type === "bulletList" || block.type === "orderedList") {
+    return block.content
+      .map((item) => {
+        return item.content
+          .map((paragraph) => {
+            return inlinePlainText(paragraph.content ?? []);
+          })
+          .join("\n");
+      })
+      .map((line) => {
+        return `- ${line}`;
+      })
+      .join("\n");
+  }
+  return inlinePlainText(block.content ?? []);
+}
+
+function inlinePlainText(nodes: RichTextInline[]): string {
+  return nodes
+    .map((node) => {
+      return node.type === "text" ? node.text : "\n";
+    })
+    .join("");
+}
+
+// HTML для письма: тот же документ, но готовый для почтового клиента. Стили
+// инлайном — почтовые клиенты не любят внешние CSS. Текст и атрибуты
+// экранируются здесь же, теги строятся только известные: в письмо не попадает
+// ничего вне whitelist, даже если документ пришёл из БД.
+export function richTextHtml(doc: RichTextDoc): string {
+  return doc.content
+    .map((block) => {
+      return blockHtml(block);
+    })
+    .filter(Boolean)
+    .join("\n");
+}
+
+function blockHtml(block: RichTextBlock): string {
+  if (block.type === "image") {
+    return imageHtml(block);
+  }
+  if (block.type === "bulletList" || block.type === "orderedList") {
+    const items = block.content
+      .map((item) => {
+        const inner = item.content
+          .map((paragraph) => {
+            return inlinesHtml(paragraph.content ?? []);
+          })
+          .join("<br />");
+        return `<li style="margin:0 0 4px;font-size:15px;line-height:1.5">${inner}</li>`;
+      })
+      .join("\n");
+    const tag = block.type === "bulletList" ? "ul" : "ol";
+    return `<${tag} style="margin:0 0 16px;padding-left:24px">${items}</${tag}>`;
+  }
+  const inner = inlinesHtml(block.content ?? []);
+  if (block.type === "heading") {
+    return `<h3 style="margin:24px 0 8px;font-size:17px;line-height:1.4">${inner}</h3>`;
+  }
+  return `<p style="margin:0 0 16px;font-size:15px;line-height:1.5">${inner}</p>`;
+}
+
+function imageHtml(block: Extract<RichTextBlock, { type: "image" }>): string {
+  const { src, alt } = block.attrs;
+  // Ссылке из документа не доверяем: повторяем проверку редактора и схемы.
+  if (!src || !isHttpUrl(src)) {
+    return "";
+  }
+  const label = escapeHtml(alt ?? "Изображение");
+  // Картинка на чужом сайте: оборачиваем ссылкой — в полном размере откроется,
+  // даже когда почтовый клиент картинки не грузит.
+  return `<a href="${escapeHtml(src)}" style="display:block;margin:0 0 16px">
+  <img src="${escapeHtml(src)}" alt="${label}" style="display:block;max-width:100%;height:auto;border-radius:8px" />
+</a>`;
+}
+
+function inlinesHtml(nodes: RichTextInline[]): string {
+  return nodes
+    .map((node) => {
+      if (node.type === "hardBreak") {
+        return "<br />";
+      }
+      return marksHtml(node.text, node.marks ?? []);
+    })
+    .join("");
+}
+
+function marksHtml(text: string, marks: RichTextMark[]): string {
+  return marks.reduce((html, mark) => {
+    if (mark.type === "bold") {
+      return `<strong>${html}</strong>`;
+    }
+    if (mark.type === "italic") {
+      return `<em>${html}</em>`;
+    }
+    // Ссылка ещё раз по проверке: письмо рисуется и по документу из БД.
+    if (isHttpUrl(mark.attrs.href)) {
+      return `<a href="${escapeHtml(mark.attrs.href)}" style="color:#1c7ed6" target="_blank" rel="noopener noreferrer">${html}</a>`;
+    }
+    return html;
+  }, escapeHtml(text));
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+// Черновик из обычного текста: пустая строка делит абзацы, перенос строки —
+// жёсткий перенос внутри абзаца. Так сиды и шаблон приглашения становятся документом.
+export function docFromPlainText(text: string): RichTextDoc {
+  const paragraphs = text
+    .split(/\n{2,}/u)
+    .map((part) => {
+      return part.trim();
+    })
+    .filter(Boolean);
+  if (paragraphs.length === 0) {
+    return emptyRichText();
+  }
+  return {
+    type: "doc",
+    content: paragraphs.map((paragraph) => {
+      return { type: "paragraph", content: plainLines(paragraph) };
+    }),
+  };
+}
+
+function plainLines(paragraph: string): RichTextInline[] {
+  const lines = paragraph.split("\n");
+  const nodes: RichTextInline[] = [];
+  lines.forEach((line, index) => {
+    if (line !== "") {
+      nodes.push({ type: "text", text: line });
+    }
+    if (index < lines.length - 1) {
+      nodes.push({ type: "hardBreak" });
+    }
+  });
+  return nodes;
+}
+
+export function emptyRichText(): RichTextDoc {
+  return { type: "doc", content: [{ type: "paragraph" }] };
+}

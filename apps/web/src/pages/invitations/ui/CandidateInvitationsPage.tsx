@@ -5,18 +5,18 @@ import { StoreKey } from "@/app/store/store-key";
 import { canAnswer } from "@/pages/invitations/model/answer";
 import { CandidateInvitationCard } from "@/pages/invitations/ui/CandidateInvitationCard";
 import { ErrorScreen } from "@/shared/error/ui/ErrorScreen";
-import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import { surfaceColor } from "@/shared/theme";
 import { Anchor, Box, Stack, Text, Title } from "@mantine/core";
-import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Link } from "react-router";
 
 type LoadStatus = "loading" | "ready" | "failed";
 
 export const CandidateInvitationsPage = observer(() => {
-  useHead({ title: pageTitle.candidateInvitations });
+  usePageSeo(pageSeo.candidateInvitations);
   const invitations = useStore(StoreKey.CandidateInvitations);
   // Статус загрузки экрана держим здесь, как в EmployerLayout: стор хранит только данные.
   const [status, setStatus] = useState<LoadStatus>("loading");

@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 
+import type { RichTextDoc } from "@hh/contracts";
 import { InvitationStatus } from "@hh/types";
 
 export const oneActiveIndex = "invitations_one_open";
@@ -38,8 +39,8 @@ export class Invitation {
   @Column({ type: "uuid", nullable: true })
   needId!: string | null;
 
-  @Column({ type: "text" })
-  message!: string;
+  @Column({ type: "jsonb" })
+  message!: RichTextDoc;
 
   @Column()
   contact!: string;

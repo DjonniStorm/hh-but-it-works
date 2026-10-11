@@ -6,6 +6,8 @@ import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { fspCallbackCode } from "@/shared/fsp/model/oidc";
 import { ROUTES } from "@/shared/router/routes";
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import { Alert, Button, Center, Loader, Stack, Text } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 import { useNavigate } from "react-router";
@@ -13,6 +15,7 @@ import { useNavigate } from "react-router";
 // Колбэк OIDC-входа: ловим code от реестра ФСП, обмениваем его на сервере
 // и возвращаем кандидата в анкету с привязанным ID.
 export const FspCallbackPage = observer(() => {
+  usePageSeo(pageSeo.fspCallback);
   const profiles = useStore(StoreKey.Profile);
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);

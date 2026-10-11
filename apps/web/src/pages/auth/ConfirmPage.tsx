@@ -4,15 +4,15 @@ import { notifier } from "@/app/store/notifier";
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { ArtBackdrop } from "@/shared/decor/ui/ArtBackdrop";
-import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import { Center, Paper, Stack, Text, Title } from "@mantine/core";
-import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { useNavigate, useSearchParams } from "react-router";
 
 export const ConfirmPage = observer(() => {
-  useHead({ title: pageTitle.confirm });
+  usePageSeo(pageSeo.confirm);
   const auth = useStore(StoreKey.Auth);
   const navigate = useNavigate();
   const [params] = useSearchParams();

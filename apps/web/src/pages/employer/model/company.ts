@@ -1,9 +1,9 @@
-import type { CompanyProfile } from "@hh/contracts";
+import { type CompanyProfile, emptyRichText } from "@hh/contracts";
 
 export const emptyCompany: CompanyProfile = {
   name: "",
   industry: "",
-  description: "",
+  description: emptyRichText(),
   website: "",
   contactEmail: "",
   contactTelegram: "",
@@ -15,7 +15,9 @@ export function companyFormValues(company: CompanyProfile): CompanyProfile {
   return {
     name: company.name,
     industry: company.industry,
-    description: company.description,
+    // Документ вложенный — копируем вглубь: ссылка на observable-прокси роняет
+    // klona в Mantine при каждом сохранении поля (бесконечная рекурсия).
+    description: JSON.parse(JSON.stringify(company.description)),
     website: company.website,
     contactEmail: company.contactEmail,
     contactTelegram: company.contactTelegram,

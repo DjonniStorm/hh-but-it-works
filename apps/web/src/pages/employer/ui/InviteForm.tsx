@@ -4,6 +4,7 @@ import { StoreKey } from "@/app/store/store-key";
 import { inviteMessage } from "@/pages/employer/model/invite-message";
 import { SalaryFields } from "@/pages/employer/ui/SalaryFields";
 import { focusFirstError } from "@/shared/lib/focus-first-error";
+import { RichTextEditorField } from "@/shared/rich-text/ui/RichTextEditorField";
 import {
   Button,
   Group,
@@ -11,7 +12,6 @@ import {
   Stack,
   Text,
   TextInput,
-  Textarea,
 } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
 import { observer } from "mobx-react-lite";
@@ -70,11 +70,10 @@ export const InviteForm = observer(
             Кандидат увидит условия до начала общения. Его контакт откроется
             после того, как он примет приглашение.
           </Text>
-          <Textarea
+          <RichTextEditorField
             label="Предложение"
-            withAsterisk
-            autosize
-            minRows={4}
+            required
+            placeholder="Опишите задачи, команду и условия"
             {...form.getInputProps("message")}
           />
           <SimpleGrid cols={{ base: 1, sm: 2 }}>

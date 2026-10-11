@@ -18,7 +18,10 @@ import {
   gradeIndex,
 } from "@hh/types";
 
+import { richTextMin, richTextSchema } from "./rich-text";
+
 export * from "./format";
+export * from "./rich-text";
 
 export const roleSchema = z.enum(Role);
 
@@ -378,10 +381,10 @@ const salaryRangeIssue = {
 export const companyProfileSchema = z.object({
   name: z.string().trim().min(2, "Укажите название компании"),
   industry: z.string().min(1, "Выберите направление"),
-  description: z
-    .string()
-    .trim()
-    .min(20, "Расскажите о компании хотя бы в паре предложений"),
+  description: richTextMin(
+    20,
+    "Расскажите о компании хотя бы в паре предложений",
+  ),
   // Только http и https: иначе пройдёт javascript:, а сайт потом покажут ссылкой.
   website: z.union([
     z.literal(""),
@@ -628,10 +631,7 @@ const invitationShape = {
   candidateId: z.uuid(),
   // У голого z.string().nullable() генератор OpenAPI ломает тип: держим ограничение.
   needId: z.uuid().nullable(),
-  message: z
-    .string()
-    .trim()
-    .min(20, "Опишите предложение: задачи, команда, условия"),
+  message: richTextMin(20, "Опишите предложение: задачи, команда, условия"),
   contact: z.string().trim().min(3, "Укажите способ связи"),
   ...salaryShape,
 };
@@ -663,7 +663,9 @@ export const candidateInvitationSchema = z.object({
   companyName: z.string(),
   companyIndustry: z.string(),
   needTitle: z.string().min(1).nullable(),
-  message: z.string(),
+  message: richTextSchema,
+  // Описание компании из профиля: кандидат видит его в карточке приглашения.
+  companyDescription: richTextSchema.nullable(),
   // Способ связи с работодателем. Его кандидат видит сразу, свой контакт — открывает принятием.
   contact: z.string(),
   ...salaryShape,

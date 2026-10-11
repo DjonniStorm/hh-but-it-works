@@ -1,20 +1,20 @@
 import { TypeErrorArt } from "@/shared/error/ui/TypeErrorArt";
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import { Anchor, Box, Stack, Text, Title } from "@mantine/core";
-import { useHead } from "@unhead/react";
 import { Link, isRouteErrorResponse, useRouteError } from "react-router";
 
-import { pageTitle } from "./page-title";
 import { ROUTES } from "./routes";
 
 // Тексты экрана: адреса, которого нет в роутере, и прочего сбоя маршрута.
 const screen = {
   notFound: {
-    tab: pageTitle.notFound,
+    tab: pageSeo.notFound,
     title: "404: такой страницы нет",
     text: "Похоже, её сократили ещё на этапе первичного отбора. Проверьте адрес или вернитесь на главную.",
   },
   failed: {
-    tab: pageTitle.error,
+    tab: pageSeo.error,
     title: "Ошибка",
     text: "Страница не загрузилась. Обновите её или вернитесь на главную.",
   },
@@ -26,7 +26,7 @@ export const RouteError = () => {
   // Неизвестный адрес react-router отдаёт ответом 404, а не исключением.
   const notFound = isRouteErrorResponse(error) && error.status === 404;
   const view = notFound ? screen.notFound : screen.failed;
-  useHead({ title: view.tab });
+  usePageSeo(view.tab);
   const message =
     !notFound && error instanceof Error ? error.message : view.text;
 

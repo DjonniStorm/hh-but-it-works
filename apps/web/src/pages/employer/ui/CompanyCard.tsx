@@ -1,5 +1,6 @@
 import { telegramUrl } from "@/pages/employer/model/company";
 import { ContactLine } from "@/pages/employer/ui/ContactLine";
+import { RichTextView } from "@/shared/rich-text/ui/RichTextView";
 import {
   Badge,
   Button,
@@ -44,9 +45,7 @@ export const CompanyCard = ({
         </Group>
 
         {/* Переносы строк из описания сохраняем, как их написал работодатель. */}
-        <Text size="sm" style={{ whiteSpace: "pre-line" }}>
-          {company.description}
-        </Text>
+        <RichTextView doc={company.description} />
 
         <Divider />
 

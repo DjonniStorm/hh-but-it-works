@@ -8,16 +8,16 @@ import { BackHome } from "@/pages/profile/ui/BackHome";
 import { ProfilePanels } from "@/pages/profile/ui/ProfilePanels";
 import { TestingTab } from "@/pages/profile/ui/TestingTab";
 import { ErrorScreen } from "@/shared/error/ui/ErrorScreen";
-import { pageTitle } from "@/shared/router/page-title";
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import { Stack, Tabs, Title } from "@mantine/core";
-import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { useQueryState } from "nuqs";
 
 import { Role } from "@hh/types";
 
 export const ProfilePage = observer(() => {
-  useHead({ title: pageTitle.profile });
+  usePageSeo(pageSeo.profile);
   const auth = useStore(StoreKey.Auth);
   const profiles = useStore(StoreKey.Profile);
   const loading = useStore(StoreKey.Loading);

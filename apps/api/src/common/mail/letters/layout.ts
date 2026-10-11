@@ -4,12 +4,14 @@ export type Letter = {
   html: string;
 };
 
-// Содержимое письма — обычный текст. Экранирует его layout: в письмо попадают
-// название компании и текст приглашения, которые пишет пользователь.
+// Абзац письма двух видов: строку экранирует layout, ричтекст приходит парой —
+// безопасный HTML (richTextHtml) и текстовая копия для версии text/plain.
+export type LetterParagraph = string | { text: string; html: string };
+
 export type LetterContent = {
   subject: string;
   heading: string;
-  paragraphs: string[];
+  paragraphs: LetterParagraph[];
   action: { label: string; url: string };
   footnote: string;
 };
@@ -25,7 +27,7 @@ export function renderLetter(content: LetterContent): Letter {
       heading,
       "",
       ...paragraphs.flatMap((paragraph) => {
-        return [paragraph, ""];
+        return [paragraphText(paragraph), ""];
       }),
       `${action.label}: ${action.url}`,
       "",
@@ -53,8 +55,16 @@ export function renderLetter(content: LetterContent): Letter {
   };
 }
 
+function paragraphText(paragraph: LetterParagraph): string {
+  return typeof paragraph === "string" ? paragraph : paragraph.text;
+}
+
+// Строку экранируем, ричтекст уже безопасен: его собрал richTextHtml по схеме.
 // pre-line сохраняет переносы строк из текста приглашения.
-function paragraphHtml(paragraph: string): string {
+function paragraphHtml(paragraph: LetterParagraph): string {
+  if (typeof paragraph !== "string") {
+    return paragraph.html;
+  }
   return `<p style="margin:0 0 16px;font-size:15px;line-height:1.5;white-space:pre-line">${escapeHtml(paragraph)}</p>`;
 }
 
