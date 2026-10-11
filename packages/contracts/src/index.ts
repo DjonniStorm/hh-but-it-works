@@ -239,6 +239,8 @@ export const candidateProfileSchema = z.object({
   verifiedAt: z.iso.datetime().nullable(),
   assessmentScore: z.number().int().min(0).max(100).nullable(),
   nextGradeChangeAt: z.iso.datetime().nullable(),
+  // До nextGradeChangeAt тест доступен только на этот грейд. Держится и после смены специализации.
+  lockedGrade: gradeSchema.nullable(),
   skills: z.array(profileSkillSchema),
 });
 

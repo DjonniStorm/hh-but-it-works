@@ -1,3 +1,4 @@
+import { claimNote } from "@/pages/profile/model/grade-advice";
 import {
   gradeOptions,
   specializationOptions,
@@ -69,6 +70,7 @@ export const ContactsPanel = ({
         />
         <Select
           label="Заявленный грейд"
+          description={claimNote(profile)}
           withAsterisk
           data={gradeOptions}
           {...form.getInputProps("claimedGrade")}
