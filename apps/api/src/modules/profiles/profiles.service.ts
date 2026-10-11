@@ -582,6 +582,8 @@ export class ProfilesService implements OnModuleInit {
       nextGradeChangeAt: profile
         ? (cooldownUntil(profile)?.toISOString() ?? null)
         : null,
+      lockedGrade:
+        profile && cooldownUntil(profile) ? lockedGrade(profile) : null,
       skills: catalog.map((skill) => {
         const signal = signals.get(skill.id);
         return {
