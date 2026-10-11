@@ -10,6 +10,24 @@ const github = "https://github.com/DjonniStorm/hh-but-it-works";
 
 export default withMermaid(
   defineConfig({
+    mermaid: {
+      flowchart: {
+        padding: 32,
+        nodeSpacing: 48,
+        rankSpacing: 72,
+        wrappingWidth: 220,
+        titleTopMargin: 16,
+        subGraphTitleMargin: { top: 12, bottom: 12 },
+      },
+      sequence: {
+        diagramMarginX: 40,
+        diagramMarginY: 32,
+        boxMargin: 16,
+        boxTextMargin: 8,
+        messageMargin: 48,
+        actorMargin: 56,
+      },
+    },
     title: "ЛЦТ",
     description:
       "Маркетплейс работы с проверенными IT-кандидатами: тесты, подборка, приглашения.",
@@ -54,7 +72,8 @@ export default withMermaid(
         excludePattern: ["excalidraw"],
       }),
       footer: {
-        message: `<a href="${github}">GitHub</a>`,
+        message: `<a href="https://hire.eegov.net">Стенд</a> · <a href="${github}">GitHub</a>`,
+        copyright: "Команда «Да какая разница какое название»",
       },
       search: { provider: "local" },
       outline: { label: "На странице" },

@@ -6,10 +6,21 @@ type PanzoomInstance = ReturnType<typeof Panzoom>;
 
 const options = {
   maxScale: 6,
-  minScale: 0.4,
-  contain: "outside" as const,
+  minScale: 0.25,
+  contain: "inside" as const,
   canvas: true,
   cursor: "grab",
+};
+
+const padSvgViewBox = (node: SVGSVGElement, pad: number): void => {
+  const box = node.viewBox.baseVal;
+  if (box.width === 0 || box.height === 0) {
+    return;
+  }
+  node.setAttribute(
+    "viewBox",
+    `${box.x - pad} ${box.y - pad} ${box.width + pad * 2} ${box.height + pad * 2}`,
+  );
 };
 
 const bind = (host: HTMLElement): void => {
@@ -37,6 +48,7 @@ const bind = (host: HTMLElement): void => {
 
   let svg = firstSvg as unknown as HTMLElement;
   svg.style.maxWidth = "none";
+  padSvgViewBox(firstSvg, 28);
   let panzoom: PanzoomInstance = Panzoom(svg, options);
 
   view.addEventListener(
@@ -71,6 +83,7 @@ const bind = (host: HTMLElement): void => {
     panzoom.destroy();
     svg = next as unknown as HTMLElement;
     svg.style.maxWidth = "none";
+    padSvgViewBox(next, 28);
     panzoom = Panzoom(svg, options);
   });
   watch.observe(host, { childList: true, subtree: true });

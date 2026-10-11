@@ -5,7 +5,7 @@ order: 6
 
 # Код
 
-pnpm workspace: `apps/web`, `apps/api`, `apps/mock`, `packages/*`. Сервис ranking на Python в workspace не входит. Новые Nest-модули без согласования не заводят.
+pnpm workspace: `apps/web`, `apps/api`, `apps/mock`, `packages/*`. Сервис ранжирования на Python в workspace не входит. Новые Nest-модули без согласования не заводят.
 
 | Пакет                   | Зачем                                         |
 | ----------------------- | --------------------------------------------- |

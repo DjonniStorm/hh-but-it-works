@@ -8,7 +8,10 @@
 }
 
 .mermaid-zoom__view {
-  height: min(70vh, 560px);
+  box-sizing: border-box;
+  min-height: 280px;
+  height: min(80vh, 720px);
+  padding: 28px 48px 28px 28px;
   overflow: hidden;
   cursor: grab;
   touch-action: none;
@@ -27,7 +30,9 @@
 }
 
 .mermaid-zoom .mermaid svg {
-  max-width: none;
+  max-width: 100%;
+  max-height: 100%;
+  padding: 8px;
 }
 
 .mermaid-zoom__bar {

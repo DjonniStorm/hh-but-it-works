@@ -3,62 +3,61 @@ title: Ранжирование и ML
 order: 3
 ---
 
-# Ranking и ML
+# Ранжирование и ML
 
-## Рекомендательная система подбора кандидатов
+Сервис `apps/ranking`, ручка `POST /rank`. Сначала детерминированный rules-score, затем LightGBM LambdaRank уточняет порядок среди близких. Оценка калибруется изотонической регрессией. Rules отдают `matchScore` в `[0..1]`, Nest умножает на 100 для UI.
 
-Сервис `apps/ranking`, обработчик `POST /rank`. Ранжирование идёт в два этапа: rules-score, затем LightGBM LTR-модель уточняет порядок. Итоговая оценка калибруется изотонической регрессией. Rules отдают `matchScore` в диапазоне `[0..1]`, Nest умножает его на 100 для UI.
+Подробнее в репозитории: `apps/ranking/HANDOFF.md`, контракт: `apps/ranking/INTEGRATION.md`. Цифры LTR ниже из `evaluation/artifacts/ltr-v1.5.0-llm/promotion-report.json`. В HANDOFF местами ещё старый hybrid +0.026: смотрите отчёт.
 
-Подробнее: `apps/ranking/HANDOFF.md`, контракт с Nest: `apps/ranking/INTEGRATION.md`.
+Архитектура готова к работе с реальной обратной связью. Утверждать, что подборка лучше hh.ru, LinkedIn или Eightfold, нельзя: нет двойной human-разметки, invite/dismiss, A/B и fairness-аудита на живых данных.
 
-### Rules-score
+## Что делает рынок, что делаем мы
 
-Считается по признакам кандидата и вакансии:
+| Кто                                                                                                                                               | Как подбирает                                                     | Чем силён                                                         |
+| ------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------- |
+| [hh.ru «Умный поиск»](https://hh.ru/article/28087)                                                                                                | Много параметров вакансии и резюме, поведение, история            | Объём реальных откликов и приглашений                             |
+| [LinkedIn Recruiter](https://www.linkedin.com/help/linkedin/answer/a413241/recommended-matches-in-recruiter?lang=en-US)                           | Навыки, профиль, локация, Open to Work, Save / Hide / Message     | Граф и персонализация по действиям рекрутера                      |
+| [Eightfold](https://eightfold.ai/wp-content/uploads/eightfold_ai_talent_intelligence_platform_datasheet.pdf)                                      | Matching по навыкам и карьерной траектории                        | Свои датасеты траекторий (их цифры, не наши)                      |
+| [Workday HiredScore](https://doc.workday.com/admin-guide/en-us/workday-feature-descriptions/workday-hiredscore/hiredscore-ai-for-recruiting.html) | Оценка A-D, Fit & Gap по требованиям                              | ATS и разбор каждого требования                                   |
+| Мы                                                                                                                                                | Hard filters, rules-score, LambdaRank, калибровка, локальный ONNX | Подтверждённые навыки, объяснения, хеши бандла, fallback на rules |
 
-- совпадение обязательных и дополнительных навыков;
-- подтверждённость навыков и грейда (подтверждённые весят больше заявленных);
-- релевантность опыта;
-- результаты assessment;
-- зарплатные ожидания и формат работы.
+## Rules и модель
 
-Related-скилл даёт мягкую релевантность, но не закрывает strict must-have.
+Rules считают совпадение must/nice навыков, заявленное против подтверждённого грейда и навыка, assessment, опыт, зарплату, формат, ФСП. Related-скилл даёт мягкую релевантность и не закрывает strict must-have. Нет ни одного must после каноникализации: `min(mutual, 0.60)` в `scoring.py`, в UI не выше 60. Ноль даёт только hard filter (`eligibility`).
 
-Если у вакансии есть `mustSkills`, а у кандидата нет ни одного из них (после каноникализации), оценка ограничивается: `min(mutual, 0.60)` в `scoring.py`, то есть не выше 60 в UI. Кандидат остаётся в выдаче, но не обгоняет тех, у кого must закрыт. Нулевую оценку даёт только hard filter (`eligibility`, в том числе strict must-have).
+LTR учится порядку в группе, не «принять / отказать». Вес hybrid: `0.75` rules + `0.25` калиброванный LTR (`RANKING_LTR_WEIGHT`). Зазор rules больше `0.05` (5 баллов в UI): модель пару не переворачивает (`HYBRID_MAX_RULES_REORDER_GAP`). Если тянет через границу, вес blend режется. Hard filters модель не трогает. Сломанный артефакт или inference: ответ rules-only, в версии модели это видно.
 
-### LTR-модель
+Ответ не одно число: `qualification`, `opportunityFit`, `intent`, причины, риски, дыры по требованиям, `modelVersion`. В кабинете это «почему подходит», не «AI так решил».
 
-Модель обучена оптимизировать порядок кандидатов в выдаче, а не предсказывать решение. Она нужна, чтобы различать кандидатов с близкими rules-оценками.
+## Семантика
 
-В production используется готовый бандл (модель и калибратор). При запуске проверяются версия, хеш feature-кода и наличие артефактов. Обучение в runtime не выполняется.
+Сначала lexical coverage / Jaccard. Явный match или mismatch (вне полосы `[0.20, 0.60]`) эмбеддер не зовёт. Внутри полосы: локальный int8 ONNX (`paraphrase-multilingual-MiniLM-L12-v2`). Нет сети, нет LLM в этом контуре. Нет onnxruntime или `RANKING_EMBEDDINGS=off`: lexical, `/health` показывает `embeddingReady`.
 
-### Семантическое сопоставление
+## Метрики (holdout, не рынок)
 
-Тексты сопоставляются локальным ONNX-эмбеддером. Если он недоступен, используется lexical fallback. Внешние сервисы и сетевые вызовы не нужны.
+Rules против naïve (`категория + assessment + id`) на entity-disjoint controlled-synthetic: `+0.235` NDCG@5, `+0.20` Precision@5, `+0.333` MRR (`apps/ranking/README.md`). Это regression к тупому базису, не сравнение с hh.
 
-### Ограничения и fallback
+LTR против rules на `llm_gold_test`, три группы:
 
-- В hybrid-режиме LTR не переставляет двух кандидатов, если rules уже развёл их больше чем на `0.05` (`HYBRID_MAX_RULES_REORDER_GAP` в `ltr.py`), то есть на 5 баллов в UI. Внутри этой полосы порядок менять можно. Если LTR пытается пересечь границу, вес blend уменьшается.
-- При ошибке загрузки артефактов или inference система переходит в rules-only режим.
+|          | NDCG@5 | NDCG@10 | Precision@5 |  MRR |
+| -------- | -----: | ------: | ----------: | ---: |
+| Rules    | 0,9617 |  0,9615 |        0,60 | 1,00 |
+| Pure LTR | 1,0000 |  1,0000 |        0,60 | 1,00 |
+| Hybrid   | 0,9798 |  0,9805 |        0,60 | 1,00 |
 
-### Оценка качества
+Uplift NDCG@5: LTR `+0,0383`, hybrid после rail `+0,0182`. Калибровка на том же holdout: rules MAE 0,2467 / RMSE 0,3036 / ECE 0,2403; у калиброванного LTR ошибки порядка `10^-7`. Почти ноль не есть рыночная точность: групп мало, LLM-метки повторили сценарный порядок (Kendall tau 1.0 в provenance). Гейт пайплайна: NDCG не хуже rules и RMSE калибровки не больше половины rules.
 
-Метрики: NDCG, RMSE, MAE, ECE и regression-тесты.
+Бандл `ltr-v1.5.0-llm`: 18 признаков, 120 train-строк в 15 группах, 24 calibration, LambdaRank 200 деревьев и 3 листа, seed 42, один поток. Калибратор JSON, без pickle. Runtime сверяет SHA-256 модели, калибратора и кода признаков. Обучения в образе нет.
 
-Калибровка считается на holdout: gold-метка `0..3` делится на 3 и сравнивается с `matchScore` (`relevanceCalibration` в `evaluate_ltr.py`). Это не вероятность найма.
+Бюджет rules-бенчмарка: не дольше 1,4 с на 1000 кандидатов (`performance_budget.json`). Заметка в файле: на ноутбуке около 0,655 с. Это не p95 HTTP hybrid.
 
-Гейт для новой модели: NDCG не хуже rules-only и `LTR RMSE / rules RMSE ≤ 0.5`.
+LLM только офлайн, для `llm_judge_v1`. В `POST /rank` его нет.
 
-Ограничение: текущий бандл одобрен LLM-судьёй (`approvalSource: llm_judge_v1`), а не двойной ручной разметкой. Гейт ловит регрессии на синтетических и llm-gold данных и не измеряет качество на реальном рынке. LLM используется только офлайн, для разметки; в рабочем контуре его нет.
+## Бандл
 
-### Бандл модели
+Каталог: `apps/ranking/evaluation/artifacts/ltr-v1.5.0-llm/` (`model.txt`, `model.meta.json`, `calibrator.json`, `promotion-report.json`). Пути: `RANKING_MODEL_PATH`, `RANKING_MODEL_METADATA_PATH`, `RANKING_CALIBRATOR_PATH`.
 
-Расположение: `apps/ranking/evaluation/artifacts/ltr-v1.5.0-llm/`
-
-Состав: `model.txt`, `model.meta.json`, `calibrator.json`, `promotion-report.json`.
-
-Пути переопределяются переменными `RANKING_MODEL_PATH`, `RANKING_MODEL_METADATA_PATH`, `RANKING_CALIBRATOR_PATH`.
-
-Новая версия собирается из `apps/ranking` в venv с `requirements-train.txt`. Выпущенную папку не перезаписываем, заводим новую `ltr-v1.x.y-…`:
+Новая папка `ltr-v1.x.y-…`, старую не перезаписываем:
 
 ```bash
 python evaluation/train_ltr.py evaluation/data/llm_gold_train.jsonl \
@@ -77,16 +76,6 @@ python evaluation/evaluate_ltr.py evaluation/data/llm_gold_test.jsonl \
   > evaluation/artifacts/ltr-v1.5.0-llm/promotion-report.json
 ```
 
-Локальный gold-тир (не llm): учит во временную папку и атомарно кладёт файлы.
+Локальный gold без llm-флага: `sh scripts/promote_ml.sh`. Проверка: `sh scripts/check_ml.sh`.
 
-```bash
-sh scripts/promote_ml.sh
-```
-
-Проверка бандла:
-
-```bash
-sh scripts/check_ml.sh
-```
-
-Эмбеддер собирается отдельно и не входит в LTR-бандл: части `apps/ranking/evaluation/models/embedder-int8.onnx.NNNN`, сборка командой `python scripts/build_embedder.py`.
+Эмбеддер не в LTR-бандле: куски `evaluation/models/embedder-int8.onnx.NNNN`, сборка `python scripts/build_embedder.py`.

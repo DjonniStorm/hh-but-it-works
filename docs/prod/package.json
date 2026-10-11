@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "vitepress dev site",
     "build": "vitepress build site",
-    "preview": "vitepress preview site"
+    "preview": "vitepress preview site",
+    "excalidraw:fsp": "node scripts/mermaid-to-excalidraw.mjs"
   },
   "dependencies": {
     "@catppuccin/vitepress": "^0.1.4",
@@ -16,5 +17,9 @@
     "vitepress-plugin-mermaid": "^2.0.17",
     "vitepress-sidebar": "^1.40.0",
     "vue": "^3.5.43"
+  },
+  "devDependencies": {
+    "@excalidraw/mermaid-to-excalidraw": "^2.2.2",
+    "jsdom": "^30.1.2"
   }
 }

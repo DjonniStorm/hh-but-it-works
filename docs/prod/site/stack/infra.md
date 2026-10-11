@@ -30,7 +30,7 @@ docker compose --env-file infra/dev/.env -f infra/dev/docker-compose.yml up -d
 | postgres | Данные кабинета                | 5432        |
 | redis    | Сессии, попытка теста, кэш ФСП | 6379        |
 | mailpit  | Письма в dev: SMTP и ящик      | 1025 / 8025 |
-| ranking  | `POST /rank`                   | 8000        |
+| ranking  | Ранжирование, `POST /rank`     | 8000        |
 | mock     | Реестр ФСП                     | 3001        |
 
 ## Веб-сервер

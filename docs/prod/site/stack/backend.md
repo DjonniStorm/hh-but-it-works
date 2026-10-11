@@ -28,7 +28,7 @@ order: 5
 ## Взаимодействие с другими частями
 
 - Frontend получает данные по REST API. Клиент генерируется по OpenAPI-спецификации, поэтому контракты на клиенте и сервере не расходятся.
-- Подбор кандидатов вынесен в отдельный сервис ranking (POST /rank). Backend отправляет ему данные и умножает полученный matchScore на 100 для UI. Подробности в разделе про рекомендательную систему.
+- Подбор кандидатов вынесен в отдельный сервис ранжирования (`POST /rank`). Backend отправляет ему данные и умножает полученный matchScore на 100 для UI. Подробности в разделе про рекомендательную систему.
 - Почта на dev-окружении уходит в Mailpit.
 
 ## Организация кода
@@ -44,7 +44,7 @@ order: 5
 | `employers`   | Компания, потребность, пул, подборка, приглашения                |
 
 ```mermaid
-%%{init: {"flowchart": {"curve": "linear", "nodeSpacing": 28, "rankSpacing": 80, "padding": 8}}}%%
+%%{init: {"flowchart": {"curve": "linear"}}}%%
 flowchart LR
   web["web"]
 
@@ -66,7 +66,7 @@ flowchart LR
 
   subgraph peers["Общее"]
     direction TB
-    ranking["ranking"]
+    ranking["ранжирование"]
     fsp["ФСП / mock"]
     smtp["SMTP / Mailpit"]
     ranking ~~~ fsp ~~~ smtp

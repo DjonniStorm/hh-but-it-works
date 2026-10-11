@@ -1,0 +1,12 @@
+flowchart LR
+  profile["Профиль: Войти через ФСП"]
+  mock["Мок /authorize: почта и пароль"]
+  callback["Кабинет /profile/fsp-callback"]
+  api["API: POST /profile/fsp-login"]
+  token["Мок /token: code в fspId"]
+  done["Анкета с привязанным ID"]
+  profile --> mock
+  mock --> callback
+  callback --> api
+  api --> token
+  token --> done
