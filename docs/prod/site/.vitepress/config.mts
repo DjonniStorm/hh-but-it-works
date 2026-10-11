@@ -33,6 +33,7 @@ export default withMermaid(
       "Маркетплейс работы с проверенными IT-кандидатами: тесты, подборка, приглашения.",
     lang: "ru",
     appearance: "dark",
+    ignoreDeadLinks: "localhostLinks",
     // mermaid тянет UMD fastdom; без prebundle Vite отдаёт его как ESM без default
     vite: {
       resolve: {
