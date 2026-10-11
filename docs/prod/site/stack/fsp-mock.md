@@ -22,7 +22,7 @@ order: 7
 
 ## Организация сервиса
 
-Две ручки: `GET /participants/:fspId` и `GET /participants/by-email/:email`. Люди и соревнования совпадают с сидом API (`fsp-` плюс код кандидата). Детали разрядов и грамот живут в моке, в сиде их нет.
+Две ручки реестра: `GET /participants/:fspId` и `GET /participants/by-email/:email`. Эмуляция входа по OIDC: `/authorize` и `POST /token`. Люди и соревнования совпадают с сидом API (`fsp-` плюс код кандидата). Детали разрядов и грамот живут в моке, в сиде их нет.
 
 ```mermaid
 flowchart LR

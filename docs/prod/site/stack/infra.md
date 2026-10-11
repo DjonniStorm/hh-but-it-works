@@ -17,21 +17,25 @@ order: 6
 
 ## Сервисы и развертывание
 
-Благодаря используемой нами контейнеризации, все сервисы запускаются через Docker Compose, и решение разворачивается одной командой на сервере (https://hire.eegov.net):
+Локальные зависимости (тот же файл, что в [локальном запуске](/how/local)):
 
 ```bash
-docker compose --env-file infra/dev/.env -f infra/dev/docker-compose.yml up -d
+docker compose --env-file infra/dev/.env.example -f infra/dev/docker-compose.yml up
 ```
 
-Заполните `.env` (для примера локально есть `infra/dev/.env.example`).
+В этом compose: postgres, redis, mailpit, ranking, mock. API и кабинет с хоста: `pnpm --filter @hh/api dev` (`:3000`) и `pnpm --filter @hh/web dev` (`:5173`).
 
-| Сервис   | Назначение                     | Порт        |
-| -------- | ------------------------------ | ----------- |
-| postgres | Данные кабинета                | 5432        |
-| redis    | Сессии, попытка теста, кэш ФСП | 6379        |
-| mailpit  | Письма в dev: SMTP и ящик      | 1025 / 8025 |
-| ranking  | Ранжирование, `POST /rank`     | 8000        |
-| mock     | Реестр ФСП                     | 3001        |
+Стенд [hire.eegov.net](https://hire.eegov.net) поднимает `infra/prod`: postgres, redis, mock, ranking, api, web. Наружу смотрит Caddy.
+
+| Сервис   | Назначение                     | Где                          | Порт        |
+| -------- | ------------------------------ | ---------------------------- | ----------- |
+| postgres | Данные кабинета                | `infra/dev` и `infra/prod`   | 5432        |
+| redis    | Сессии, попытка теста, кэш ФСП | `infra/dev` и `infra/prod`   | 6379        |
+| mailpit  | Письма: SMTP и ящик            | только `infra/dev`           | 1025 / 8025 |
+| ranking  | Ранжирование, `POST /rank`     | `infra/dev` и `infra/prod`   | 8000 (dev)  |
+| mock     | Реестр ФСП                     | `infra/dev` и `infra/prod`   | 3001 (dev)  |
+| api      | Nest                           | pnpm локально / `infra/prod` | 3000        |
+| web      | Кабинет                        | pnpm локально / `infra/prod` | 5173 / 80   |
 
 ## Веб-сервер
 
