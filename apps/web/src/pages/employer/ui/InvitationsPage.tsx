@@ -7,6 +7,7 @@ import { InvitationActions } from "@/pages/employer/ui/InvitationActions";
 import { InvitationCard } from "@/pages/employer/ui/InvitationCard";
 import { formatDate } from "@/shared/lib/format";
 import { invitationStatusLabel } from "@/shared/lib/labels";
+import { pollIntervalMs, usePolling } from "@/shared/lib/use-polling";
 import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
 import { invitationStatusColor } from "@/shared/theme";
@@ -59,6 +60,10 @@ export const InvitationsPage = observer(() => {
       return undefined;
     });
   }, [invitations]);
+  // Ответы кандидатов появляются сами, без F5.
+  usePolling(() => {
+    void invitations.refresh();
+  }, pollIntervalMs);
 
   const count = (status: InvitationStatus) => {
     return invitations.items.filter((item) => {

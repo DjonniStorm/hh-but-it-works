@@ -15,6 +15,8 @@ export type RequestOptions<T> = {
   onSuccess?: (result: T) => void;
   // Только для загрузок: повтор при обрыве сети и 5xx. Запись (POST/PUT) не повторяем — выполнится дважды.
   retry?: RetryOptions;
+  // Фоновое обновление: сбой не показываем тостом, на экране остаются прошлые данные.
+  silent?: boolean;
 };
 
 type RequestHost = {
@@ -75,7 +77,9 @@ export async function request<T>(
     return result;
   } catch (error) {
     const reported = expireIfRejected(root, error);
-    root.errors.report(reported, options?.onError);
+    if (!options?.silent) {
+      root.errors.report(reported, options?.onError);
+    }
     throw reported;
   } finally {
     if (id) {

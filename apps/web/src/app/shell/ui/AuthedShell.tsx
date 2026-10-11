@@ -11,6 +11,7 @@ import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { waitingInvitations } from "@/pages/invitations/model/answer";
 import { ArtBackdrop } from "@/shared/decor/ui/ArtBackdrop";
+import { pollIntervalMs, usePolling } from "@/shared/lib/use-polling";
 import { RouteFallback } from "@/shared/router/RouteFallback";
 import { ROUTES } from "@/shared/router/routes";
 import { currentPath, returnTo } from "@/shared/router/use-return-path";
@@ -49,6 +50,14 @@ export const AuthedShell = observer(() => {
       return undefined;
     });
   }, [candidateId, invitations]);
+  // Новые приглашения и счётчик подтягиваются сами, пока вкладка видна.
+  usePolling(
+    () => {
+      void invitations.refresh();
+    },
+    pollIntervalMs,
+    candidateId !== null,
+  );
   // Любой переход, в том числе «Назад», закрывает мобильное меню. Сбрасываем прямо в рендере,
   // а не в эффекте: так меню не мелькает открытым на новой странице.
   const [menuLocationKey, setMenuLocationKey] = useState(location.key);
