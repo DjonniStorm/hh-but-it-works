@@ -97,17 +97,21 @@ services:
       ranking:
         condition: service_healthy
 
-  # Caddy со статикой веба (apps/web/Dockerfile): HTTPS, SPA и прокси /api.
+  # Caddy со статикой веба (apps/web/Dockerfile): HTTPS, SPA и прокси /api,
+  # на $FSP_DOMAIN — мок ФСП.
   web:
     build:
       context: ../..
       dockerfile: apps/web/Dockerfile
       args:
         VITE_API_URL: /api
+        # Кнопка «Войти через ФСП» ведёт браузер на страницу входа мока.
+        VITE_FSP_URL: ${FSP_PUBLIC_URL:-https://${FSP_DOMAIN:?FSP_DOMAIN}}
     restart: unless-stopped
     logging: *logging
     environment:
       DOMAIN: ${DOMAIN:?DOMAIN}
+      FSP_DOMAIN: ${FSP_DOMAIN:?FSP_DOMAIN}
       ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL}
       AUTH_RATE_EVENTS: ${AUTH_RATE_EVENTS:-10}
       AUTH_RATE_WINDOW: ${AUTH_RATE_WINDOW:-1m}
@@ -122,6 +126,8 @@ services:
       - caddy_config:/config
     depends_on:
       api:
+        condition: service_healthy
+      mock:
         condition: service_healthy
 
 volumes:
