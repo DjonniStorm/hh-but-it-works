@@ -1,45 +1,45 @@
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=402FFF&width=435&lines=hh+but+it+works)](https://git.io/typing-svg)
 
+Платформа поиска работы, специальный трек Федерации спортивного программирования (ЛЦТ). Команда «Да какая разница какое название».
+
+| Что                         | Куда                                                                                                                                           |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Стенд                       | [hire.eegov.net](https://hire.eegov.net)                                                                                                       |
+| Мок ФСП                     | [fsp-mock.eegov.net](https://fsp-mock.eegov.net)                                                                                               |
+| Публичная документация      | [`docs/prod`](docs/prod): как работает, стек, ФСП, антисписывание, код, дорожная карта. Локально: `cd docs/prod && npm install && npm run dev` |
+| Как поднять у себя          | [docs/prod/site/how/local.md](docs/prod/site/how/local.md)                                                                                     |
+| Писать код                  | [AGENTS.md](AGENTS.md), [docs/dev/AGENT_HANDOFF.md](docs/dev/AGENT_HANDOFF.md)                                                                 |
+| Вся внутренняя документация | [docs/README.md](docs/README.md)                                                                                                               |
+
 ## Быстрый старт
 
 ```bash
 pnpm install
-pnpm build              # пакеты @hh/types и @hh/contracts: без них API не стартует
+pnpm build
 docker compose --env-file infra/dev/.env.example -f infra/dev/docker-compose.yml up
 cp apps/api/.env.example apps/api/.env
 
-pnpm --filter @hh/api dev    # :3000
+pnpm --filter @hh/api dev    # :3000, Swagger /docs
 pnpm --filter @hh/web dev    # :5173
 ```
 
-`docker compose` собирает `ranking` из исходников текущей копии (GHCR-тег
-`:dev` отстаёт — CI выключен).
+`pnpm build` собирает `@hh/types` и `@hh/contracts`. Без этого API не стартует.
 
-Рекомендательная система (FastAPI, `:8000`):
+Compose поднимает Postgres, Redis, Mailpit (ящик [localhost:8025](http://localhost:8025)), ранжирование (`:8000`) и мок ФСП (`:3001`). Мок с хоста, если не из compose: `pnpm --filter @hh/mock dev`.
 
-```bash
-sh apps/ranking/scripts/check.sh    # все проверки ML-части (нужен Python 3.12,
-                                    # setup окружения: apps/ranking/README.md)
-```
+`docker compose` собирает `ranking` из этой копии (GHCR-тег `:dev` отстаёт, CI выключен).
 
-## Документация
+Письма регистрации и сброса пароля идут в Mailpit, ссылка подтверждения на `WEB_URL` (`http://localhost:5173`). Чтобы войти под сидом, раскомментируйте `DEMO_PASSWORD` в `apps/api/.env`. Список логинов: [local.md](docs/prod/site/how/local.md).
 
-| Документ                                                         | Что внутри                                                    |
-| ---------------------------------------------------------------- | ------------------------------------------------------------- |
-| [docs/README.md](docs/README.md)                                 | индекс всей документации                                      |
-| [docs/dev/architecture.md](docs/dev/architecture.md)             | схема сервисов и потоки данных                                |
-| [docs/dev/model.md](docs/dev/model.md)                           | доменная модель                                               |
-| [docs/dev/AGENT_HANDOFF.md](docs/dev/AGENT_HANDOFF.md)           | брифинг для инженеров и агентов: контекст, правила, команды   |
-| [docs/dev/testing-validation.md](docs/dev/testing-validation.md) | тесты кандидатов: сборка, защита, валидация                   |
-| [AGENTS.md](AGENTS.md)                                           | конвенции кода и правила репозитория                          |
-| [apps/README.md](apps/README.md)                                 | карта приложений                                              |
-| [apps/ranking/HANDOFF.md](apps/ranking/HANDOFF.md)               | что уже сделано по рекомендательной системе: анализ и хэндофф |
+Проверки ML-части (Python 3.12): `sh apps/ranking/scripts/check.sh`, окружение в [apps/ranking/README.md](apps/ranking/README.md).
 
 ## Структура
 
 - `apps/web` — кабинеты кандидата и работодателя (Vite, React, Mantine, MobX).
-- `apps/api` — Nest, Postgres, Redis, единый источник данных.
-- `apps/ranking` — детерминированный скоринг «вакансия × кандидат» и career analyze (FastAPI, без БД).
+- `apps/api` — Nest, Postgres, Redis. Состояние системы живёт здесь.
+- `apps/ranking` — ранжирование пар «вакансия × кандидат», FastAPI, без БД, `POST /rank`.
 - `apps/mock` — мок реестра ФСП.
 - `packages/` — `types`, `contracts`, `assessment-engine`.
-- `docs/`, `infra/` — документация и окружения.
+- `docs/prod` — публичный VitePress, на Vercel Root Directory = `docs/prod`.
+- `docs/dev` — архитектура, модель, тесты, хэндофф для разработки.
+- `infra/` — compose для dev и стенда.
