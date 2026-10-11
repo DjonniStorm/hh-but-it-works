@@ -3,7 +3,7 @@ layout: home
 hero:
   name: ЛЦТ
   text: Проверенные кандидаты, не заявленные навыки
-  tagline: Пишите статьи в папках site/. Схемы mermaid в markdown, картинки Excalidraw — в public/diagrams.
+  tagline: Подборка по тесту и грейду, приглашения, реестр ФСП. Не доска резюме.
   actions:
     - theme: brand
       text: Как работает

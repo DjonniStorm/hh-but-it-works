@@ -22,4 +22,15 @@ order: 7
 
 ## Организация сервиса
 
-//component diagram mermaid
+Две ручки: `GET /participants/:fspId` и `GET /participants/by-email/:email`. Люди и соревнования совпадают с сидом API (`fsp-` плюс код кандидата). Детали разрядов и грамот живут в моке, в сиде их нет.
+
+```mermaid
+flowchart LR
+  web[Кабинет]
+  api[Nest FspClient]
+  bun[apps/mock Bun Elysia]
+  seed[сид кандидатов]
+  web --> api
+  api -->|"id или почта"| bun
+  seed -.-> bun
+```

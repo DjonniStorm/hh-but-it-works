@@ -11,21 +11,28 @@ order: 6
 
 Воркспейсы:
 
-- `packages/...` — ...
-- `apps/...` — ...
+- `packages/types`, `packages/contracts`, `packages/assessment-engine`
+- `apps/web`, `apps/api`, `apps/mock`
+- `apps/ranking` в pnpm-workspace не входит
 
 ## Сервисы и развертывание
 
 Благодаря используемой нами контейнеризации, все сервисы запускаются через Docker Compose, и решение разворачивается одной командой на сервере (https://hire.eegov.net):
 
-​`bash
-docker compose --env-file infra/dev/.env -f infra/dev/docker-compose.yml up -d # заполните .env
-​`
+```bash
+docker compose --env-file infra/dev/.env -f infra/dev/docker-compose.yml up -d
+```
 
-| Сервис | Назначение | Порт |
-| ------ | ---------- | ---- |
-| ...    | ...        | ...  |
+Заполните `.env` (для примера локально есть `infra/dev/.env.example`).
+
+| Сервис   | Назначение                     | Порт        |
+| -------- | ------------------------------ | ----------- |
+| postgres | Данные кабинета                | 5432        |
+| redis    | Сессии, попытка теста, кэш ФСП | 6379        |
+| mailpit  | Письма в dev: SMTP и ящик      | 1025 / 8025 |
+| ranking  | `POST /rank`                   | 8000        |
+| mock     | Реестр ФСП                     | 3001        |
 
 ## Веб-сервер
 
-Используем Caddy: минимальный конфиг (Caddyfile) и [автоматическая выдача и продление SSL-сертификатов](https://caddyserver.com/docs/automatic-https) — достаточно указать домен. Caddy работает как reverse proxy перед сервисами.
+Используем Caddy: минимальный конфиг (Caddyfile) и [автоматическая выдача и продление SSL-сертификатов](https://caddyserver.com/docs/automatic-https). Достаточно указать домен. Caddy отдаёт SPA, `/api` проксирует на `api:3000`, `$FSP_DOMAIN` целиком на `mock:3001`.

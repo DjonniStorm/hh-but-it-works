@@ -48,6 +48,7 @@ export default withMermaid(
         capitalizeEachWords: true,
         useTitleFromFileHeading: true,
         useFolderTitleFromIndexFile: true,
+        useFolderLinkFromIndexFile: true,
         sortMenusByFrontmatterOrder: true,
         frontmatterOrderDefaultValue: 100,
         excludePattern: ["excalidraw"],

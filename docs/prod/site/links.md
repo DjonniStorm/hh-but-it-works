@@ -6,5 +6,6 @@ order: 8
 # Ссылки
 
 - [Репозиторий](https://github.com/DjonniStorm/hh-but-it-works)
-- Демо кабинета — когда будет URL
-- Swagger API — у запущенного Nest: `/docs`
+- Кабинет: [hire.eegov.net](https://hire.eegov.net)
+- Мок реестра ФСП: [fsp-mock.eegov.net](https://fsp-mock.eegov.net), OpenAPI: [fsp-mock.eegov.net/docs](https://fsp-mock.eegov.net/docs)
+- Swagger Nest у запущенного API: путь `/docs`, локально `http://localhost:3000/docs`
