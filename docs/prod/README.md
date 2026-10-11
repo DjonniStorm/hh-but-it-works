@@ -1,6 +1,6 @@
 # Публичная документация (VitePress)
 
-Отдельный npm-проект. Не входит в pnpm-workspace корня. На Vercel: **Root Directory = `docs/prod`**, Framework VitePress, `npm install` / `npm run build`.
+Отдельный npm-проект. Не входит в pnpm-workspace корня. На Vercel: **Root Directory = `docs/prod`**. Сборка кладёт сайт в `site/.vitepress/dist` — это уже прописано в `vercel.json` (`outputDirectory`). Framework можно оставить Other; не ищи папку `dist` в корне.
 
 ```bash
 cd docs/prod
