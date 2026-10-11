@@ -32,6 +32,8 @@ export default withMermaid(
     description:
       "Маркетплейс работы с проверенными IT-кандидатами: тесты, подборка, приглашения.",
     lang: "ru",
+    // how/local.md ссылается на локальные порты (кабинет, Swagger, Mailpit): это не битые ссылки.
+    ignoreDeadLinks: "localhostLinks",
     appearance: "dark",
     ignoreDeadLinks: "localhostLinks",
     // mermaid тянет UMD fastdom; без prebundle Vite отдаёт его как ESM без default

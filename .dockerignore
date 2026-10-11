@@ -9,6 +9,9 @@
 .git
 .claude
 docs
+# Публичная документация собирается в образ web.
+!docs/prod
+**/.vitepress/cache
 infra
 apps/ranking
 apps/mock

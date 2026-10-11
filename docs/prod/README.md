@@ -2,6 +2,8 @@
 
 Отдельный npm-проект. Не входит в pnpm-workspace корня. На Vercel: **Root Directory = `docs/prod`**. Сборка кладёт сайт в `site/.vitepress/dist`, это уже в `vercel.json` (`outputDirectory`). Framework можно оставить Other; папки `dist` в корне `docs/prod` нет.
 
+На нашем сервере документацию собирает образ `web` (`apps/web/Dockerfile`), Caddy отдаёт её на `$DOCS_DOMAIN`. Как развернуть — [`infra/README.md`](../../infra/README.md).
+
 ```bash
 cd docs/prod
 npm install

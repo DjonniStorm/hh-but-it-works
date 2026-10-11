@@ -20,14 +20,14 @@ docker compose --env-file infra/dev/.env.example -f infra/dev/docker-compose.yml
 Весь стенд одной командой: postgres, redis, mock, ranking, api и web.
 
 - `docker-compose.yml` — сервисы. Наружу открыт только `web` (Caddy, 80/443). Postgres, Redis, mock, ranking и api портов на хосте не публикуют, mock доступен снаружи только через Caddy.
-- `Caddyfile` — HTTPS для `$DOMAIN`, статика SPA с фолбэком на `index.html`, `/api/*` → `api:3000` без префикса, лимит запросов на вход и регистрацию. Второй сайт — `$FSP_DOMAIN` → `mock:3001` целиком.
+- `Caddyfile` — HTTPS для `$DOMAIN`, статика SPA с фолбэком на `index.html`, `/api/*` → `api:3000` без префикса, лимит запросов на вход и регистрацию. Второй сайт — `$FSP_DOMAIN` → `mock:3001` целиком. Третий — `$DOCS_DOMAIN`, статика документации из `docs/prod`.
 - `.env.example` — все переменные, секретов нет. Рабочий `.env` лежит рядом и не коммитится.
 
 Как устроено:
 
 - Веб и API на одном домене: бандл собран с `VITE_API_URL=/api`, CORS не нужен, код не менялся. Swagger — `https://$DOMAIN/api/docs`.
 - Мок ФСП — на своём поддомене `$FSP_DOMAIN`: страница входа `https://$FSP_DOMAIN/authorize`, Swagger `https://$FSP_DOMAIN/docs`, JSON `https://$FSP_DOMAIN/docs/json`. Бандл web собран с `VITE_FSP_URL=https://$FSP_DOMAIN` (или `FSP_PUBLIC_URL`): туда кнопка «Войти через ФСП» уводит браузер. Код в обмен на ФСП ID api меняет внутри сети, по `http://mock:3001`. Смена `FSP_DOMAIN` требует пересборки web.
-- `apps/web/Dockerfile` собирает статику и кладёт её в образ Caddy. Caddy собран через `xcaddy` с плагином [`caddy-ratelimit`](https://github.com/mholt/caddy-ratelimit): в стандартном Caddy лимита частоты нет. Caddyfile монтируется из `infra/prod`, его правка — без пересборки.
+- `apps/web/Dockerfile` собирает статику кабинета и документацию `docs/prod` (VitePress) и кладёт их в образ Caddy: кабинет в `/srv`, документацию в `/docs`. Правка документации — пересборка web. Caddy собран через `xcaddy` с плагином [`caddy-ratelimit`](https://github.com/mholt/caddy-ratelimit): в стандартном Caddy лимита частоты нет. Caddyfile монтируется из `infra/prod`, его правка — без пересборки.
 - Лимит: `POST /api/auth/login`, `register`, `confirm`, `confirm/resend`, `password/forgot`, `password/reset` — `AUTH_RATE_EVENTS` запросов с одного IP за `AUTH_RATE_WINDOW` (по умолчанию 10 за минуту). Сверх лимита Caddy отвечает 429 и до api запрос не доходит.
 - `apps/api/Dockerfile` собирает `packages/*` и api, в рантайм идут только prod-зависимости и `dist`.
 - `ranking` собирается из `apps/ranking`: сборка копирует готовую модель из `evaluation/artifacts`, без обучения.
@@ -38,7 +38,7 @@ docker compose --env-file infra/dev/.env.example -f infra/dev/docker-compose.yml
 ### Развернуть на чистом сервере
 
 1. Docker Engine с плагином compose: `curl -fsSL https://get.docker.com | sh`. Порты 80 и 443 (TCP и UDP) открыты снаружи.
-2. DNS: A-запись домена (и AAAA, если есть IPv6) на IP сервера, такая же — для поддомена мока (`FSP_DOMAIN`). Проверить: `dig +short hh.example.ru` и `dig +short fsp-mock.example.ru`. Без этого Caddy не получит сертификат.
+2. DNS: A-запись домена (и AAAA, если есть IPv6) на IP сервера, такие же — для поддоменов мока (`FSP_DOMAIN`) и документации (`DOCS_DOMAIN`). Проверить: `dig +short hh.example.ru`, `dig +short fsp-mock.example.ru` и `dig +short docs.example.ru`. Без этого Caddy не получит сертификат.
 3. Код и `.env`:
 
    ```bash
@@ -47,7 +47,7 @@ docker compose --env-file infra/dev/.env.example -f infra/dev/docker-compose.yml
    cp infra/prod/.env.example infra/prod/.env
    ```
 
-   Заполнить `DOMAIN`, `FSP_DOMAIN`, `ACME_EMAIL`, `POSTGRES_PASSWORD`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` (`openssl rand -hex 32`), `SMTP_USER`, `SMTP_PASS`. `chmod 600 infra/prod/.env`.
+   Заполнить `DOMAIN`, `FSP_DOMAIN`, `DOCS_DOMAIN`, `ACME_EMAIL`, `POSTGRES_PASSWORD`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` (`openssl rand -hex 32`), `SMTP_USER`, `SMTP_PASS`. `chmod 600 infra/prod/.env`.
 
 4. Запуск (первая сборка — несколько минут):
 
@@ -63,6 +63,7 @@ docker compose --env-file infra/dev/.env.example -f infra/dev/docker-compose.yml
 dc ps                                   # все сервисы healthy
 curl -s https://hh.example.ru/api/health  # {"status":"ok"}
 curl -s https://fsp-mock.example.ru/health  # мок ФСП
+curl -sI https://docs.example.ru           # документация, 200
 dc logs web | grep -i certificate       # сертификат получен
 dc logs -f api
 ```
@@ -95,7 +96,7 @@ dc exec -T postgres sh -c 'pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --cl
 docker compose -p hhprod --env-file infra/prod/.env.local -f infra/prod/docker-compose.yml up -d --build
 ```
 
-В `.env.local`: `DOMAIN=http://localhost` (только HTTP, без сертификата), `FSP_DOMAIN=http://fsp-mock.localhost`, `FSP_PUBLIC_URL=http://fsp-mock.localhost:8080` (`*.localhost` браузер сам ведёт на 127.0.0.1), `HTTP_PORT=8080`, `HTTPS_PORT=8443`, `WEB_URL=http://localhost:8080`. Почта — в Mailpit из `infra/dev`: `SMTP_HOST=host.docker.internal`, `SMTP_PORT=1025`. Для входа под сид-кандидатами — `NODE_ENV=development` и `SEED_CANDIDATE_PASSWORD`. Убрать: `docker compose -p hhprod -f infra/prod/docker-compose.yml down -v`.
+В `.env.local`: `DOMAIN=http://localhost` (только HTTP, без сертификата), `FSP_DOMAIN=http://fsp-mock.localhost`, `FSP_PUBLIC_URL=http://fsp-mock.localhost:8080` (`*.localhost` браузер сам ведёт на 127.0.0.1), `DOCS_DOMAIN=http://docs.localhost`, `HTTP_PORT=8080`, `HTTPS_PORT=8443`, `WEB_URL=http://localhost:8080`. Почта — в Mailpit из `infra/dev`: `SMTP_HOST=host.docker.internal`, `SMTP_PORT=1025`. Для входа под сид-кандидатами — `NODE_ENV=development` и `SEED_CANDIDATE_PASSWORD`. Убрать: `docker compose -p hhprod -f infra/prod/docker-compose.yml down -v`.
 
 ## Демо-аккаунты
 
