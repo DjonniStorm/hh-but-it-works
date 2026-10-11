@@ -4981,6 +4981,33 @@
                           },
                           "required": ["type", "content"],
                           "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": ["image"]
+                            },
+                            "attrs": {
+                              "type": "object",
+                              "properties": {
+                                "src": {
+                                  "type": "string",
+                                  "format": "uri"
+                                },
+                                "alt": {
+                                  "type": "string",
+                                  "maxLength": 300,
+                                  "nullable": true
+                                }
+                              },
+                              "required": ["src"],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": ["type", "attrs"],
+                          "additionalProperties": false
                         }
                       ]
                     }
@@ -5484,6 +5511,31 @@
                         }
                       },
                       "required": ["type", "content"]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": ["image"]
+                        },
+                        "attrs": {
+                          "type": "object",
+                          "properties": {
+                            "src": {
+                              "type": "string",
+                              "format": "uri"
+                            },
+                            "alt": {
+                              "type": "string",
+                              "maxLength": 300,
+                              "nullable": true
+                            }
+                          },
+                          "required": ["src"]
+                        }
+                      },
+                      "required": ["type", "attrs"]
                     }
                   ]
                 }
@@ -6012,6 +6064,33 @@
                         }
                       },
                       "required": ["type", "content"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": ["image"]
+                        },
+                        "attrs": {
+                          "type": "object",
+                          "properties": {
+                            "src": {
+                              "type": "string",
+                              "format": "uri"
+                            },
+                            "alt": {
+                              "type": "string",
+                              "maxLength": 300,
+                              "nullable": true
+                            }
+                          },
+                          "required": ["src"],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": ["type", "attrs"],
                       "additionalProperties": false
                     }
                   ]
@@ -7396,6 +7475,33 @@
                             },
                             "required": ["type", "content"],
                             "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": ["image"]
+                              },
+                              "attrs": {
+                                "type": "object",
+                                "properties": {
+                                  "src": {
+                                    "type": "string",
+                                    "format": "uri"
+                                  },
+                                  "alt": {
+                                    "type": "string",
+                                    "maxLength": 300,
+                                    "nullable": true
+                                  }
+                                },
+                                "required": ["src"],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": ["type", "attrs"],
+                            "additionalProperties": false
                           }
                         ]
                       }
@@ -7978,6 +8084,33 @@
                       },
                       "required": ["type", "content"],
                       "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": ["image"]
+                        },
+                        "attrs": {
+                          "type": "object",
+                          "properties": {
+                            "src": {
+                              "type": "string",
+                              "format": "uri"
+                            },
+                            "alt": {
+                              "type": "string",
+                              "maxLength": 300,
+                              "nullable": true
+                            }
+                          },
+                          "required": ["src"],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": ["type", "attrs"],
+                      "additionalProperties": false
                     }
                   ]
                 }
@@ -8516,6 +8649,31 @@
                         }
                       },
                       "required": ["type", "content"]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": ["image"]
+                        },
+                        "attrs": {
+                          "type": "object",
+                          "properties": {
+                            "src": {
+                              "type": "string",
+                              "format": "uri"
+                            },
+                            "alt": {
+                              "type": "string",
+                              "maxLength": 300,
+                              "nullable": true
+                            }
+                          },
+                          "required": ["src"]
+                        }
+                      },
+                      "required": ["type", "attrs"]
                     }
                   ]
                 }
@@ -9068,6 +9226,33 @@
                             },
                             "required": ["type", "content"],
                             "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": ["image"]
+                              },
+                              "attrs": {
+                                "type": "object",
+                                "properties": {
+                                  "src": {
+                                    "type": "string",
+                                    "format": "uri"
+                                  },
+                                  "alt": {
+                                    "type": "string",
+                                    "maxLength": 300,
+                                    "nullable": true
+                                  }
+                                },
+                                "required": ["src"],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": ["type", "attrs"],
+                            "additionalProperties": false
                           }
                         ]
                       }
@@ -9572,6 +9757,33 @@
                               }
                             },
                             "required": ["type", "content"],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": ["image"]
+                              },
+                              "attrs": {
+                                "type": "object",
+                                "properties": {
+                                  "src": {
+                                    "type": "string",
+                                    "format": "uri"
+                                  },
+                                  "alt": {
+                                    "type": "string",
+                                    "maxLength": 300,
+                                    "nullable": true
+                                  }
+                                },
+                                "required": ["src"],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": ["type", "attrs"],
                             "additionalProperties": false
                           }
                         ]
@@ -10152,6 +10364,33 @@
                       },
                       "required": ["type", "content"],
                       "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": ["image"]
+                        },
+                        "attrs": {
+                          "type": "object",
+                          "properties": {
+                            "src": {
+                              "type": "string",
+                              "format": "uri"
+                            },
+                            "alt": {
+                              "type": "string",
+                              "maxLength": 300,
+                              "nullable": true
+                            }
+                          },
+                          "required": ["src"],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": ["type", "attrs"],
+                      "additionalProperties": false
                     }
                   ]
                 }
@@ -10640,6 +10879,33 @@
                         }
                       },
                       "required": ["type", "content"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": ["image"]
+                        },
+                        "attrs": {
+                          "type": "object",
+                          "properties": {
+                            "src": {
+                              "type": "string",
+                              "format": "uri"
+                            },
+                            "alt": {
+                              "type": "string",
+                              "maxLength": 300,
+                              "nullable": true
+                            }
+                          },
+                          "required": ["src"],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": ["type", "attrs"],
                       "additionalProperties": false
                     }
                   ]

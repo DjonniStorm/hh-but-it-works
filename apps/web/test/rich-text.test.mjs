@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   docFromPlainText,
   emptyRichText,
+  isHttpUrl,
   richTextMin,
   richTextSchema,
   richTextText,
@@ -138,10 +139,7 @@ test("min-length counts text, not markup", () => {
   const long = doc([
     {
       type: "paragraph",
-      content: [
-        { type: "text", text: "a b c d e" },
-        { type: "hardBreak" },
-      ],
+      content: [{ type: "text", text: "a b c d e" }, { type: "hardBreak" }],
     },
   ]);
   assert.ok(schema.safeParse(long).success);
@@ -154,4 +152,71 @@ test("min-length counts text, not markup", () => {
   const parsed = schema.safeParse(short);
   assert.ok(!parsed.success);
   assert.equal(parsed.error.issues[0].message, "Слишком коротко");
+});
+
+test("schema accepts images with external http(s) links", () => {
+  const result = richTextSchema.safeParse(
+    doc([
+      {
+        type: "paragraph",
+        content: [{ type: "text", text: "Фото команды:" }],
+      },
+      {
+        type: "image",
+        attrs: { src: "https://example.com/team.jpg", alt: "Команда" },
+      },
+      { type: "image", attrs: { src: "http://example.com/office.png" } },
+    ]),
+  );
+  assert.ok(result.success);
+});
+
+test("schema rejects data: and javascript: image sources", () => {
+  for (const src of ["data:image/png;base64,AAAA", "javascript:alert(1)"]) {
+    const result = richTextSchema.safeParse(
+      doc([{ type: "image", attrs: { src } }]),
+    );
+    assert.ok(!result.success, src);
+  }
+});
+
+test("schema rejects an image inside a list item", () => {
+  const result = richTextSchema.safeParse(
+    doc([
+      {
+        type: "bulletList",
+        content: [
+          {
+            type: "listItem",
+            content: [
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "пункт" }],
+              },
+              { type: "image", attrs: { src: "https://example.com/a.png" } },
+            ],
+          },
+        ],
+      },
+    ]),
+  );
+  assert.ok(!result.success);
+});
+
+test("text extraction skips images", () => {
+  const withImage = doc([
+    { type: "paragraph", content: [{ type: "text", text: "До картинки" }] },
+    { type: "image", attrs: { src: "https://example.com/a.png" } },
+    { type: "paragraph", content: [{ type: "text", text: "После" }] },
+  ]);
+  assert.equal(richTextText(withImage), "До картинки\n\nПосле");
+});
+
+test("isHttpUrl accepts only full http(s) links", () => {
+  assert.ok(isHttpUrl("https://example.com/x.png"));
+  assert.ok(isHttpUrl("http://example.com"));
+  assert.ok(!isHttpUrl("javascript:alert(1)"));
+  assert.ok(!isHttpUrl("data:image/png;base64,AAAA"));
+  assert.ok(!isHttpUrl("/local/path.png"));
+  assert.ok(!isHttpUrl("example.com"));
 });

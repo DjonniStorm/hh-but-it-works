@@ -27,6 +27,22 @@ export const RichTextView = ({ doc }: Props) => {
 };
 
 function BlockView({ block }: { block: RichTextBlock }) {
+  // Картинка — внешний URL из документа: схема уже проверила http(s).
+  if (block.type === "image") {
+    return (
+      <img
+        src={block.attrs.src}
+        alt={block.attrs.alt ?? ""}
+        loading="lazy"
+        style={{
+          display: "block",
+          maxWidth: "100%",
+          marginBlock: "var(--mantine-spacing-sm)",
+          borderRadius: "var(--mantine-radius-sm)",
+        }}
+      />
+    );
+  }
   if (block.type === "heading") {
     return <Title order={3}>{inlines(block.content)}</Title>;
   }

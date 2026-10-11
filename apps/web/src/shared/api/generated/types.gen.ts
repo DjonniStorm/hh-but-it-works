@@ -452,6 +452,12 @@ export type CompanyResponseDtoOutput = {
                         }>;
                     }>;
                 }>;
+            } | {
+                type: 'image';
+                attrs: {
+                    src: string;
+                    alt?: string | null;
+                };
             }>;
         };
         website: '' | string;
@@ -552,6 +558,12 @@ export type CompanyProfileDto = {
                     }>;
                 }>;
             }>;
+        } | {
+            type: 'image';
+            attrs: {
+                src: string;
+                alt?: string | null;
+            };
         }>;
     };
     website: '' | string;
@@ -651,6 +663,12 @@ export type CompanyProfileDtoOutput = {
                     }>;
                 }>;
             }>;
+        } | {
+            type: 'image';
+            attrs: {
+                src: string;
+                alt?: string | null;
+            };
         }>;
     };
     website: '' | string;
@@ -896,6 +914,12 @@ export type InvitationListDtoOutput = {
                         }>;
                     }>;
                 }>;
+            } | {
+                type: 'image';
+                attrs: {
+                    src: string;
+                    alt?: string | null;
+                };
             }>;
         };
         contact: string;
@@ -1004,6 +1028,12 @@ export type InvitationDtoOutput = {
                     }>;
                 }>;
             }>;
+        } | {
+            type: 'image';
+            attrs: {
+                src: string;
+                alt?: string | null;
+            };
         }>;
     };
     contact: string;
@@ -1111,6 +1141,12 @@ export type InvitationInputDto = {
                     }>;
                 }>;
             }>;
+        } | {
+            type: 'image';
+            attrs: {
+                src: string;
+                alt?: string | null;
+            };
         }>;
     };
     contact: string;
@@ -1213,6 +1249,12 @@ export type CandidateInvitationListDtoOutput = {
                         }>;
                     }>;
                 }>;
+            } | {
+                type: 'image';
+                attrs: {
+                    src: string;
+                    alt?: string | null;
+                };
             }>;
         };
         companyDescription: {
@@ -1304,6 +1346,12 @@ export type CandidateInvitationListDtoOutput = {
                         }>;
                     }>;
                 }>;
+            } | {
+                type: 'image';
+                attrs: {
+                    src: string;
+                    alt?: string | null;
+                };
             }>;
         } | null;
         contact: string;
@@ -1413,6 +1461,12 @@ export type CandidateInvitationDtoOutput = {
                     }>;
                 }>;
             }>;
+        } | {
+            type: 'image';
+            attrs: {
+                src: string;
+                alt?: string | null;
+            };
         }>;
     };
     companyDescription: {
@@ -1504,6 +1558,12 @@ export type CandidateInvitationDtoOutput = {
                     }>;
                 }>;
             }>;
+        } | {
+            type: 'image';
+            attrs: {
+                src: string;
+                alt?: string | null;
+            };
         }>;
     } | null;
     contact: string;

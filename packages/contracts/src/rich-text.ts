@@ -20,6 +20,30 @@ const richTextLinkSchema = z.object({
   }),
 });
 
+// Проверка ссылки извне — одна политика для ссылок и картинок: только http(s).
+export function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+// Картинка по внешней ссылке: файлы мы не храним, поэтому в документ попадает
+// только чужой http(s)-URL. data:-картинки и javascript: отбрасывает и схема,
+// и редактор при вставке.
+const richTextImageSchema = z.object({
+  type: z.literal("image"),
+  attrs: z.object({
+    src: z.url({
+      protocol: /^https?$/,
+      error: "Ссылка на картинку целиком, с http:// или https://",
+    }),
+    alt: z.string().max(300).nullish(),
+  }),
+});
+
 const richTextMarkSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("bold") }),
   z.object({ type: z.literal("italic") }),
@@ -69,6 +93,8 @@ const richTextBlockSchema = z.discriminatedUnion("type", [
   richTextHeadingSchema,
   richTextBulletListSchema,
   richTextOrderedListSchema,
+  // Картинка — только верхний уровень: внутри списков и заголовков мест нет.
+  richTextImageSchema,
 ]);
 
 export const richTextSchema = z
@@ -114,6 +140,10 @@ export function richTextText(doc: RichTextDoc): string {
 }
 
 function blockPlainText(block: RichTextBlock): string {
+  // Картинка — только визуал: в письмо и превью на главной она не идёт.
+  if (block.type === "image") {
+    return "";
+  }
   if (block.type === "bulletList" || block.type === "orderedList") {
     return block.content
       .map((item) => {
