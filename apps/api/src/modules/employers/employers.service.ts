@@ -152,11 +152,13 @@ export class EmployersService implements OnModuleInit {
     const items: Match[] = candidates.map((candidate) => {
       const result = ranked.scores.get(candidate.id);
       const score = clampScore(result?.score ?? 0);
+      const qualification = clampScore(result?.qualification ?? score);
+      const opportunityFit = clampScore(result?.opportunityFit ?? score);
       return {
         candidate,
         matchScore: score,
-        qualification: clampScore(result?.qualification ?? score),
-        opportunityFit: clampScore(result?.opportunityFit ?? score),
+        qualification,
+        opportunityFit,
         reasons: result?.reasons ?? [],
         risks: result?.risks ?? [],
         breakdown: result?.breakdown ?? [],
@@ -167,6 +169,20 @@ export class EmployersService implements OnModuleInit {
     items.sort((left, right) => {
       if (right.matchScore !== left.matchScore) {
         return right.matchScore - left.matchScore;
+      }
+      const rightResult = ranked.scores.get(right.candidate.id);
+      const leftResult = ranked.scores.get(left.candidate.id);
+      const rawScoreDelta =
+        (rightResult?.rawScore ?? right.matchScore / 100) -
+        (leftResult?.rawScore ?? left.matchScore / 100);
+      if (rawScoreDelta !== 0) {
+        return rawScoreDelta;
+      }
+      const rawQualificationDelta =
+        (rightResult?.rawQualification ?? right.qualification / 100) -
+        (leftResult?.rawQualification ?? left.qualification / 100);
+      if (rawQualificationDelta !== 0) {
+        return rawQualificationDelta;
       }
       return (
         (right.candidate.assessmentScore ?? 0) -

@@ -9,16 +9,16 @@ import {
 } from "@/pages/employer/model/company";
 import { CompanyCard } from "@/pages/employer/ui/CompanyCard";
 import { CompanyForm } from "@/pages/employer/ui/CompanyForm";
-import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
 import { useReturnPath } from "@/shared/router/use-return-path";
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import { Stack, Text, Title } from "@mantine/core";
-import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { useNavigate } from "react-router";
 
 export const CompanyPage = observer(() => {
-  useHead({ title: pageTitle.company });
+  usePageSeo(pageSeo.company);
   const employer = useStore(StoreKey.Employer);
   const navigate = useNavigate();
   const returnPath = useReturnPath();

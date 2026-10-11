@@ -4,22 +4,25 @@ import { StoreKey } from "@/app/store/store-key";
 import { useSettledValue } from "@/shared/decor/model/use-settled-value";
 import { ArtBackdrop } from "@/shared/decor/ui/ArtBackdrop";
 import { focusFirstError } from "@/shared/lib/focus-first-error";
-import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import {
   Anchor,
   Button,
   Center,
   Checkbox,
+  Group,
   Paper,
   PasswordInput,
-  Select,
+  Radio,
+  SimpleGrid,
   Stack,
+  Text,
   TextInput,
   Title,
 } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
-import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Link, Navigate, useNavigate } from "react-router";
 
@@ -27,7 +30,7 @@ import { registerSchema } from "@hh/contracts";
 import { Role } from "@hh/types";
 
 export const RegisterPage = observer(() => {
-  useHead({ title: pageTitle.register });
+  usePageSeo(pageSeo.register);
   const auth = useStore(StoreKey.Auth);
   const navigate = useNavigate();
   const form = useForm({
@@ -99,19 +102,53 @@ export const RegisterPage = observer(() => {
             withAsterisk
             {...form.getInputProps("password")}
           />
-          <Select
-            label="Роль"
+          {/* Роль — карточки-радиокнопки: выбор сразу виден, не нужно открывать список. */}
+          <Radio.Group
+            label="Кто вы"
             withAsterisk
-            data={[
-              { value: Role.Candidate, label: "Кандидат" },
-              { value: Role.Employer, label: "Работодатель" },
-            ]}
             {...form.getInputProps("role")}
-          />
+          >
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="xs" mt="xs">
+              <Radio.Card radius="md" value={Role.Candidate}>
+                <Group wrap="nowrap" align="flex-start" gap="xs">
+                  <Radio.Indicator />
+                  <div>
+                    <Text size="sm" fw={500}>
+                      Я ищу работу
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      Отклики и приглашения от компаний
+                    </Text>
+                  </div>
+                </Group>
+              </Radio.Card>
+              <Radio.Card radius="md" value={Role.Employer}>
+                <Group wrap="nowrap" align="flex-start" gap="xs">
+                  <Radio.Indicator />
+                  <div>
+                    <Text size="sm" fw={500}>
+                      Я ищу сотрудников
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      Вакансии и поиск кандидатов
+                    </Text>
+                  </div>
+                </Group>
+              </Radio.Card>
+            </SimpleGrid>
+          </Radio.Group>
           <Checkbox
-            label="Согласен на обработку и публикацию данных профиля (152-ФЗ)"
+            label="Согласен на обработку и публикацию данных профиля"
             {...form.getInputProps("consent", { type: "checkbox" })}
           />
+          <Anchor
+            component={Link}
+            to={ROUTES.LEGAL.CONSENT}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Текст согласия (152-ФЗ)
+          </Anchor>
           <Button type="submit">Создать аккаунт</Button>
           <Anchor component={Link} to={ROUTES.AUTH.LOGIN}>
             Уже есть аккаунт

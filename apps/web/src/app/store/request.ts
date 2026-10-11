@@ -15,6 +15,8 @@ export type RequestOptions<T> = {
   onSuccess?: (result: T) => void;
   // Только для загрузок: повтор при обрыве сети и 5xx. Запись (POST/PUT) не повторяем — выполнится дважды.
   retry?: RetryOptions;
+  // Фоновое обновление: сбой не показываем тостом, на экране остаются прошлые данные.
+  silent?: boolean;
 };
 
 type RequestHost = {
@@ -75,7 +77,9 @@ export async function request<T>(
     return result;
   } catch (error) {
     const reported = expireIfRejected(root, error);
-    root.errors.report(reported, options?.onError);
+    if (!options?.silent) {
+      root.errors.report(reported, options?.onError);
+    }
     throw reported;
   } finally {
     if (id) {
@@ -190,8 +194,14 @@ function statusCodeOf(error: unknown): number | null {
   return statusCode;
 }
 
+// 401 этих ручек — неверный пароль или ссылка из письма, а не истёкшая сессия.
 function isCredentialRequest(url: string): boolean {
-  return hasPath(url, ["/auth/login", "/auth/register", "/auth/confirm"]);
+  return hasPath(url, [
+    "/auth/login",
+    "/auth/register",
+    "/auth/confirm",
+    "/auth/password/reset",
+  ]);
 }
 
 // Эти ручки сами работают с refresh-токеном: обновлять сессию ради них бессмысленно.
@@ -199,9 +209,14 @@ function isSessionRequest(url: string): boolean {
   return hasPath(url, ["/auth/refresh", "/auth/logout"]);
 }
 
+// Сравниваем по концу пути: на проде API живёт под /api (VITE_API_URL=/api),
+// и вход приходит как /api/auth/login, а не /auth/login.
 function hasPath(url: string, paths: string[]): boolean {
   try {
-    return paths.includes(new URL(url).pathname);
+    const pathname = new URL(url).pathname;
+    return paths.some((path) => {
+      return pathname.endsWith(path);
+    });
   } catch {
     return false;
   }

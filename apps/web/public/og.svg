@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="1200" height="1200">
+  <rect width="160" height="160" fill="#EDEDED"/>
+  <rect x="30" y="34" width="100" height="62" rx="6" fill="#1B1C21"/>
+  <rect x="36" y="40" width="88" height="50" rx="3" fill="#281CA6"/>
+  <text x="42" y="52" font-size="9" font-family="JetBrains Mono, monospace" fill="#EDEDED">git commit -m</text>
+  <text x="42" y="64" font-size="10" font-family="JetBrains Mono, monospace" fill="#EC1D35">&quot;KKKKKK_</text>
+  <path d="M18 104 h124 l-10 18 H28 z" fill="#C8C9CA" stroke="#1B1C21" stroke-width="2"/>
+  <path d="M30 110 h100 M34 116 h92" stroke="#1B1C21" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <ellipse cx="86" cy="104" rx="38" ry="14" fill="#EDEDED" stroke="#1B1C21" stroke-width="3"/>
+  <circle cx="56" cy="94" r="15" fill="#EDEDED" stroke="#1B1C21" stroke-width="3"/>
+  <path d="M44 84 l-2 -12 l10 7 z M60 80 l6 -11 l3 12 z" fill="#EDEDED" stroke="#1B1C21" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M49 93 q3 -3 6 0 M59 93 q3 -3 6 0" stroke="#1B1C21" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <path d="M55 99 l2 2 l2 -2" stroke="#EC1D35" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M122 102 q18 -4 14 -22" stroke="#1B1C21" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <text x="12" y="74" font-size="11" font-family="JetBrains Mono, monospace" fill="#402FFF">z</text>
+  <text x="18" y="62" font-size="8" font-family="JetBrains Mono, monospace" fill="#402FFF">z</text>
+</svg>

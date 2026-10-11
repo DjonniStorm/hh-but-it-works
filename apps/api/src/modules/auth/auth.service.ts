@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 
 import {
   ConflictException,
@@ -17,17 +17,24 @@ import { User } from "../users/user.entity";
 import { UsersService } from "../users/users.service";
 import {
   ConfirmEmailDto,
+  ForgotPasswordDto,
   LoginDto,
-  RefreshDto,
   RegisterDto,
   ResendConfirmationDto,
+  ResetPasswordDto,
 } from "./dto";
 import { SessionStore } from "./session.store";
 
+// refreshToken уходит в HttpOnly-cookie, в тело ответа попадают остальные поля.
 type Session = {
   accessToken: string;
   refreshToken: string;
   user: PublicUser;
+};
+
+// null — обновление в окне после ротации: новый refresh в cookie уже есть.
+type RenewedSession = Omit<Session, "refreshToken"> & {
+  refreshToken: string | null;
 };
 
 @Injectable()
@@ -89,10 +96,40 @@ export class AuthService {
     return toPublicUser(user);
   }
 
+  // Ответ одинаковый для любой почты, лимит до поиска пользователя — как у resendConfirmation.
+  async forgotPassword(input: ForgotPasswordDto): Promise<void> {
+    const email = normalizeEmail(input.email);
+    if (!(await this.sessions.claimPasswordResetSend(email))) {
+      throw new HttpException(
+        "Письмо уже отправлено, повторить можно через минуту",
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+    const user = await this.users.findByEmail(email);
+    if (!user) {
+      return;
+    }
+    const token = randomBytes(32).toString("base64url");
+    await this.sessions.savePasswordReset(token, user.id);
+    // SMTP не ждём: по времени ответа не отличить существующий адрес.
+    void this.mail.sendPasswordReset(email, this.webLink("/auth/reset", token));
+  }
+
+  // Токен одноразовый. После смены пароля все refresh-токены отзываются:
+  // если пароль сбрасывают из-за утечки, старые сессии тоже не нужны.
+  async resetPassword(input: ResetPasswordDto): Promise<void> {
+    const userId = await this.sessions.takePasswordReset(input.token);
+    const user = userId ? await this.users.findById(userId) : null;
+    if (!user) {
+      throw new UnauthorizedException("Ссылка сброса пароля недействительна");
+    }
+    await this.users.resetPassword(user, input.password);
+    await this.sessions.revokeUserRefresh(user.id);
+  }
+
   async login(input: LoginDto): Promise<Session> {
     const user = await this.users.findForLogin(normalizeEmail(input.email));
-    const passwordOk =
-      user !== null && (await this.users.passwordMatches(user, input.password));
+    const passwordOk = await this.users.passwordMatches(user, input.password);
     if (!user || !passwordOk) {
       throw new UnauthorizedException("Неверный email или пароль");
     }
@@ -102,36 +139,50 @@ export class AuthService {
     return this.issueSession(user);
   }
 
-  async refresh(input: RefreshDto): Promise<Session> {
-    const userId = this.readRefreshUserId(input.refreshToken);
-    if (!userId) {
+  async refresh(refreshToken: string | null): Promise<RenewedSession> {
+    const userId = refreshToken ? this.readRefreshUserId(refreshToken) : null;
+    if (!refreshToken || !userId) {
       throw new UnauthorizedException("Сессия недействительна");
     }
-    const storedUserId = await this.sessions.takeRefresh(input.refreshToken);
-    if (storedUserId !== userId) {
+    const rotation = await this.sessions.rotateRefresh(refreshToken);
+    if (rotation?.userId !== userId) {
       throw new UnauthorizedException("Сессия недействительна");
     }
     const user = await this.users.findById(userId);
     if (!user) {
       throw new UnauthorizedException("Сессия недействительна");
     }
+    if (rotation.grace) {
+      return {
+        accessToken: this.signAccess(user),
+        refreshToken: null,
+        user: toPublicUser(user),
+      };
+    }
     return this.issueSession(user);
   }
 
-  async logout(input: RefreshDto): Promise<void> {
-    if (!this.readRefreshUserId(input.refreshToken)) {
-      throw new UnauthorizedException("Сессия недействительна");
+  // Выход всегда удаётся: cookie стирает контроллер, даже если токен уже недействителен.
+  async logout(refreshToken: string | null): Promise<void> {
+    if (refreshToken && this.readRefreshUserId(refreshToken)) {
+      await this.sessions.dropRefresh(refreshToken);
     }
-    await this.sessions.dropRefresh(input.refreshToken);
+  }
+
+  private signAccess(user: User): string {
+    return this.jwt.sign({ sub: user.id, role: user.role });
   }
 
   private async issueSession(user: User): Promise<Session> {
-    const accessToken = this.jwt.sign({ sub: user.id, role: user.role });
+    const accessToken = this.signAccess(user);
     const refreshToken = this.jwt.sign(
       { sub: user.id },
       {
         secret: this.config.getOrThrow<string>("JWT_REFRESH_SECRET"),
         expiresIn: "7d",
+        // Без jti два токена одного пользователя в одну секунду совпадали бы
+        // байт в байт, и ротация вернула бы тот же токен.
+        jwtid: randomUUID(),
       },
     );
     await this.sessions.saveRefresh(refreshToken, user.id);
@@ -153,13 +204,11 @@ export class AuthService {
   private async createConfirmationLink(userId: string): Promise<string> {
     const token = randomBytes(32).toString("base64url");
     await this.sessions.saveEmailConfirm(token, userId);
-    return this.confirmationLink(token);
+    return this.webLink("/auth/confirm", token);
   }
 
-  private confirmationLink(token: string): string {
-    const origin =
-      this.config.get<string>("WEB_URL") ?? "http://localhost:5173";
-    return `${origin}/auth/confirm?token=${encodeURIComponent(token)}`;
+  private webLink(path: string, token: string): string {
+    return this.mail.webLink(`${path}?token=${encodeURIComponent(token)}`);
   }
 }
 

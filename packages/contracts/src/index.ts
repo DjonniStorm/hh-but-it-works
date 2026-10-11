@@ -2,6 +2,9 @@ import { z } from "zod";
 
 import {
   AttemptStatus,
+  FspAchievementKind,
+  FspAchievementLevel,
+  FspSportRank,
   Grade,
   IntegrityFlag,
   InvitationStatus,
@@ -15,32 +18,55 @@ import {
   gradeIndex,
 } from "@hh/types";
 
+import { richTextMin, richTextSchema } from "./rich-text";
+
 export * from "./format";
+export * from "./rich-text";
 
 export const roleSchema = z.enum(Role);
 
+// Правило нового пароля: одно на регистрацию и на сброс.
+// bcrypt всё равно учитывает только первые 72 байта.
+export const passwordSchema = z
+  .string()
+  .min(8, "Минимум 8 символов")
+  .max(72, "Не длиннее 72 символов");
+
+// Токен из письма: base64url от 32 байт, 43 символа. Граница с запасом.
+const emailTokenSchema = z.string().min(1).max(128);
+
 export const registerSchema = z.object({
   email: z.email("Укажите почту"),
-  password: z.string().min(8, "Минимум 8 символов"),
+  password: passwordSchema,
   role: roleSchema,
   consent: z.literal(true, "Нужно согласие на обработку данных"),
 });
 
 export const loginSchema = z.object({
   email: z.email("Укажите почту"),
-  password: z.string().min(1, "Введите пароль"),
+  // Шире правила нового пароля: пароли, заведённые до границы в 72 символа,
+  // должны по-прежнему входить. Граница только от огромных тел запроса.
+  password: z
+    .string()
+    .min(1, "Введите пароль")
+    .max(256, "Не длиннее 256 символов"),
 });
 
 export const confirmEmailSchema = z.object({
-  token: z.string().min(1),
+  token: emailTokenSchema,
 });
 
 export const resendConfirmationSchema = z.object({
   email: z.email("Укажите почту"),
 });
 
-export const refreshSchema = z.object({
-  refreshToken: z.string().min(1),
+export const forgotPasswordSchema = z.object({
+  email: z.email("Укажите почту"),
+});
+
+export const resetPasswordSchema = z.object({
+  token: emailTokenSchema,
+  password: passwordSchema,
 });
 
 export const publicUserSchema = z.object({
@@ -48,11 +74,13 @@ export const publicUserSchema = z.object({
   email: z.email(),
   role: roleSchema,
   emailVerifiedAt: z.iso.datetime().nullable(),
+  // null только у старой сессии в браузере, пока /auth/me не обновил её.
+  consentAt: z.iso.datetime().nullable(),
 });
 
+// Refresh-токен в тело не входит: API кладёт его в HttpOnly-cookie hh_refresh.
 export const sessionSchema = z.object({
   accessToken: z.string(),
-  refreshToken: z.string(),
   user: publicUserSchema,
 });
 
@@ -214,6 +242,8 @@ export const candidateProfileSchema = z.object({
   verifiedAt: z.iso.datetime().nullable(),
   assessmentScore: z.number().int().min(0).max(100).nullable(),
   nextGradeChangeAt: z.iso.datetime().nullable(),
+  // До nextGradeChangeAt тест доступен только на этот грейд. Держится и после смены специализации.
+  lockedGrade: gradeSchema.nullable(),
   skills: z.array(profileSkillSchema),
 });
 
@@ -351,10 +381,10 @@ const salaryRangeIssue = {
 export const companyProfileSchema = z.object({
   name: z.string().trim().min(2, "Укажите название компании"),
   industry: z.string().min(1, "Выберите направление"),
-  description: z
-    .string()
-    .trim()
-    .min(20, "Расскажите о компании хотя бы в паре предложений"),
+  description: richTextMin(
+    20,
+    "Расскажите о компании хотя бы в паре предложений",
+  ),
   // Только http и https: иначе пройдёт javascript:, а сайт потом покажут ссылкой.
   website: z.union([
     z.literal(""),
@@ -437,10 +467,66 @@ export const candidateSkillSchema = z.object({
   verifiedAt: z.iso.datetime().nullable(),
 });
 
+// Достижение реестра ФСП: kind обязателен, level и organizer могут отсутствовать.
+// По kind/level веб собирает подписи, ранжирователю нужны только title/year/place.
+export const fspAchievementKindSchema = z.enum(FspAchievementKind);
+export const fspAchievementLevelSchema = z.enum(FspAchievementLevel);
+export const fspSportRankSchema = z.enum(FspSportRank);
+
 export const fspAchievementSchema = z.object({
   title: z.string(),
   year: z.number().int(),
   place: z.number().int().positive().nullable(),
+  kind: fspAchievementKindSchema,
+  level: fspAchievementLevelSchema.nullable(),
+  // Без max конвертер выдаёт type:[string,null], а hey-api из такой схемы
+  // делает unknown вместо string | null.
+  organizer: z.string().max(200).nullable(),
+});
+
+// Участник реестра: личные данные плюс история выступлений.
+export const fspParticipantSchema = z.object({
+  fspId: z.string(),
+  name: z.string(),
+  sportRank: fspSportRankSchema.nullable(),
+  rating: z.number().int().nullable(),
+  achievements: z.array(fspAchievementSchema),
+});
+
+// Статус поиска по почте: нашли, не нашли или реестр сейчас недоступен.
+export const fspLinkStatusSchema = z.enum([
+  "found",
+  "not-found",
+  "unavailable",
+]);
+
+// Превью привязки для кандидата: что реестр знает о человеке с его почтой.
+export const fspLinkPreviewSchema = z.object({
+  status: fspLinkStatusSchema,
+  participant: fspParticipantSchema.nullable(),
+});
+
+// Своя история ФСП: participant null, пока fspId не привязан или реестр не ответил.
+export const fspHistorySchema = z.object({
+  participant: fspParticipantSchema.nullable(),
+});
+
+// Привязка ФСП меняет только два поля: ручка работает и с незаполненной анкетой.
+export const fspLinkInputSchema = z.object({
+  fspId: z.string().trim().min(1).max(64).nullable(),
+  showFsp: z.boolean(),
+});
+
+// Что записалось: клиент правит только эти поля, не всю анкету.
+// Без max конвертер выдаёт type:[string,null], а hey-api делает string[].
+export const fspLinkResultSchema = z.object({
+  fspId: z.string().max(64).nullable(),
+  showFsp: z.boolean(),
+});
+
+// OIDC-вход через реестр: код, выданный страницей входа ФСП.
+export const fspLoginInputSchema = z.object({
+  code: z.string().trim().min(1).max(200),
 });
 
 export const candidatePreferencesSchema = z.object({
@@ -545,10 +631,7 @@ const invitationShape = {
   candidateId: z.uuid(),
   // У голого z.string().nullable() генератор OpenAPI ломает тип: держим ограничение.
   needId: z.uuid().nullable(),
-  message: z
-    .string()
-    .trim()
-    .min(20, "Опишите предложение: задачи, команда, условия"),
+  message: richTextMin(20, "Опишите предложение: задачи, команда, условия"),
   contact: z.string().trim().min(3, "Укажите способ связи"),
   ...salaryShape,
 };
@@ -580,7 +663,9 @@ export const candidateInvitationSchema = z.object({
   companyName: z.string(),
   companyIndustry: z.string(),
   needTitle: z.string().min(1).nullable(),
-  message: z.string(),
+  message: richTextSchema,
+  // Описание компании из профиля: кандидат видит его в карточке приглашения.
+  companyDescription: richTextSchema.nullable(),
   // Способ связи с работодателем. Его кандидат видит сразу, свой контакт — открывает принятием.
   contact: z.string(),
   ...salaryShape,
@@ -712,6 +797,8 @@ export const assessmentResultSchema = z.object({
   status: attemptStatusSchema,
   score: z.number().int().min(0).max(100),
   grade: gradeSchema,
+  // Специализация из анкеты на момент попытки. null — попытка старше этого поля.
+  specialization: specializationSchema.nullable(),
   integrity: z.number().int().min(0).max(100),
   flags: z.array(flagCountSchema),
   sections: z.array(assessmentSectionResultSchema),
@@ -728,7 +815,8 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ConfirmEmailInput = z.infer<typeof confirmEmailSchema>;
 export type ResendConfirmationInput = z.infer<typeof resendConfirmationSchema>;
-export type RefreshInput = z.infer<typeof refreshSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type PublicUser = z.infer<typeof publicUserSchema>;
 export type Session = z.infer<typeof sessionSchema>;
 export type Health = z.infer<typeof healthSchema>;
@@ -747,6 +835,13 @@ export type CompanyResponse = z.infer<typeof companyResponseSchema>;
 export type HiringNeedList = z.infer<typeof hiringNeedListSchema>;
 export type CandidateSkill = z.infer<typeof candidateSkillSchema>;
 export type FspAchievement = z.infer<typeof fspAchievementSchema>;
+export type FspParticipant = z.infer<typeof fspParticipantSchema>;
+export type FspLinkStatus = z.infer<typeof fspLinkStatusSchema>;
+export type FspLinkPreview = z.infer<typeof fspLinkPreviewSchema>;
+export type FspHistory = z.infer<typeof fspHistorySchema>;
+export type FspLinkInput = z.infer<typeof fspLinkInputSchema>;
+export type FspLinkResult = z.infer<typeof fspLinkResultSchema>;
+export type FspLoginInput = z.infer<typeof fspLoginInputSchema>;
 export type CandidatePreferences = z.infer<typeof candidatePreferencesSchema>;
 export type CandidateSnapshot = z.infer<typeof candidateSnapshotSchema>;
 export type CandidateSearch = z.infer<typeof candidateSearchSchema>;

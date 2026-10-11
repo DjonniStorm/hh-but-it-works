@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { AssessmentsControllerAnswerData, AssessmentsControllerAnswerErrors, AssessmentsControllerAnswerResponses, AssessmentsControllerCurrentData, AssessmentsControllerCurrentErrors, AssessmentsControllerCurrentResponses, AssessmentsControllerEventsData, AssessmentsControllerEventsErrors, AssessmentsControllerEventsResponses, AssessmentsControllerFinishData, AssessmentsControllerFinishErrors, AssessmentsControllerFinishResponses, AssessmentsControllerHistoryData, AssessmentsControllerHistoryErrors, AssessmentsControllerHistoryResponses, AssessmentsControllerStartData, AssessmentsControllerStartErrors, AssessmentsControllerStartResponses, AuthControllerConfirmData, AuthControllerConfirmErrors, AuthControllerConfirmResponses, AuthControllerLoginData, AuthControllerLoginErrors, AuthControllerLoginResponses, AuthControllerLogoutData, AuthControllerLogoutErrors, AuthControllerLogoutResponses, AuthControllerMeData, AuthControllerMeErrors, AuthControllerMeResponses, AuthControllerRefreshData, AuthControllerRefreshErrors, AuthControllerRefreshResponses, AuthControllerRegisterData, AuthControllerRegisterErrors, AuthControllerRegisterResponses, AuthControllerResendConfirmationData, AuthControllerResendConfirmationErrors, AuthControllerResendConfirmationResponses, CandidateInvitationsControllerAcceptData, CandidateInvitationsControllerAcceptErrors, CandidateInvitationsControllerAcceptResponses, CandidateInvitationsControllerDeclineData, CandidateInvitationsControllerDeclineErrors, CandidateInvitationsControllerDeclineResponses, CandidateInvitationsControllerListData, CandidateInvitationsControllerListErrors, CandidateInvitationsControllerListResponses, CandidateInvitationsControllerMarkViewedData, CandidateInvitationsControllerMarkViewedErrors, CandidateInvitationsControllerMarkViewedResponses, EmployersControllerCreateInvitationData, EmployersControllerCreateInvitationErrors, EmployersControllerCreateInvitationResponses, EmployersControllerCreateNeedData, EmployersControllerCreateNeedErrors, EmployersControllerCreateNeedResponses, EmployersControllerDeleteNeedData, EmployersControllerDeleteNeedErrors, EmployersControllerDeleteNeedResponses, EmployersControllerDismissData, EmployersControllerDismissErrors, EmployersControllerDismissResponses, EmployersControllerFavoriteData, EmployersControllerFavoriteErrors, EmployersControllerFavoriteResponses, EmployersControllerGetCompanyData, EmployersControllerGetCompanyErrors, EmployersControllerGetCompanyResponses, EmployersControllerGetNeedData, EmployersControllerGetNeedErrors, EmployersControllerGetNeedResponses, EmployersControllerInvitationResumeData, EmployersControllerInvitationResumeErrors, EmployersControllerInvitationResumeResponses, EmployersControllerListInvitationsData, EmployersControllerListInvitationsErrors, EmployersControllerListInvitationsResponses, EmployersControllerListNeedsData, EmployersControllerListNeedsErrors, EmployersControllerListNeedsResponses, EmployersControllerRestoreData, EmployersControllerRestoreErrors, EmployersControllerRestoreResponses, EmployersControllerSaveCompanyData, EmployersControllerSaveCompanyErrors, EmployersControllerSaveCompanyResponses, EmployersControllerSearchCandidatesData, EmployersControllerSearchCandidatesErrors, EmployersControllerSearchCandidatesResponses, EmployersControllerShortlistData, EmployersControllerShortlistErrors, EmployersControllerShortlistResponses, EmployersControllerUnfavoriteData, EmployersControllerUnfavoriteErrors, EmployersControllerUnfavoriteResponses, EmployersControllerUpdateNeedData, EmployersControllerUpdateNeedErrors, EmployersControllerUpdateNeedResponses, EmployersControllerWithdrawData, EmployersControllerWithdrawErrors, EmployersControllerWithdrawResponses, HealthControllerHealthData, HealthControllerHealthResponses, ProfilesControllerExportPdfData, ProfilesControllerExportPdfErrors, ProfilesControllerExportPdfResponses, ProfilesControllerGetData, ProfilesControllerGetErrors, ProfilesControllerGetResponses, ProfilesControllerResumeDraftData, ProfilesControllerResumeDraftErrors, ProfilesControllerResumeDraftResponses, ProfilesControllerSaveData, ProfilesControllerSaveErrors, ProfilesControllerSaveResponses } from './types.gen';
+import type { AssessmentsControllerAnswerData, AssessmentsControllerAnswerErrors, AssessmentsControllerAnswerResponses, AssessmentsControllerCurrentData, AssessmentsControllerCurrentErrors, AssessmentsControllerCurrentResponses, AssessmentsControllerEventsData, AssessmentsControllerEventsErrors, AssessmentsControllerEventsResponses, AssessmentsControllerFinishData, AssessmentsControllerFinishErrors, AssessmentsControllerFinishResponses, AssessmentsControllerHistoryData, AssessmentsControllerHistoryErrors, AssessmentsControllerHistoryResponses, AssessmentsControllerStartData, AssessmentsControllerStartErrors, AssessmentsControllerStartResponses, AuthControllerConfirmData, AuthControllerConfirmErrors, AuthControllerConfirmResponses, AuthControllerForgotPasswordData, AuthControllerForgotPasswordErrors, AuthControllerForgotPasswordResponses, AuthControllerLoginData, AuthControllerLoginErrors, AuthControllerLoginResponses, AuthControllerLogoutData, AuthControllerLogoutResponses, AuthControllerMeData, AuthControllerMeErrors, AuthControllerMeResponses, AuthControllerRefreshData, AuthControllerRefreshErrors, AuthControllerRefreshResponses, AuthControllerRegisterData, AuthControllerRegisterErrors, AuthControllerRegisterResponses, AuthControllerResendConfirmationData, AuthControllerResendConfirmationErrors, AuthControllerResendConfirmationResponses, AuthControllerResetPasswordData, AuthControllerResetPasswordErrors, AuthControllerResetPasswordResponses, CandidateInvitationsControllerAcceptData, CandidateInvitationsControllerAcceptErrors, CandidateInvitationsControllerAcceptResponses, CandidateInvitationsControllerDeclineData, CandidateInvitationsControllerDeclineErrors, CandidateInvitationsControllerDeclineResponses, CandidateInvitationsControllerListData, CandidateInvitationsControllerListErrors, CandidateInvitationsControllerListResponses, CandidateInvitationsControllerMarkViewedData, CandidateInvitationsControllerMarkViewedErrors, CandidateInvitationsControllerMarkViewedResponses, EmployersControllerCreateInvitationData, EmployersControllerCreateInvitationErrors, EmployersControllerCreateInvitationResponses, EmployersControllerCreateNeedData, EmployersControllerCreateNeedErrors, EmployersControllerCreateNeedResponses, EmployersControllerDeleteNeedData, EmployersControllerDeleteNeedErrors, EmployersControllerDeleteNeedResponses, EmployersControllerDismissData, EmployersControllerDismissErrors, EmployersControllerDismissResponses, EmployersControllerFavoriteData, EmployersControllerFavoriteErrors, EmployersControllerFavoriteResponses, EmployersControllerGetCompanyData, EmployersControllerGetCompanyErrors, EmployersControllerGetCompanyResponses, EmployersControllerGetNeedData, EmployersControllerGetNeedErrors, EmployersControllerGetNeedResponses, EmployersControllerInvitationResumeData, EmployersControllerInvitationResumeErrors, EmployersControllerInvitationResumeResponses, EmployersControllerListInvitationsData, EmployersControllerListInvitationsErrors, EmployersControllerListInvitationsResponses, EmployersControllerListNeedsData, EmployersControllerListNeedsErrors, EmployersControllerListNeedsResponses, EmployersControllerRestoreData, EmployersControllerRestoreErrors, EmployersControllerRestoreResponses, EmployersControllerSaveCompanyData, EmployersControllerSaveCompanyErrors, EmployersControllerSaveCompanyResponses, EmployersControllerSearchCandidatesData, EmployersControllerSearchCandidatesErrors, EmployersControllerSearchCandidatesResponses, EmployersControllerShortlistData, EmployersControllerShortlistErrors, EmployersControllerShortlistResponses, EmployersControllerUnfavoriteData, EmployersControllerUnfavoriteErrors, EmployersControllerUnfavoriteResponses, EmployersControllerUpdateNeedData, EmployersControllerUpdateNeedErrors, EmployersControllerUpdateNeedResponses, EmployersControllerWithdrawData, EmployersControllerWithdrawErrors, EmployersControllerWithdrawResponses, HealthControllerHealthData, HealthControllerHealthResponses, ProfilesControllerExportPdfData, ProfilesControllerExportPdfErrors, ProfilesControllerExportPdfResponses, ProfilesControllerFspHistoryData, ProfilesControllerFspHistoryErrors, ProfilesControllerFspHistoryResponses, ProfilesControllerFspLinkData, ProfilesControllerFspLinkErrors, ProfilesControllerFspLinkPreviewData, ProfilesControllerFspLinkPreviewErrors, ProfilesControllerFspLinkPreviewResponses, ProfilesControllerFspLinkResponses, ProfilesControllerFspLoginData, ProfilesControllerFspLoginErrors, ProfilesControllerFspLoginResponses, ProfilesControllerGetData, ProfilesControllerGetErrors, ProfilesControllerGetResponses, ProfilesControllerResumeDraftData, ProfilesControllerResumeDraftErrors, ProfilesControllerResumeDraftResponses, ProfilesControllerSaveData, ProfilesControllerSaveErrors, ProfilesControllerSaveResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -47,6 +47,24 @@ export const authControllerResendConfirmation = <ThrowOnError extends boolean = 
     }
 });
 
+export const authControllerForgotPassword = <ThrowOnError extends boolean = false>(options: Options<AuthControllerForgotPasswordData, ThrowOnError>): RequestResult<AuthControllerForgotPasswordResponses, AuthControllerForgotPasswordErrors, ThrowOnError> => (options.client ?? client).post<AuthControllerForgotPasswordResponses, AuthControllerForgotPasswordErrors, ThrowOnError>({
+    url: '/auth/password/forgot',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const authControllerResetPassword = <ThrowOnError extends boolean = false>(options: Options<AuthControllerResetPasswordData, ThrowOnError>): RequestResult<AuthControllerResetPasswordResponses, AuthControllerResetPasswordErrors, ThrowOnError> => (options.client ?? client).post<AuthControllerResetPasswordResponses, AuthControllerResetPasswordErrors, ThrowOnError>({
+    url: '/auth/password/reset',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
 export const authControllerLogin = <ThrowOnError extends boolean = false>(options: Options<AuthControllerLoginData, ThrowOnError>): RequestResult<AuthControllerLoginResponses, AuthControllerLoginErrors, ThrowOnError> => (options.client ?? client).post<AuthControllerLoginResponses, AuthControllerLoginErrors, ThrowOnError>({
     url: '/auth/login',
     ...options,
@@ -56,23 +74,9 @@ export const authControllerLogin = <ThrowOnError extends boolean = false>(option
     }
 });
 
-export const authControllerRefresh = <ThrowOnError extends boolean = false>(options: Options<AuthControllerRefreshData, ThrowOnError>): RequestResult<AuthControllerRefreshResponses, AuthControllerRefreshErrors, ThrowOnError> => (options.client ?? client).post<AuthControllerRefreshResponses, AuthControllerRefreshErrors, ThrowOnError>({
-    url: '/auth/refresh',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
+export const authControllerRefresh = <ThrowOnError extends boolean = false>(options?: Options<AuthControllerRefreshData, ThrowOnError>): RequestResult<AuthControllerRefreshResponses, AuthControllerRefreshErrors, ThrowOnError> => (options?.client ?? client).post<AuthControllerRefreshResponses, AuthControllerRefreshErrors, ThrowOnError>({ url: '/auth/refresh', ...options });
 
-export const authControllerLogout = <ThrowOnError extends boolean = false>(options: Options<AuthControllerLogoutData, ThrowOnError>): RequestResult<AuthControllerLogoutResponses, AuthControllerLogoutErrors, ThrowOnError> => (options.client ?? client).post<AuthControllerLogoutResponses, AuthControllerLogoutErrors, ThrowOnError>({
-    url: '/auth/logout',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
+export const authControllerLogout = <ThrowOnError extends boolean = false>(options?: Options<AuthControllerLogoutData, ThrowOnError>): RequestResult<AuthControllerLogoutResponses, unknown, ThrowOnError> => (options?.client ?? client).post<AuthControllerLogoutResponses, unknown, ThrowOnError>({ url: '/auth/logout', ...options });
 
 export const authControllerMe = <ThrowOnError extends boolean = false>(options?: Options<AuthControllerMeData, ThrowOnError>): RequestResult<AuthControllerMeResponses, AuthControllerMeErrors, ThrowOnError> => (options?.client ?? client).get<AuthControllerMeResponses, AuthControllerMeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -89,6 +93,38 @@ export const profilesControllerGet = <ThrowOnError extends boolean = false>(opti
 export const profilesControllerSave = <ThrowOnError extends boolean = false>(options: Options<ProfilesControllerSaveData, ThrowOnError>): RequestResult<ProfilesControllerSaveResponses, ProfilesControllerSaveErrors, ThrowOnError> => (options.client ?? client).put<ProfilesControllerSaveResponses, ProfilesControllerSaveErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/profile',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const profilesControllerFspLinkPreview = <ThrowOnError extends boolean = false>(options?: Options<ProfilesControllerFspLinkPreviewData, ThrowOnError>): RequestResult<ProfilesControllerFspLinkPreviewResponses, ProfilesControllerFspLinkPreviewErrors, ThrowOnError> => (options?.client ?? client).get<ProfilesControllerFspLinkPreviewResponses, ProfilesControllerFspLinkPreviewErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/profile/fsp-link/preview',
+    ...options
+});
+
+export const profilesControllerFspHistory = <ThrowOnError extends boolean = false>(options?: Options<ProfilesControllerFspHistoryData, ThrowOnError>): RequestResult<ProfilesControllerFspHistoryResponses, ProfilesControllerFspHistoryErrors, ThrowOnError> => (options?.client ?? client).get<ProfilesControllerFspHistoryResponses, ProfilesControllerFspHistoryErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/profile/fsp-history',
+    ...options
+});
+
+export const profilesControllerFspLink = <ThrowOnError extends boolean = false>(options: Options<ProfilesControllerFspLinkData, ThrowOnError>): RequestResult<ProfilesControllerFspLinkResponses, ProfilesControllerFspLinkErrors, ThrowOnError> => (options.client ?? client).put<ProfilesControllerFspLinkResponses, ProfilesControllerFspLinkErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/profile/fsp',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const profilesControllerFspLogin = <ThrowOnError extends boolean = false>(options: Options<ProfilesControllerFspLoginData, ThrowOnError>): RequestResult<ProfilesControllerFspLoginResponses, ProfilesControllerFspLoginErrors, ThrowOnError> => (options.client ?? client).post<ProfilesControllerFspLoginResponses, ProfilesControllerFspLoginErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/profile/fsp-login',
     ...options,
     headers: {
         'Content-Type': 'application/json',

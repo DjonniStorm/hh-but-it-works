@@ -7,9 +7,10 @@ import { StoreKey } from "@/app/store/store-key";
 import { useSettledValue } from "@/shared/decor/model/use-settled-value";
 import { ArtBackdrop } from "@/shared/decor/ui/ArtBackdrop";
 import { focusFirstError } from "@/shared/lib/focus-first-error";
-import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
 import { useReturnPath } from "@/shared/router/use-return-path";
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import {
   Anchor,
   Button,
@@ -21,14 +22,13 @@ import {
   Title,
 } from "@mantine/core";
 import { schemaResolver, useForm } from "@mantine/form";
-import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { Link, Navigate, useNavigate } from "react-router";
 
 import { loginSchema } from "@hh/contracts";
 
 export const LoginPage = observer(() => {
-  useHead({ title: pageTitle.login });
+  usePageSeo(pageSeo.login);
   const auth = useStore(StoreKey.Auth);
   const navigate = useNavigate();
   const returnPath = useReturnPath();
@@ -106,6 +106,9 @@ export const LoginPage = observer(() => {
             withAsterisk
             {...form.getInputProps("password")}
           />
+          <Anchor component={Link} to={ROUTES.AUTH.FORGOT} size="sm">
+            Забыли пароль?
+          </Anchor>
           <Button type="submit">Войти</Button>
           {unconfirmedEmail ? (
             <Button

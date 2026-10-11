@@ -16,6 +16,7 @@ import type {
   InvitationList,
   Invitation as InvitationView,
 } from "@hh/contracts";
+import { richTextHtml, richTextText } from "@hh/contracts";
 import { InvitationStatus } from "@hh/types";
 
 import { invitationAnsweredLetter } from "../../common/mail/letters/invitation-answered";
@@ -138,7 +139,14 @@ export class InvitationsService implements OnModuleInit {
       this.notify(
         candidate.userId,
         invitationReceivedLetter(
-          view,
+          // Письмо: из документа — безопасный HTML и его текстовая копия.
+          {
+            ...view,
+            message: {
+              text: richTextText(view.message),
+              html: richTextHtml(view.message),
+            },
+          },
           this.mail.webLink(candidateInvitationsPath),
         ),
       );
@@ -388,6 +396,8 @@ function toCandidateView(
     id: row.id,
     companyName: company?.name ?? "",
     companyIndustry: company?.industry ?? "",
+    // Профиль компании — в карточку приглашения, чтобы кандидат видел работодателя.
+    companyDescription: company?.description ?? null,
     needTitle: row.needId ? (needTitles.get(row.needId) ?? null) : null,
     message: row.message,
     contact: row.contact,

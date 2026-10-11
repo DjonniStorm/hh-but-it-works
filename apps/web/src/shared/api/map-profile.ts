@@ -45,6 +45,7 @@ export function mapCandidateProfile(profile: {
   verifiedAt: string | null;
   assessmentScore: number | null;
   nextGradeChangeAt: string | null;
+  lockedGrade: string | null;
   skills: {
     skillId: string;
     slug: string;
@@ -84,6 +85,7 @@ export function mapCandidateProfile(profile: {
     verifiedAt: profile.verifiedAt,
     assessmentScore: profile.assessmentScore,
     nextGradeChangeAt: profile.nextGradeChangeAt,
+    lockedGrade: mapGrade(profile.lockedGrade),
     skills: profile.skills.map((skill) => {
       return {
         skillId: skill.skillId,

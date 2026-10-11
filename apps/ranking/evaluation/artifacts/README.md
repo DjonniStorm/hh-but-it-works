@@ -1,6 +1,6 @@
 # Pre-trained artifact bundles
 
-`ltr-v1.4.0-llm/` is the immutable **serving default** consumed by
+`ltr-v1.5.0-llm/` is the immutable **serving default** consumed by
 `Dockerfile` (`RANKING_ARTIFACT_DIR`). It contains:
 
 - `model.txt` — LightGBM model;
@@ -17,8 +17,9 @@ unlocked only by double human annotation. Known limitation: llm labels were
 shown to reproduce the synthetic scenario ordering exactly (mean Kendall
 tau = 1.0 vs `gold.jsonl`), so this bundle validates the activation path more
 than market uplift — see `evaluation/data/llm_gold_provenance.json`.
-v1.4.0 differs from v1.3.0-llm only by the embedding feature code: it is the
-first bundle trained after `embedding_similarity.py` joined `MODEL_CODE_FILES`.
+v1.5.0 differs from v1.4.0-llm because the rules scoring formula changed
+(mandatory-skill presence penalty and updated weights); it was retrained after
+that formula change and carries the matching feature-code SHA.
 
 Legacy bundles, retained as history only:
 
@@ -27,7 +28,7 @@ Legacy bundles, retained as history only:
 - `ltr-v1.3.0-llm/` — first llm-approved bundle, also pre-embedding.
 
 Runtime fails them closed to rules (`different feature code` SHA mismatch),
-so `scripts/check_ml.sh` verifies only `ltr-v1.4.0-llm`; their committed
+so `scripts/check_ml.sh` verifies only `ltr-v1.5.0-llm`; their committed
 `promotion-report.json` gates remain asserted in
 `tests/test_pretrained_distribution.py`. Never overwrite a released directory.
 
@@ -52,17 +53,17 @@ python -m venv /tmp/ranking-train
 pip install -r requirements-train.txt
 python evaluation/train_ltr.py evaluation/data/llm_gold_train.jsonl \
   --calibration-dataset evaluation/data/llm_gold_calibration.jsonl \
-  --model-version ltr-v1.4.0-llm --llm-approved \
-  --output evaluation/artifacts/ltr-v1.4.0-llm/model.txt \
-  --metadata evaluation/artifacts/ltr-v1.4.0-llm/model.meta.json \
-  --calibrator evaluation/artifacts/ltr-v1.4.0-llm/calibrator.json
+  --model-version ltr-v1.5.0-llm --llm-approved \
+  --output evaluation/artifacts/ltr-v1.5.0-llm/model.txt \
+  --metadata evaluation/artifacts/ltr-v1.5.0-llm/model.meta.json \
+  --calibrator evaluation/artifacts/ltr-v1.5.0-llm/calibrator.json
 python evaluation/evaluate_ltr.py evaluation/data/llm_gold_test.jsonl \
-  --model evaluation/artifacts/ltr-v1.4.0-llm/model.txt \
-  --metadata evaluation/artifacts/ltr-v1.4.0-llm/model.meta.json \
-  --calibrator evaluation/artifacts/ltr-v1.4.0-llm/calibrator.json \
+  --model evaluation/artifacts/ltr-v1.5.0-llm/model.txt \
+  --metadata evaluation/artifacts/ltr-v1.5.0-llm/model.meta.json \
+  --calibrator evaluation/artifacts/ltr-v1.5.0-llm/calibrator.json \
   --min-ndcg-uplift 0.0 --min-hybrid-ndcg-uplift 0.0 \
   --max-calibration-rmse-ratio 0.5 \
-  > evaluation/artifacts/ltr-v1.4.0-llm/promotion-report.json
+  > evaluation/artifacts/ltr-v1.5.0-llm/promotion-report.json
 ```
 
 After training a new version, run `scripts/check_ml.sh`, then update

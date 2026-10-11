@@ -1,5 +1,6 @@
 // Синтетические кандидаты. Живых кандидатов на хакатоне не будет, поэтому сид обязателен.
-// Достижения ФСП тех же людей лежат в apps/mock (participants по fspId) — держать одинаковыми.
+// Достижения ФСП тех же людей лежат в apps/mock (participants по fspId): тут — какие
+// соревнования есть (title/year/place, их же ждём в моке), детали и документы — домен мока.
 import {
   Grade,
   SearchStatus,
@@ -94,6 +95,9 @@ const productCup = "Всероссийский чемпионат по прод�
 const russiaCup = "Кубок России по спортивному программированию";
 const olympiad = "Всероссийская олимпиада ФСП";
 const ctf = "Всероссийские соревнования по информационной безопасности (CTF)";
+
+// Под этими кандидатами можно войти, если задан DEMO_PASSWORD (в production тоже).
+export const demoCandidateIds = ["B101", "F202"];
 
 export const candidateSeeds: CandidateSeed[] = [
   {

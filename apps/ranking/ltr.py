@@ -22,6 +22,7 @@ MODEL_FILE = ROOT / "model.txt"
 METADATA_FILE = ROOT / "model.meta.json"
 CALIBRATOR_FILE = ROOT / "calibrator.json"
 LOGGER = logging.getLogger("ranking.ltr")
+HYBRID_MAX_RULES_REORDER_GAP = 0.05
 
 
 @dataclass(frozen=True)
@@ -270,6 +271,87 @@ class LTRRanker:
         )
 
     @staticmethod
+    def _hybrid_sort(
+        items: list[RankItem],
+        rules_scores: dict[str, float],
+    ) -> list[RankItem]:
+        """Let LTR refine close rules matches without overriding strong ones.
+
+        The rules ranker owns verified-grade and verified-skill safety signals.
+        A small synthetic LTR bundle must not move a materially weaker profile
+        above a stronger one just because its calibration extrapolates badly.
+        Candidates separated by more than the guard gap stay in rules order;
+        candidates inside the same band may still be reordered by LTR.
+        """
+        rules_order = sorted(
+            items,
+            key=lambda item: (
+                -int(item.eligible),
+                -rules_scores[item.candidateId],
+                -item.qualificationScore,
+                item.candidateId,
+            ),
+        )
+        band_by_candidate: dict[str, int] = {}
+        band = 0
+        previous: RankItem | None = None
+        for item in rules_order:
+            if previous is not None:
+                separated_by_eligibility = previous.eligible != item.eligible
+                separated_by_score = (
+                    previous.eligible
+                    and item.eligible
+                    and rules_scores[previous.candidateId]
+                    - rules_scores[item.candidateId]
+                    > HYBRID_MAX_RULES_REORDER_GAP
+                )
+                if separated_by_eligibility or separated_by_score:
+                    band += 1
+            band_by_candidate[item.candidateId] = band
+            previous = item
+
+        return sorted(
+            items,
+            key=lambda item: (
+                band_by_candidate[item.candidateId],
+                -int(item.eligible),
+                -item.matchScore,
+                -item.qualificationScore,
+                item.candidateId,
+            ),
+        )
+
+    @staticmethod
+    def _safe_hybrid_weight(
+        items: list[RankItem],
+        rules_scores: dict[str, float],
+        ltr_scores: dict[str, float],
+        configured_weight: float,
+    ) -> float:
+        """Reduce blend weight when LTR would cross a strong rules boundary."""
+        rules_order = sorted(
+            items,
+            key=lambda item: (
+                -int(item.eligible),
+                -rules_scores[item.candidateId],
+                -item.qualificationScore,
+                item.candidateId,
+            ),
+        )
+        safe_weight = configured_weight
+        for left, right in zip(rules_order, rules_order[1:]):
+            if not left.eligible or not right.eligible:
+                continue
+            rules_gap = rules_scores[left.candidateId] - rules_scores[right.candidateId]
+            if rules_gap <= HYBRID_MAX_RULES_REORDER_GAP:
+                continue
+            ltr_gap = ltr_scores[left.candidateId] - ltr_scores[right.candidateId]
+            if ltr_gap < rules_gap:
+                limit = rules_gap / (rules_gap - ltr_gap)
+                safe_weight = min(safe_weight, limit * (1.0 - 1e-4))
+        return max(0.0, min(configured_weight, safe_weight))
+
+    @staticmethod
     def _diagnostics(
         baseline: list[RankItem],
         ltr_scores: list[float],
@@ -376,6 +458,7 @@ class LTRRanker:
             )
 
         baseline = [score_pair(candidate, need, ranking_context) for candidate in candidates]
+        rules_scores = {item.candidateId: item.matchScore for item in baseline}
         features = [
             extract_features(candidate, need, ranking_context)
             for candidate in candidates
@@ -405,13 +488,27 @@ class LTRRanker:
                 diagnostics=diagnostics,
             )
 
+        ltr_by_candidate = {
+            item.candidateId: ltr_score
+            for item, ltr_score in zip(baseline, scores)
+        }
+        effective_blend_weight = (
+            self._safe_hybrid_weight(
+                baseline,
+                rules_scores,
+                ltr_by_candidate,
+                self.blend_weight,
+            )
+            if mode == "hybrid"
+            else self.blend_weight
+        )
         for item, ltr_score in zip(baseline, scores):
             if not item.eligible:
                 item.matchScore = 0.0
             elif mode == "hybrid":
                 item.matchScore = round(
-                    (1.0 - self.blend_weight) * item.matchScore
-                    + self.blend_weight * ltr_score,
+                    (1.0 - effective_blend_weight) * item.matchScore
+                    + effective_blend_weight * ltr_score,
                     6,
                 )
             else:
@@ -419,7 +516,11 @@ class LTRRanker:
             item.modelVersion = self.model_version
 
         return RankingRun(
-            items=self._sort(baseline),
+            items=(
+                self._hybrid_sort(baseline, rules_scores)
+                if mode == "hybrid"
+                else self._sort(baseline)
+            ),
             model_version=self.model_version,
             mode=mode,
             diagnostics=diagnostics,

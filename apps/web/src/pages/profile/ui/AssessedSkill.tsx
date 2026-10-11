@@ -6,10 +6,12 @@ import type { GetInputPropsReturnType } from "@mantine/form";
 
 export const AssessedSkill = ({
   skill,
+  tested,
   levelProps,
   onRemove,
 }: {
   skill: SkillRow;
+  tested: boolean;
   levelProps: GetInputPropsReturnType;
   onRemove: () => void;
 }) => {
@@ -21,6 +23,7 @@ export const AssessedSkill = ({
           level={skill.level}
           verification={skill.verification}
           verifiedAt={skill.verifiedAt}
+          tested={tested}
         />
       </Group>
       <Group align="flex-end" wrap="nowrap">

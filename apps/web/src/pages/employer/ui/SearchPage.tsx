@@ -9,9 +9,9 @@ import { CandidateCard } from "@/pages/employer/ui/CandidateCard";
 import { InviteModal } from "@/pages/employer/ui/InviteModal";
 import { SearchFilters } from "@/pages/employer/ui/SearchFilters";
 import { ErrorScreen } from "@/shared/error/ui/ErrorScreen";
-import { pageTitle } from "@/shared/router/page-title";
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import { EmptyState, Paper, Stack, Text, Title } from "@mantine/core";
-import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
 import { useQueryStates } from "nuqs";
 
@@ -22,7 +22,7 @@ import {
 } from "@hh/contracts";
 
 export const SearchPage = observer(() => {
-  useHead({ title: pageTitle.search });
+  usePageSeo(pageSeo.search);
   const { employer, invitations } = useRootStore();
   const [params, setParams] = useQueryStates(searchParsers);
   const filter = useMemo(() => {

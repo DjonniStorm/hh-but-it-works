@@ -2,6 +2,8 @@ import { ROUTES } from "@/shared/router/routes";
 
 import type { CandidateProfile } from "@hh/contracts";
 
+import { ownSkills } from "./own-skills";
+
 export type ProgressStep = {
   label: string;
   to: string;
@@ -64,7 +66,7 @@ export function profileProgress(
     {
       label: "Навыки",
       to: ROUTES.PROFILE,
-      done: (profile?.skills.length ?? 0) > 0,
+      done: ownSkills(profile).length > 0,
     },
     {
       label: "Тестирование грейда",

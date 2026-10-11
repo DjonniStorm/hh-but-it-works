@@ -1,3 +1,4 @@
+import { claimNote } from "@/pages/profile/model/grade-advice";
 import {
   gradeOptions,
   specializationOptions,
@@ -7,6 +8,7 @@ import type {
   ProfileSubmit,
 } from "@/pages/profile/model/use-profile-form";
 import { ContactIcon } from "@/pages/profile/ui/ContactIcon";
+import { FspPanel } from "@/pages/profile/ui/FspPanel";
 import { ProfileDownload } from "@/pages/profile/ui/ProfileDownload";
 import { ResumeUpload } from "@/pages/profile/ui/ResumeUpload";
 import { VisibilityFields } from "@/pages/profile/ui/VisibilityFields";
@@ -68,15 +70,12 @@ export const ContactsPanel = ({
         />
         <Select
           label="Заявленный грейд"
+          description={claimNote(profile)}
           withAsterisk
           data={gradeOptions}
           {...form.getInputProps("claimedGrade")}
         />
-        <TextInput
-          label="ID участника ФСП"
-          description="Сохраним здесь. Историю запросим при подтверждении перед биржей."
-          {...form.getInputProps("fspId")}
-        />
+        <FspPanel profile={profile} />
         <TextInput
           label="Телефон"
           type="tel"

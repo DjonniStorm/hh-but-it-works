@@ -1,3 +1,5 @@
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import { Button, Group, Stack, Text, Title } from "@mantine/core";
 
 const swatches = [
@@ -10,6 +12,7 @@ const swatches = [
 
 // СТРАНИЦА ТЕСТИРОВАНИЯ ЦВЕТОВ И ПРОЧЕГО, К ПРИЛОЖЕНИЮ И ТЕСТАМ ОТНОШЕНИЯ НЕ ИМЕЕТ!
 export const TestPage = () => {
+  usePageSeo(pageSeo.test);
   return (
     <Stack p="xl" gap="lg">
       <Title order={1}>Тема ФСП</Title>

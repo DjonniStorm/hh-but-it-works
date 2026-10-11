@@ -23,6 +23,7 @@ export const shellLinks: Record<Role, ShellLinkItem[]> = {
     homeLink,
     { to: ROUTES.PROFILE, label: "Профиль", match: "exact" },
     { to: ROUTES.INVITATIONS, label: "Приглашения", match: "exact" },
+    { to: ROUTES.SETTINGS, label: "Настройки", match: "exact" },
   ],
   // У работодателя главная — это подборки (HomePage уводит туда), отдельный пункт дублировал бы их.
   [Role.Employer]: [
@@ -30,6 +31,7 @@ export const shellLinks: Record<Role, ShellLinkItem[]> = {
     { to: ROUTES.EMPLOYER.SEARCH, label: "Поиск", match: "prefix" },
     { to: ROUTES.EMPLOYER.INVITATIONS, label: "Приглашения", match: "prefix" },
     { to: ROUTES.EMPLOYER.COMPANY, label: "Компания", match: "prefix" },
+    { to: ROUTES.SETTINGS, label: "Настройки", match: "exact" },
   ],
 };
 

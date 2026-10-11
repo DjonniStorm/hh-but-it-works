@@ -1,12 +1,31 @@
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import { Injectable, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import Redis from "ioredis";
 
 const emailConfirmTtlSeconds = 60 * 60 * 24;
-const refreshTtlSeconds = 60 * 60 * 24 * 7;
+export const refreshTtlSeconds = 60 * 60 * 24 * 7;
+// Сколько старый refresh-токен ещё принимается после ротации, см. rotateRefresh.
+const refreshGraceSeconds = 30;
 const confirmResendCooldownSeconds = 60;
+const passwordResetTtlSeconds = 60 * 60;
+const passwordResetCooldownSeconds = 60;
+
+// Атомарный обмен refresh-токена, см. rotateRefresh. Скрипт лежит рядом,
+// nest-cli копирует его в dist вместе с modules/**/*.lua.
+const rotateRefreshScript = readFileSync(
+  join(__dirname, "rotate-refresh.lua"),
+  "utf8",
+);
+
+export type RefreshRotation = {
+  userId: string;
+  // true — токен уже сменили, запрос пришёл в окне после ротации.
+  grace: boolean;
+};
 
 @Injectable()
 export class SessionStore implements OnModuleDestroy {
@@ -43,21 +62,79 @@ export class SessionStore implements OnModuleDestroy {
     return result === "OK";
   }
 
-  async saveRefresh(token: string, userId: string): Promise<void> {
+  async savePasswordReset(token: string, userId: string): Promise<void> {
     await this.redis.set(
-      this.refreshKey(token),
+      this.passwordResetKey(token),
       userId,
       "EX",
-      refreshTtlSeconds,
+      passwordResetTtlSeconds,
     );
   }
 
-  takeRefresh(token: string): Promise<string | null> {
-    return this.redis.getdel(this.refreshKey(token));
+  takePasswordReset(token: string): Promise<string | null> {
+    return this.redis.getdel(this.passwordResetKey(token));
+  }
+
+  // Письмо сброса не чаще раза в минуту на адрес. false — минута не прошла.
+  async claimPasswordResetSend(email: string): Promise<boolean> {
+    const result = await this.redis.set(
+      this.passwordResetSentKey(email),
+      "1",
+      "EX",
+      passwordResetCooldownSeconds,
+      "NX",
+    );
+    return result === "OK";
+  }
+
+  // Кроме самого токена, его хеш лежит в наборе пользователя: по нему
+  // revokeUserRefresh выходит со всех устройств разом.
+  async saveRefresh(token: string, userId: string): Promise<void> {
+    const userKey = this.userRefreshKey(userId);
+    await this.redis
+      .multi()
+      .set(this.refreshKey(token), userId, "EX", refreshTtlSeconds)
+      .sadd(userKey, hashToken(token))
+      .expire(userKey, refreshTtlSeconds)
+      .exec();
+  }
+
+  // Cookie с refresh общая на все вкладки. Если две вкладки обновляют сессию
+  // одновременно, вторая приходит с токеном, который первая только что сменила.
+  // Такой токен ещё refreshGraceSeconds принимается, но новый refresh по нему
+  // не выдаётся: в cookie уже лежит тот, что выдан первой вкладке.
+  async rotateRefresh(token: string): Promise<RefreshRotation | null> {
+    const result = (await this.redis.eval(
+      rotateRefreshScript,
+      2,
+      this.refreshKey(token),
+      this.refreshGraceKey(token),
+      refreshGraceSeconds,
+    )) as [string, string] | null;
+    if (!result) {
+      return null;
+    }
+    const [userId, outcome] = result;
+    if (outcome === "rotated") {
+      await this.redis.srem(this.userRefreshKey(userId), hashToken(token));
+    }
+    return { userId, grace: outcome === "grace" };
   }
 
   async dropRefresh(token: string): Promise<void> {
-    await this.redis.del(this.refreshKey(token));
+    const userId = await this.redis.getdel(this.refreshKey(token));
+    if (userId) {
+      await this.redis.srem(this.userRefreshKey(userId), hashToken(token));
+    }
+  }
+
+  async revokeUserRefresh(userId: string): Promise<void> {
+    const userKey = this.userRefreshKey(userId);
+    const hashes = await this.redis.smembers(userKey);
+    const keys = hashes.map((hash) => {
+      return `refresh:${hash}`;
+    });
+    await this.redis.del(userKey, ...keys);
   }
 
   async onModuleDestroy(): Promise<void> {
@@ -72,8 +149,24 @@ export class SessionStore implements OnModuleDestroy {
     return `email-confirm-sent:${hashToken(email)}`;
   }
 
+  private passwordResetKey(token: string): string {
+    return `password-reset:${hashToken(token)}`;
+  }
+
+  private passwordResetSentKey(email: string): string {
+    return `password-reset-sent:${hashToken(email)}`;
+  }
+
   private refreshKey(token: string): string {
     return `refresh:${hashToken(token)}`;
+  }
+
+  private refreshGraceKey(token: string): string {
+    return `refresh-grace:${hashToken(token)}`;
+  }
+
+  private userRefreshKey(userId: string): string {
+    return `user-refresh:${userId}`;
   }
 }
 

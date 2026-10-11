@@ -44,8 +44,9 @@ export const TestingChoice = ({
         },
       }}
     >
+      {/* Колонка маркера одной ширины у всех вариантов: текст начинается с одного x. */}
       {mode === "radio" ? (
-        <span style={{ width: 24 }}>{index + 1}</span>
+        <span style={{ flex: "0 0 24px" }}>{index + 1}</span>
       ) : (
         // Квадрат, не цифра: цифра читается как единственный номер.
         <span
@@ -54,9 +55,9 @@ export const TestingChoice = ({
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
-            width: 18,
+            flex: "0 0 18px",
             height: 18,
-            flexShrink: 0,
+            marginInlineEnd: 6,
             background: selected ? "var(--mantine-color-fsp-6)" : surfaceColor,
             border: selected
               ? "1px solid var(--mantine-color-fsp-6)"
@@ -75,7 +76,9 @@ export const TestingChoice = ({
           ) : null}
         </span>
       )}
-      <span>{label}</span>
+      <span style={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" }}>
+        {label}
+      </span>
     </UnstyledButton>
   );
 };

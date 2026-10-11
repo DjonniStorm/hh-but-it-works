@@ -19,7 +19,13 @@ export type {
   ItemOutcome,
   SectionScore,
 } from "./attempt";
-export { bank, catalogSlugs, coreSkills, isCatalogSlug } from "./bank";
+export {
+  bank,
+  bankSlugFor,
+  catalogSlugs,
+  coreSkills,
+  isCatalogSlug,
+} from "./bank";
 export type { CatalogSlug } from "./bank";
 export {
   annulBelow,

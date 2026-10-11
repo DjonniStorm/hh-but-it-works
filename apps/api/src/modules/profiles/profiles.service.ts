@@ -3,13 +3,20 @@ import {
   ConflictException,
   Injectable,
   OnModuleInit,
+  ServiceUnavailableException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { EntityManager, In, Repository } from "typeorm";
 
-import { coreSkills } from "@hh/assessment-engine";
-import type { CandidateProfile as CandidateProfileView } from "@hh/contracts";
-import type { SaveProfileInput } from "@hh/contracts";
+import { bankSlugFor, coreSkills } from "@hh/assessment-engine";
+import type {
+  CandidateProfile as CandidateProfileView,
+  FspHistory as FspHistoryView,
+  FspLinkInput,
+  FspLinkPreview as FspLinkPreviewView,
+  FspLinkResult,
+  SaveProfileInput,
+} from "@hh/contracts";
 import {
   AttemptStatus,
   Grade,
@@ -19,6 +26,8 @@ import {
   Specialization,
 } from "@hh/types";
 
+import { FspClient } from "../../common/fsp/fsp.client";
+import { UsersService } from "../users/users.service";
 import { CandidateProfile } from "./candidate-profile.entity";
 import { CandidateSkill } from "./candidate-skill.entity";
 import { skillCatalog, slugFromTitle } from "./skill-catalog";
@@ -80,6 +89,8 @@ export class ProfilesService implements OnModuleInit {
     private readonly skills: Repository<Skill>,
     @InjectRepository(CandidateSkill)
     private readonly candidateSkills: Repository<CandidateSkill>,
+    private readonly users: UsersService,
+    private readonly fsp: FspClient,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -95,6 +106,64 @@ export class ProfilesService implements OnModuleInit {
     const signals = await this.signalsOf(profile?.id);
     const catalog = await this.visibleSkills(profile?.id, signals);
     return this.toView(profile, catalog, signals);
+  }
+
+  // Превью привязки ФСП: почта из JWT, поэтому кандидат не может подставить чужую.
+  // Недоступный реестр — свой статус, а не «истории нет».
+  async fspLinkPreview(userId: string): Promise<FspLinkPreviewView> {
+    const user = await this.users.findById(userId);
+    if (!user) {
+      return { status: "unavailable", participant: null };
+    }
+    return this.fsp.findByEmail(user.email);
+  }
+
+  // Своя история ФСП: пока fspId не привязан, participant null.
+  async fspHistory(userId: string): Promise<FspHistoryView> {
+    const profile = await this.profiles.findOne({ where: { userId } });
+    const participant = await this.fsp.participant(profile?.fspId ?? null);
+    return { participant };
+  }
+
+  // Привязка без полной анкеты: меняем только два поля, поэтому подходит
+  // и свежему кандидату, у которого строки профиля ещё нет.
+  async fspLink(userId: string, input: FspLinkInput): Promise<FspLinkResult> {
+    return this.writeFspLink(userId, input.fspId, input.showFsp);
+  }
+
+  // OIDC-вход через реестр: обмениваем code на sub и привязываем его как fspId.
+  async fspLogin(userId: string, code: string): Promise<FspLinkResult> {
+    const exchange = await this.fsp.exchangeCode(code);
+    if (exchange.status === "unavailable") {
+      throw new ServiceUnavailableException(
+        "Реестр ФСП сейчас недоступен, попробуйте позже",
+      );
+    }
+    if (exchange.status === "invalid") {
+      throw new BadRequestException(
+        "Код входа не подошёл. Начните вход заново",
+      );
+    }
+    return this.writeFspLink(userId, exchange.sub, true);
+  }
+
+  private async writeFspLink(
+    userId: string,
+    fspId: string | null,
+    showFsp: boolean,
+  ): Promise<FspLinkResult> {
+    // Строки профиля может не быть: строку с заглушками не заводим,
+    // кандидат сначала сохраняет анкету сам.
+    const profile = await this.profiles.findOne({ where: { userId } });
+    if (!profile) {
+      throw new BadRequestException(
+        "Сначала сохраните анкету: ФИО, специализацию и грейд",
+      );
+    }
+    profile.fspId = fspId;
+    profile.showFsp = showFsp;
+    const saved = await this.profiles.save(profile);
+    return { fspId: saved.fspId, showFsp: saved.showFsp };
   }
 
   // Навыки анкеты из каталога и ядро специализации, даже если его в анкете нет.
@@ -115,20 +184,26 @@ export class ProfilesService implements OnModuleInit {
         ),
       },
     });
-    const core = await this.skills.find({
-      where: { slug: In(coreSkills[profile.specialization]) },
-    });
-    const merged = new Map<string, AssessmentSkill>();
-    for (const skill of [...core, ...own]) {
-      merged.set(skill.id, {
-        skillId: skill.id,
-        slug: skill.slug,
-        title: skill.title,
-      });
+    // Секция — банк ядра или навыка анкеты. NestJS даёт секцию TypeScript, и результат получает только TypeScript.
+    const banks = new Set<string>(coreSkills[profile.specialization]);
+    for (const skill of own) {
+      const bankSlug = bankSlugFor(skill.slug);
+      if (bankSlug) {
+        banks.add(bankSlug);
+      }
     }
+    const skills = await this.skills.find({
+      where: { slug: In([...banks]) },
+    });
     return {
       specialization: profile.specialization,
-      skills: [...merged.values()],
+      skills: skills.map((skill) => {
+        return {
+          skillId: skill.id,
+          slug: skill.slug,
+          title: skill.title,
+        };
+      }),
     };
   }
 
@@ -245,7 +320,9 @@ export class ProfilesService implements OnModuleInit {
         where: { slug: item.slug },
       });
       if (!existing) {
-        await this.skills.save(this.skills.create(item));
+        await this.skills.save(
+          this.skills.create({ slug: item.slug, title: item.title }),
+        );
       }
     }
   }
@@ -505,6 +582,8 @@ export class ProfilesService implements OnModuleInit {
       nextGradeChangeAt: profile
         ? (cooldownUntil(profile)?.toISOString() ?? null)
         : null,
+      lockedGrade:
+        profile && cooldownUntil(profile) ? lockedGrade(profile) : null,
       skills: catalog.map((skill) => {
         const signal = signals.get(skill.id);
         return {

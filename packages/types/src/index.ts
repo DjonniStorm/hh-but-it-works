@@ -3,18 +3,7 @@ export enum Role {
   Employer = "employer",
 }
 
-/* подтверждаемые ФСП специализации
-  Ну то есть их основные специализации
-  Использование их оптимально, но дизайнеров и прочих не указанных
-  мы не сможем нанять по таким специализациям :(
-*/
-
-export enum Specialization {
-  Backend = "backend",
-  Frontend = "frontend",
-  Data = "data",
-  Security = "security",
-}
+export { Specialization } from "./specialization";
 
 export enum Grade {
   Junior = "junior",
@@ -79,6 +68,35 @@ export enum IntegrityFlag {
   FastAnswer = "fast-answer",
 }
 
+// Тип достижения в реестре ФСП: соревнование, кубок, олимпиада и документы.
+export enum FspAchievementKind {
+  Competition = "competition",
+  Cup = "cup",
+  Olympiad = "olympiad",
+  Hackathon = "hackathon",
+  Diploma = "diploma",
+  Certificate = "certificate",
+}
+
+// Уровень соревнования, как его помнит реестр.
+export enum FspAchievementLevel {
+  Regional = "regional",
+  Interregional = "interregional",
+  AllRussia = "all_russia",
+  Russia = "russia",
+  International = "international",
+}
+
+// Спортивный разряд программиста из реестра ФСП.
+export enum FspSportRank {
+  Rank3 = "rank3",
+  Rank2 = "rank2",
+  Rank1 = "rank1",
+  Kms = "kms",
+  Ms = "ms",
+  Msmk = "msmk",
+}
+
 // По индексу считается расстояние между грейдами в подборке.
 export const gradeOrder: readonly Grade[] = [
   Grade.Junior,
@@ -89,3 +107,10 @@ export const gradeOrder: readonly Grade[] = [
 export function gradeIndex(grade: Grade): number {
   return gradeOrder.indexOf(grade);
 }
+
+export {
+  coreSkillSlugs,
+  relatedSkillSlug,
+  skillCatalog,
+} from "./skill-catalog";
+export type { SkillCatalogItem } from "./skill-catalog";

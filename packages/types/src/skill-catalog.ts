@@ -1,0 +1,658 @@
+import { Specialization } from "./specialization";
+
+export type SkillCatalogItem = {
+  slug: string;
+  title: string;
+  // Свой банк вопросов. Без банка тест навык не подтверждает, даже если он есть в relatedSkillSlug.
+  tested: boolean;
+  specializations: readonly Specialization[];
+};
+
+const backend = Specialization.Backend;
+const frontend = Specialization.Frontend;
+const data = Specialization.Data;
+const security = Specialization.Security;
+
+// Каталог профиля. tested — свой банк. Родственники без банка — в relatedSkillSlug.
+export const skillCatalog: readonly SkillCatalogItem[] = [
+  {
+    slug: "postgresql",
+    title: "PostgreSQL",
+    tested: true,
+    specializations: [backend, data],
+  },
+  {
+    slug: "http-api",
+    title: "HTTP и API",
+    tested: true,
+    specializations: [backend, frontend, security],
+  },
+  {
+    slug: "typescript",
+    title: "TypeScript",
+    tested: true,
+    specializations: [backend, frontend],
+  },
+  {
+    slug: "docker",
+    title: "Docker",
+    tested: true,
+    specializations: [backend, data, security],
+  },
+  {
+    slug: "testing",
+    title: "Тестирование",
+    tested: true,
+    specializations: [backend, frontend, data, security],
+  },
+  {
+    slug: "python",
+    title: "Python",
+    tested: true,
+    specializations: [backend, data, security],
+  },
+  {
+    slug: "csharp",
+    title: "C#",
+    tested: true,
+    specializations: [backend],
+  },
+  {
+    slug: "react",
+    title: "React",
+    tested: true,
+    specializations: [frontend],
+  },
+  {
+    slug: "go",
+    title: "Go",
+    tested: true,
+    specializations: [backend, security],
+  },
+  {
+    slug: "java",
+    title: "Java",
+    tested: true,
+    specializations: [backend],
+  },
+  {
+    slug: "nodejs",
+    title: "Node.js",
+    tested: true,
+    specializations: [backend, frontend],
+  },
+  {
+    slug: "nestjs",
+    title: "NestJS",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "express",
+    title: "Express",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "redis",
+    title: "Redis",
+    tested: true,
+    specializations: [backend],
+  },
+  {
+    slug: "kafka",
+    title: "Kafka",
+    tested: true,
+    specializations: [backend, data],
+  },
+  {
+    slug: "rabbitmq",
+    title: "RabbitMQ",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "mysql",
+    title: "MySQL",
+    tested: false,
+    specializations: [backend, data],
+  },
+  {
+    slug: "sql",
+    title: "SQL",
+    tested: true,
+    specializations: [backend, data],
+  },
+  {
+    slug: "spring",
+    title: "Spring",
+    tested: true,
+    specializations: [backend],
+  },
+  {
+    slug: "django",
+    title: "Django",
+    tested: true,
+    specializations: [backend],
+  },
+  {
+    slug: "flask",
+    title: "Flask",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "fastapi",
+    title: "FastAPI",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "grpc",
+    title: "gRPC",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "graphql",
+    title: "GraphQL",
+    tested: false,
+    specializations: [backend, frontend],
+  },
+  {
+    slug: "mongodb",
+    title: "MongoDB",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "elasticsearch",
+    title: "Elasticsearch",
+    tested: false,
+    specializations: [backend, data],
+  },
+  {
+    slug: "clickhouse",
+    title: "ClickHouse",
+    tested: false,
+    specializations: [backend, data],
+  },
+  {
+    slug: "sqlite",
+    title: "SQLite",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "oracle",
+    title: "Oracle",
+    tested: false,
+    specializations: [backend, data],
+  },
+  {
+    slug: "ms-sql-server",
+    title: "MS SQL Server",
+    tested: false,
+    specializations: [backend, data],
+  },
+  {
+    slug: "nginx",
+    title: "Nginx",
+    tested: false,
+    specializations: [backend, security],
+  },
+  {
+    slug: "kubernetes",
+    title: "Kubernetes",
+    tested: true,
+    specializations: [backend, security],
+  },
+  {
+    slug: "helm",
+    title: "Helm",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "terraform",
+    title: "Terraform",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "ansible",
+    title: "Ansible",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "git",
+    title: "Git",
+    tested: true,
+    specializations: [backend, frontend, data, security],
+  },
+  {
+    slug: "linux",
+    title: "Linux",
+    tested: true,
+    specializations: [backend, security],
+  },
+  {
+    slug: "bash",
+    title: "Bash",
+    tested: false,
+    specializations: [backend, security],
+  },
+  {
+    slug: "микросервисы",
+    title: "Микросервисы",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "kotlin",
+    title: "Kotlin",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "php",
+    title: "PHP",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "laravel",
+    title: "Laravel",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "ruby",
+    title: "Ruby",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "ruby-on-rails",
+    title: "Ruby on Rails",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "dotnet",
+    title: ".NET",
+    tested: true,
+    specializations: [backend],
+  },
+  {
+    slug: "hibernate",
+    title: "Hibernate",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "celery",
+    title: "Celery",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "sqlalchemy",
+    title: "SQLAlchemy",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "cicd",
+    title: "CI/CD",
+    tested: false,
+    specializations: [backend, frontend],
+  },
+  {
+    slug: "aws",
+    title: "AWS",
+    tested: false,
+    specializations: [backend, data],
+  },
+  {
+    slug: "prometheus",
+    title: "Prometheus",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "grafana",
+    title: "Grafana",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "system-design",
+    title: "System Design",
+    tested: true,
+    specializations: [backend],
+  },
+  {
+    slug: "cplusplus",
+    title: "C++",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "rust",
+    title: "Rust",
+    tested: false,
+    specializations: [backend],
+  },
+  {
+    slug: "алгоритмы",
+    title: "Алгоритмы",
+    tested: true,
+    specializations: [backend, frontend, data, security],
+  },
+  {
+    slug: "javascript",
+    title: "JavaScript",
+    tested: true,
+    specializations: [frontend],
+  },
+  {
+    slug: "html",
+    title: "HTML",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "css",
+    title: "CSS",
+    tested: true,
+    specializations: [frontend],
+  },
+  {
+    slug: "scss",
+    title: "SCSS",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "tailwind-css",
+    title: "Tailwind CSS",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "vue",
+    title: "Vue",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "angular",
+    title: "Angular",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "svelte",
+    title: "Svelte",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "nextjs",
+    title: "Next.js",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "nuxt",
+    title: "Nuxt",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "redux",
+    title: "Redux",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "mobx",
+    title: "MobX",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "zustand",
+    title: "Zustand",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "rxjs",
+    title: "RxJS",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "react-native",
+    title: "React Native",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "react-router",
+    title: "React Router",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "react-query",
+    title: "React Query",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "webpack",
+    title: "Webpack",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "vite",
+    title: "Vite",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "storybook",
+    title: "Storybook",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "playwright",
+    title: "Playwright",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "material-ui",
+    title: "Material UI",
+    tested: false,
+    specializations: [frontend],
+  },
+  {
+    slug: "pandas",
+    title: "Pandas",
+    tested: true,
+    specializations: [data],
+  },
+  {
+    slug: "numpy",
+    title: "NumPy",
+    tested: false,
+    specializations: [data],
+  },
+  {
+    slug: "scikit-learn",
+    title: "scikit-learn",
+    tested: false,
+    specializations: [data],
+  },
+  {
+    slug: "pytorch",
+    title: "PyTorch",
+    tested: true,
+    specializations: [data],
+  },
+  {
+    slug: "tensorflow",
+    title: "TensorFlow",
+    tested: false,
+    specializations: [data],
+  },
+  {
+    slug: "airflow",
+    title: "Airflow",
+    tested: true,
+    specializations: [data],
+  },
+  {
+    slug: "spark",
+    title: "Spark",
+    tested: false,
+    specializations: [data],
+  },
+  {
+    slug: "hadoop",
+    title: "Hadoop",
+    tested: false,
+    specializations: [data],
+  },
+  {
+    slug: "dbt",
+    title: "dbt",
+    tested: false,
+    specializations: [data],
+  },
+  {
+    slug: "power-bi",
+    title: "Power BI",
+    tested: false,
+    specializations: [data],
+  },
+  {
+    slug: "tableau",
+    title: "Tableau",
+    tested: false,
+    specializations: [data],
+  },
+  {
+    slug: "jupyter",
+    title: "Jupyter",
+    tested: false,
+    specializations: [data],
+  },
+  {
+    slug: "machine-learning",
+    title: "Machine Learning",
+    tested: false,
+    specializations: [data],
+  },
+  {
+    slug: "статистика",
+    title: "Статистика",
+    tested: false,
+    specializations: [data],
+  },
+  {
+    slug: "burp-suite",
+    title: "Burp Suite",
+    tested: false,
+    specializations: [security],
+  },
+  {
+    slug: "owasp",
+    title: "OWASP",
+    tested: true,
+    specializations: [security],
+  },
+  {
+    slug: "kali-linux",
+    title: "Kali Linux",
+    tested: false,
+    specializations: [security],
+  },
+  {
+    slug: "wireshark",
+    title: "Wireshark",
+    tested: false,
+    specializations: [security],
+  },
+  {
+    slug: "metasploit",
+    title: "Metasploit",
+    tested: false,
+    specializations: [security],
+  },
+  {
+    slug: "nmap",
+    title: "Nmap",
+    tested: false,
+    specializations: [security],
+  },
+  {
+    slug: "siem",
+    title: "SIEM",
+    tested: false,
+    specializations: [security],
+  },
+  {
+    slug: "splunk",
+    title: "Splunk",
+    tested: false,
+    specializations: [security],
+  },
+  {
+    slug: "сети",
+    title: "Сети",
+    tested: false,
+    specializations: [security],
+  },
+  {
+    slug: "pentest",
+    title: "Pentest",
+    tested: false,
+    specializations: [security],
+  },
+  {
+    slug: "криптография",
+    title: "Криптография",
+    tested: false,
+    specializations: [security],
+  },
+  {
+    slug: "oauth",
+    title: "OAuth",
+    tested: false,
+    specializations: [security, backend],
+  },
+];
+
+// Своего банка нет: навык добавляет в попытку секцию этого банка. Результат получает только навык банка,
+// этот остаётся заявленным. SQL здесь нет: у SQL свой банк, он не сводится к PostgreSQL.
+export const relatedSkillSlug: Readonly<Record<string, string>> = {
+  nextjs: "react",
+  nestjs: "typescript",
+  fastapi: "python",
+};
+
+// Ядро специализации входит в каждую попытку. Лежит здесь, а не в пакете тестов: веб читает его для лобби.
+export const coreSkillSlugs = {
+  [Specialization.Backend]: ["http-api", "postgresql"],
+  [Specialization.Frontend]: ["typescript", "http-api"],
+  [Specialization.Data]: ["postgresql"],
+  [Specialization.Security]: ["http-api", "docker"],
+} as const satisfies Record<Specialization, readonly string[]>;

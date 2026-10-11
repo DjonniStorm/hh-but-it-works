@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import bcrypt from "bcrypt";
@@ -8,6 +10,14 @@ import { Role } from "@hh/types";
 import { User } from "./user.entity";
 
 const passwordCost = 10;
+
+// Хеш случайной строки той же стоимости. С ним вход по несуществующей почте
+// тратит на bcrypt столько же, сколько по существующей, и по времени ответа
+// не узнать, зарегистрирован ли адрес.
+const dummyPasswordHash = bcrypt.hashSync(
+  randomBytes(16).toString("hex"),
+  passwordCost,
+);
 
 const publicColumns = {
   id: true,
@@ -79,8 +89,22 @@ export class UsersService {
     await this.users.update({ id: In(ids) }, { passwordHash });
   }
 
-  async passwordMatches(user: User, password: string): Promise<boolean> {
-    return bcrypt.compare(password, user.passwordHash);
+  // Ссылка из письма доказывает, что почта своя: заодно считаем её подтверждённой.
+  async resetPassword(user: User, password: string): Promise<void> {
+    const passwordHash = await bcrypt.hash(password, passwordCost);
+    await this.users.update(user.id, {
+      passwordHash,
+      emailVerifiedAt: user.emailVerifiedAt ?? new Date(),
+    });
+  }
+
+  // null — почты нет. bcrypt всё равно считается, против подбора адресов по времени.
+  async passwordMatches(user: User | null, password: string): Promise<boolean> {
+    const matches = await bcrypt.compare(
+      password,
+      user?.passwordHash ?? dummyPasswordHash,
+    );
+    return user !== null && matches;
   }
 
   private async requireById(id: string): Promise<User> {

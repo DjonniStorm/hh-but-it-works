@@ -7,7 +7,7 @@ import { Anchor, Box, Stack, Text } from "@mantine/core";
 import { observer } from "mobx-react-lite";
 import { Link } from "react-router";
 
-import { formatSalary } from "@hh/contracts";
+import { formatSalary, richTextText } from "@hh/contracts";
 
 export const HomeOffer = observer(() => {
   const invitations = useStore(StoreKey.CandidateInvitations);
@@ -25,7 +25,7 @@ export const HomeOffer = observer(() => {
         <Text fz={48} lh={1}>
           {formatSalary(offer.salaryFrom, offer.salaryTo)}
         </Text>
-        <Text lineClamp={1}>{offer.message}</Text>
+        <Text lineClamp={1}>{richTextText(offer.message)}</Text>
         <Anchor component={Link} to={ROUTES.INVITATIONS}>
           Открыть приглашение
         </Anchor>

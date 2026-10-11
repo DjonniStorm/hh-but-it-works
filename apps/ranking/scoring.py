@@ -16,7 +16,7 @@ from text_similarity import lexical_similarity, overlap_terms
 from embedding_similarity import embedding_similarity
 
 
-MODEL_VERSION = "rules-v1.2.0"
+MODEL_VERSION = "rules-v1.3.0"
 # Lexical score band where the pair is too close to call and the local ONNX
 # embedder decides; outside the band embeddings are skipped to keep the
 # hot path fast on large pools.
@@ -215,7 +215,12 @@ def eligibility(candidate: CandidateSnapshot, need: HiringNeedSnapshot) -> Eligi
     return EligibilityResult(not reasons, reasons)
 
 
-def _reasons_and_warnings(candidate: CandidateSnapshot, need: HiringNeedSnapshot, components: ScoreBreakdown) -> tuple[list[str], list[str]]:
+def _reasons_and_warnings(
+    candidate: CandidateSnapshot,
+    need: HiringNeedSnapshot,
+    components: ScoreBreakdown,
+    exact_candidate: set[str] | None = None,
+) -> tuple[list[str], list[str]]:
     reasons: list[str] = []
     warnings: list[str] = []
 
@@ -227,7 +232,9 @@ def _reasons_and_warnings(candidate: CandidateSnapshot, need: HiringNeedSnapshot
         warnings.append("grade_mismatch")
 
     if need.mustSkills:
-        exact_candidate = {canonical_skill(skill.id) for skill in candidate.skills}
+        exact_candidate = exact_candidate or {
+            canonical_skill(skill.id) for skill in candidate.skills
+        }
         exact_count = 0
         for required in need.mustSkills:
             score = _best_skill_score(required, candidate)
@@ -284,7 +291,13 @@ def score_pair(candidate: CandidateSnapshot, need: HiringNeedSnapshot, context: 
 
     specialization = 1.0 if candidate.specialization.strip().lower() == need.specialization.strip().lower() else 0.35
     grade = _grade_fit(candidate, need)
-    must = _skill_coverage(need.mustSkills, candidate)
+    exact_candidate = {canonical_skill(skill.id) for skill in candidate.skills}
+    must_count = len(need.mustSkills)
+    present = sum(
+        1 for required in need.mustSkills if canonical_skill(required) in exact_candidate
+    )
+    presence = present / must_count if must_count else 1.0
+    must = _skill_coverage(need.mustSkills, candidate) * presence
     verified_must = _skill_coverage(need.mustSkills, candidate, verified_only=True)
     nice = _skill_coverage(need.niceSkills, candidate)
     competency = _competency_fit(candidate, need, context)
@@ -298,19 +311,17 @@ def score_pair(candidate: CandidateSnapshot, need: HiringNeedSnapshot, context: 
 
     freshness = candidate.profileFreshness
 
-    # Веса перенормированы после вывода из формулы слагаемых без источника
-    # данных из контракта (локация, занятость, желаемый стек, персонализация).
     qualification = (
         0.09 * specialization
         + 0.14 * grade
-        + 0.20 * must
+        + 0.26 * must
         + 0.09 * verified_must
         + 0.04 * nice
         + 0.12 * competency
         + 0.10 * assessment
         + 0.09 * experience
-        + 0.07 * semantic
-        + 0.06 * fsp
+        + 0.04 * semantic
+        + 0.03 * fsp
     )
     opportunity = (
         0.50 * salary
@@ -324,7 +335,9 @@ def score_pair(candidate: CandidateSnapshot, need: HiringNeedSnapshot, context: 
     intent = clamp01(intent)
 
     if eligible.eligible:
-        mutual = (max(qualification, 1e-6) ** 0.55) * (max(opportunity, 1e-6) ** 0.30) * (max(intent, 1e-6) ** 0.15)
+        mutual = (max(qualification, 1e-6) ** 0.65) * (max(opportunity, 1e-6) ** 0.25) * (max(intent, 1e-6) ** 0.10)
+        if must_count and present == 0:
+            mutual = min(mutual, 0.60)
     else:
         mutual = 0.0
 
@@ -344,7 +357,7 @@ def score_pair(candidate: CandidateSnapshot, need: HiringNeedSnapshot, context: 
         targetRole=round(target_role, 4),
         freshness=round(freshness, 4),
     )
-    reasons, warnings = _reasons_and_warnings(candidate, need, components)
+    reasons, warnings = _reasons_and_warnings(candidate, need, components, exact_candidate)
 
     return RankItem(
         candidateId=candidate.id,
@@ -367,4 +380,12 @@ def rank_candidates(
     context: RankingContext | None = None,
 ) -> list[RankItem]:
     scored = [score_pair(candidate, need, context) for candidate in candidates]
-    return sorted(scored, key=lambda item: (item.eligible, item.matchScore, item.qualificationScore), reverse=True)
+    return sorted(
+        scored,
+        key=lambda item: (
+            item.eligible,
+            item.matchScore,
+            item.qualificationScore,
+        ),
+        reverse=True,
+    )

@@ -1,12 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
+import { contactHint } from "@/pages/employer/model/invitation-contact";
+import {
+  invitationStatusFilter,
+  invitationStatuses,
+} from "@/pages/employer/model/invitation-filter";
+import { InvitationActions } from "@/pages/employer/ui/InvitationActions";
+import { InvitationCard } from "@/pages/employer/ui/InvitationCard";
 import { formatDate } from "@/shared/lib/format";
 import { invitationStatusLabel } from "@/shared/lib/labels";
-import { ResumeTemplateMenu } from "@/shared/resume/ui/ResumeTemplateMenu";
-import { pageTitle } from "@/shared/router/page-title";
+import { pollIntervalMs, usePolling } from "@/shared/lib/use-polling";
 import { ROUTES } from "@/shared/router/routes";
+import { pageSeo } from "@/shared/seo/pages";
+import { usePageSeo } from "@/shared/seo/use-page-seo";
 import { invitationStatusColor } from "@/shared/theme";
 import {
   Badge,
@@ -14,36 +22,29 @@ import {
   EmptyState,
   Paper,
   SegmentedControl,
+  Select,
+  SimpleGrid,
   Stack,
   Table,
   Text,
   Title,
   useMatches,
 } from "@mantine/core";
-import { useHead } from "@unhead/react";
 import { observer } from "mobx-react-lite";
+import { useQueryState } from "nuqs";
 import { Link } from "react-router";
 
 import { formatSalary } from "@hh/contracts";
 import { InvitationStatus } from "@hh/types";
 
-type Filter = "all" | InvitationStatus;
-
-const statuses = [
-  InvitationStatus.Sent,
-  InvitationStatus.Viewed,
-  InvitationStatus.Accepted,
-  InvitationStatus.Declined,
-  InvitationStatus.Withdrawn,
-];
-
 export const InvitationsPage = observer(() => {
-  useHead({ title: pageTitle.employerInvitations });
+  usePageSeo(pageSeo.employerInvitations);
   const invitations = useStore(StoreKey.Invitations);
-  const [filter, setFilter] = useState<Filter>("all");
-  // Ширину читаем сразу, а не после первого кадра: иначе на десктопе фильтр мелькает столбиком.
-  const narrow = useMatches(
-    { base: true, sm: false },
+  const [filter, setFilter] = useQueryState("status", invitationStatusFilter);
+  // Уже md таблица из семи колонок не влезает: там карточки и фильтр списком.
+  // Ширину читаем сразу, а не после первого кадра: иначе на десктопе мелькают карточки.
+  const compact = useMatches(
+    { base: true, md: false },
     { getInitialValueInEffect: false },
   );
 
@@ -54,6 +55,10 @@ export const InvitationsPage = observer(() => {
       return undefined;
     });
   }, [invitations]);
+  // Ответы кандидатов появляются сами, без F5.
+  usePolling(() => {
+    void invitations.refresh();
+  }, pollIntervalMs);
 
   const count = (status: InvitationStatus) => {
     return invitations.items.filter((item) => {
@@ -63,6 +68,15 @@ export const InvitationsPage = observer(() => {
   const rows = invitations.items.filter((item) => {
     return filter === "all" || item.status === filter;
   });
+  const filters = [
+    { value: "all", label: `Все · ${invitations.items.length}` },
+    ...invitationStatuses.map((status) => {
+      return {
+        value: status,
+        label: `${invitationStatusLabel[status]} · ${count(status)}`,
+      };
+    }),
+  ];
 
   return (
     <Stack gap="lg" maw={1100} mx="auto">
@@ -74,25 +88,26 @@ export const InvitationsPage = observer(() => {
         </Text>
       </Stack>
 
-      <SegmentedControl
-        value={filter}
-        onChange={(value) => {
-          setFilter(value as Filter);
-        }}
-        data={[
-          { value: "all", label: `Все · ${invitations.items.length}` },
-          ...statuses.map((status) => {
-            return {
-              value: status,
-              label: `${invitationStatusLabel[status]} · ${count(status)}`,
-            };
-          }),
-        ]}
-        // Шесть статусов в строку не влезают в телефон: страница уезжала вбок.
-        orientation={narrow ? "vertical" : "horizontal"}
-        fullWidth={narrow}
-        style={{ alignSelf: narrow ? "stretch" : "flex-start" }}
-      />
+      {compact ? (
+        <Select
+          label="Статус"
+          data={filters}
+          value={filter}
+          allowDeselect={false}
+          onChange={(value) => {
+            void setFilter((value ?? "all") as typeof filter);
+          }}
+        />
+      ) : (
+        <SegmentedControl
+          value={filter}
+          onChange={(value) => {
+            void setFilter(value as typeof filter);
+          }}
+          data={filters}
+          style={{ alignSelf: "flex-start" }}
+        />
+      )}
 
       {rows.length === 0 ? (
         <Paper withBorder radius="md" p="xl">
@@ -107,6 +122,12 @@ export const InvitationsPage = observer(() => {
             </EmptyState.Actions>
           </EmptyState>
         </Paper>
+      ) : compact ? (
+        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+          {rows.map((item) => {
+            return <InvitationCard key={item.id} item={item} />;
+          })}
+        </SimpleGrid>
       ) : (
         <Paper withBorder radius="md">
           <Table.ScrollContainer minWidth={900}>
@@ -152,39 +173,12 @@ export const InvitationsPage = observer(() => {
                       <Table.Td>
                         {item.candidateContact ?? (
                           <Text span c="dimmed" size="xs">
-                            {item.status === InvitationStatus.Declined
-                              ? "Кандидат отказался"
-                              : item.status === InvitationStatus.Withdrawn
-                                ? "Вы отозвали приглашение"
-                                : "Откроется после принятия"}
+                            {contactHint(item.status)}
                           </Text>
                         )}
                       </Table.Td>
                       <Table.Td>
-                        {item.status === InvitationStatus.Sent ||
-                        item.status === InvitationStatus.Viewed ? (
-                          <Button
-                            size="xs"
-                            variant="default"
-                            onClick={() => {
-                              void invitations.withdraw(item.id);
-                            }}
-                          >
-                            Отозвать
-                          </Button>
-                        ) : null}
-                        {item.status === InvitationStatus.Accepted ? (
-                          <ResumeTemplateMenu
-                            label="Резюме PDF"
-                            size="xs"
-                            onPick={(template) => {
-                              void invitations.downloadResume(
-                                item.id,
-                                template,
-                              );
-                            }}
-                          />
-                        ) : null}
+                        <InvitationActions item={item} />
                       </Table.Td>
                     </Table.Tr>
                   );

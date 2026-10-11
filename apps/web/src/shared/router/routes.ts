@@ -1,12 +1,20 @@
 export const ROUTES = {
   HOME: "/",
   PROFILE: "/profile",
+  // Колбэк OIDC-входа через реестр ФСП: ловит code и возвращает в анкету.
+  FSP_CALLBACK: "/profile/fsp-callback",
   INVITATIONS: "/invitations",
   ABOUT: "/about",
+  SETTINGS: "/settings",
+  LEGAL: {
+    CONSENT: "/legal/consent",
+  },
   AUTH: {
     LOGIN: "/auth/login",
     REGISTER: "/auth/register",
     CONFIRM: "/auth/confirm",
+    FORGOT: "/auth/forgot",
+    RESET: "/auth/reset",
   },
   EMPLOYER: {
     ROOT: "/employer",

@@ -1,5 +1,6 @@
 import { telegramUrl } from "@/pages/employer/model/company";
 import { ContactLine } from "@/pages/employer/ui/ContactLine";
+import { RichTextView } from "@/shared/rich-text/ui/RichTextView";
 import {
   Badge,
   Button,
@@ -21,10 +22,11 @@ export const CompanyCard = ({
   onEdit: () => void;
 }) => {
   return (
-    <Paper withBorder radius="md" p="xl">
+    <Paper withBorder radius="md" p={{ base: "md", sm: "xl" }}>
       <Stack gap="md">
-        <Group justify="space-between" align="flex-start" wrap="nowrap">
-          <Stack gap={6}>
+        <Group justify="space-between" align="flex-start" wrap="wrap">
+          {/* На телефоне кнопка уходит под название, а не обрезается рядом с ним. */}
+          <Stack gap={6} style={{ flex: "1 1 14rem", minWidth: 0 }}>
             <Text size="xs" c="dimmed">
               Так кандидат увидит компанию в приглашении
             </Text>
@@ -37,15 +39,13 @@ export const CompanyCard = ({
               {company.industry}
             </Badge>
           </Stack>
-          <Button variant="default" onClick={onEdit}>
+          <Button variant="default" onClick={onEdit} style={{ flexShrink: 0 }}>
             Редактировать
           </Button>
         </Group>
 
         {/* Переносы строк из описания сохраняем, как их написал работодатель. */}
-        <Text size="sm" style={{ whiteSpace: "pre-line" }}>
-          {company.description}
-        </Text>
+        <RichTextView doc={company.description} />
 
         <Divider />
 

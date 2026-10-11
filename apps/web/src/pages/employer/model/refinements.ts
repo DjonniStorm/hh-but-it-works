@@ -1,6 +1,13 @@
 import { type Match, hasFspEvidence } from "@hh/contracts";
 
-export type Refinement = "verified" | "fsp" | "assessment" | "favorites";
+export const refinementKeys = [
+  "verified",
+  "fsp",
+  "assessment",
+  "favorites",
+] as const;
+
+export type Refinement = (typeof refinementKeys)[number];
 
 export const refinementLabel: Record<Refinement, string> = {
   verified: "Только подтверждённый грейд",
@@ -8,8 +15,6 @@ export const refinementLabel: Record<Refinement, string> = {
   assessment: "Тест от 80 баллов",
   favorites: "Только избранные",
 };
-
-export const refinementKeys = Object.keys(refinementLabel) as Refinement[];
 
 // Уточнения работают поверх уже полученной подборки и не перезапрашивают её.
 const refinementCheck: Record<Refinement, (match: Match) => boolean> = {

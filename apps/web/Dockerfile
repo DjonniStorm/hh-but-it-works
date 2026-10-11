@@ -27,6 +27,9 @@ COPY apps/web ./apps/web
 # Caddy снимает префикс и проксирует в контейнер api.
 ARG VITE_API_URL=/api
 ENV VITE_API_URL=$VITE_API_URL
+# Адрес мока ФСП для OIDC-входа: браузер уходит на ${VITE_FSP_URL}/authorize.
+ARG VITE_FSP_URL
+ENV VITE_FSP_URL=$VITE_FSP_URL
 RUN pnpm --filter "./packages/*" build && pnpm --filter @hh/web build
 
 FROM caddy:2.10-alpine
