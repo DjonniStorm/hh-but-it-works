@@ -24,6 +24,13 @@ type LoadOptions = CallOptions<CandidateInvitation[]> & {
   markViewed?: boolean;
 };
 
+function sameItems(
+  a: CandidateInvitation[],
+  b: CandidateInvitation[],
+): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 // Приглашения глазами кандидата: список и ответ. Сторона работодателя — InvitationStore.
 export class CandidateInvitationStore {
   readonly key = StoreKey.CandidateInvitations;
@@ -73,6 +80,32 @@ export class CandidateInvitationStore {
         onSuccess: options?.onSuccess,
       },
     );
+  }
+
+  // Тихое обновление по таймеру: без лоадера и тоста. Пока идёт действие человека, пропускаем.
+  async refresh(): Promise<void> {
+    if (this.root.loading.visible) {
+      return;
+    }
+    this.syncOwner();
+    try {
+      const items = await request(
+        this.root,
+        async () => {
+          const result = await candidateInvitationsControllerList();
+          return readData(result).items.map(mapCandidateInvitation);
+        },
+        { loader: false, silent: true },
+      );
+      // Действие могло начаться во время запроса: его ответ новее, чем этот список.
+      if (!this.root.loading.visible && !sameItems(this.items, items)) {
+        runInAction(() => {
+          this.items = items;
+        });
+      }
+    } catch {
+      // Сбой фонового запроса не мешает: показан прошлый список, следующий тик повторит.
+    }
   }
 
   // Фоновая отметка без лоадера: человек её не ждёт.

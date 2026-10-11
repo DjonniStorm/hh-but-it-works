@@ -4,6 +4,7 @@ import { useStore } from "@/app/store/store-context";
 import { StoreKey } from "@/app/store/store-key";
 import { formatDate } from "@/shared/lib/format";
 import { invitationStatusLabel } from "@/shared/lib/labels";
+import { pollIntervalMs, usePolling } from "@/shared/lib/use-polling";
 import { ResumeTemplateMenu } from "@/shared/resume/ui/ResumeTemplateMenu";
 import { pageTitle } from "@/shared/router/page-title";
 import { ROUTES } from "@/shared/router/routes";
@@ -54,6 +55,10 @@ export const InvitationsPage = observer(() => {
       return undefined;
     });
   }, [invitations]);
+  // Ответы кандидатов появляются сами, без F5.
+  usePolling(() => {
+    void invitations.refresh();
+  }, pollIntervalMs);
 
   const count = (status: InvitationStatus) => {
     return invitations.items.filter((item) => {
