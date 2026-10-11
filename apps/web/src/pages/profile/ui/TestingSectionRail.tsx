@@ -9,9 +9,11 @@ export const TestingSectionRail = ({
   current: number;
 }) => {
   return (
+    // На телефоне список секций сдвигал вопрос за экран: там секция пишется строкой в TestingRun.
     <Stack
       gap={6}
       component="ol"
+      visibleFrom="sm"
       style={{ listStyle: "none", margin: 0, padding: 0, minWidth: 160 }}
     >
       {sections.map((section, index) => {
