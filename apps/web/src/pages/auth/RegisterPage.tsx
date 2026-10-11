@@ -11,10 +11,13 @@ import {
   Button,
   Center,
   Checkbox,
+  Group,
   Paper,
   PasswordInput,
-  Select,
+  Radio,
+  SimpleGrid,
   Stack,
+  Text,
   TextInput,
   Title,
 } from "@mantine/core";
@@ -99,15 +102,41 @@ export const RegisterPage = observer(() => {
             withAsterisk
             {...form.getInputProps("password")}
           />
-          <Select
-            label="Роль"
+          {/* Роль — карточки-радиокнопки: выбор сразу виден, не нужно открывать список. */}
+          <Radio.Group
+            label="Кто вы"
             withAsterisk
-            data={[
-              { value: Role.Candidate, label: "Кандидат" },
-              { value: Role.Employer, label: "Работодатель" },
-            ]}
             {...form.getInputProps("role")}
-          />
+          >
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="xs" mt="xs">
+              <Radio.Card radius="md" value={Role.Candidate}>
+                <Group wrap="nowrap" align="flex-start" gap="xs">
+                  <Radio.Indicator />
+                  <div>
+                    <Text size="sm" fw={500}>
+                      Я ищу работу
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      Отклики и приглашения от компаний
+                    </Text>
+                  </div>
+                </Group>
+              </Radio.Card>
+              <Radio.Card radius="md" value={Role.Employer}>
+                <Group wrap="nowrap" align="flex-start" gap="xs">
+                  <Radio.Indicator />
+                  <div>
+                    <Text size="sm" fw={500}>
+                      Я ищу сотрудников
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      Вакансии и поиск кандидатов
+                    </Text>
+                  </div>
+                </Group>
+              </Radio.Card>
+            </SimpleGrid>
+          </Radio.Group>
           <Checkbox
             label="Согласен на обработку и публикацию данных профиля"
             {...form.getInputProps("consent", { type: "checkbox" })}

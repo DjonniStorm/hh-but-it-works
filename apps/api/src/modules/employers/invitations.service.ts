@@ -16,7 +16,7 @@ import type {
   InvitationList,
   Invitation as InvitationView,
 } from "@hh/contracts";
-import { richTextText } from "@hh/contracts";
+import { richTextHtml, richTextText } from "@hh/contracts";
 import { InvitationStatus } from "@hh/types";
 
 import { invitationAnsweredLetter } from "../../common/mail/letters/invitation-answered";
@@ -139,8 +139,14 @@ export class InvitationsService implements OnModuleInit {
       this.notify(
         candidate.userId,
         invitationReceivedLetter(
-          // Письмо — обычный текст: документ превращаем в абзацы.
-          { ...view, message: richTextText(view.message) },
+          // Письмо: из документа — безопасный HTML и его текстовая копия.
+          {
+            ...view,
+            message: {
+              text: richTextText(view.message),
+              html: richTextHtml(view.message),
+            },
+          },
           this.mail.webLink(candidateInvitationsPath),
         ),
       );

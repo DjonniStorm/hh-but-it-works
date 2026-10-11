@@ -7,7 +7,8 @@ export type InvitationReceived = {
   needTitle: string | null;
   salaryFrom: number;
   salaryTo: number;
-  message: string;
+  // Сообщение приходит парой: HTML для основной части и текст для text/plain.
+  message: { text: string; html: string };
 };
 
 // Кандидату: новое приглашение. Условия видны сразу, до входа (ТЗ: зарплата

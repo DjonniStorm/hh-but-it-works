@@ -5,6 +5,7 @@ import {
   docFromPlainText,
   emptyRichText,
   isHttpUrl,
+  richTextHtml,
   richTextMin,
   richTextSchema,
   richTextText,
@@ -219,4 +220,78 @@ test("isHttpUrl accepts only full http(s) links", () => {
   assert.ok(!isHttpUrl("data:image/png;base64,AAAA"));
   assert.ok(!isHttpUrl("/local/path.png"));
   assert.ok(!isHttpUrl("example.com"));
+});
+
+test("html for letters escapes text and keeps only known tags", () => {
+  const html = richTextHtml(
+    doc([
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "жирный <script>",
+            marks: [{ type: "bold" }],
+          },
+        ],
+      },
+      {
+        type: "heading",
+        attrs: { level: 2 },
+        content: [{ type: "text", text: "Заголовок" }],
+      },
+      {
+        type: "bulletList",
+        content: [
+          {
+            type: "listItem",
+            content: [
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "пункт" }],
+              },
+            ],
+          },
+        ],
+      },
+    ]),
+  );
+  assert.ok(html.includes("<strong>жирный &lt;script&gt;</strong>"));
+  assert.ok(html.includes("<h3"));
+  assert.ok(html.includes("<ul"));
+  assert.ok(html.includes("<li"));
+  assert.ok(!html.includes("<script>"));
+});
+
+test("html for letters drops unsafe links and image sources", () => {
+  const html = richTextHtml(
+    doc([
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "ссылка",
+            marks: [{ type: "link", attrs: { href: "javascript:alert(1)" } }],
+          },
+        ],
+      },
+      { type: "image", attrs: { src: "javascript:alert(1)" } },
+    ]),
+  );
+  assert.ok(!html.includes("javascript:"));
+  assert.ok(html.includes("ссылка"));
+});
+
+test("html for letters wraps the image in a link with alt", () => {
+  const html = richTextHtml(
+    doc([
+      {
+        type: "image",
+        attrs: { src: "https://example.com/photo.jpg", alt: "Фото" },
+      },
+    ]),
+  );
+  assert.ok(html.includes('href="https://example.com/photo.jpg"'));
+  assert.ok(html.includes('alt="Фото"'));
 });

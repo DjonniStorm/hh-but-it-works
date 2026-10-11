@@ -169,6 +169,94 @@ function inlinePlainText(nodes: RichTextInline[]): string {
     .join("");
 }
 
+// HTML для письма: тот же документ, но готовый для почтового клиента. Стили
+// инлайном — почтовые клиенты не любят внешние CSS. Текст и атрибуты
+// экранируются здесь же, теги строятся только известные: в письмо не попадает
+// ничего вне whitelist, даже если документ пришёл из БД.
+export function richTextHtml(doc: RichTextDoc): string {
+  return doc.content
+    .map((block) => {
+      return blockHtml(block);
+    })
+    .filter(Boolean)
+    .join("\n");
+}
+
+function blockHtml(block: RichTextBlock): string {
+  if (block.type === "image") {
+    return imageHtml(block);
+  }
+  if (block.type === "bulletList" || block.type === "orderedList") {
+    const items = block.content
+      .map((item) => {
+        const inner = item.content
+          .map((paragraph) => {
+            return inlinesHtml(paragraph.content ?? []);
+          })
+          .join("<br />");
+        return `<li style="margin:0 0 4px;font-size:15px;line-height:1.5">${inner}</li>`;
+      })
+      .join("\n");
+    const tag = block.type === "bulletList" ? "ul" : "ol";
+    return `<${tag} style="margin:0 0 16px;padding-left:24px">${items}</${tag}>`;
+  }
+  const inner = inlinesHtml(block.content ?? []);
+  if (block.type === "heading") {
+    return `<h3 style="margin:24px 0 8px;font-size:17px;line-height:1.4">${inner}</h3>`;
+  }
+  return `<p style="margin:0 0 16px;font-size:15px;line-height:1.5">${inner}</p>`;
+}
+
+function imageHtml(block: Extract<RichTextBlock, { type: "image" }>): string {
+  const { src, alt } = block.attrs;
+  // Ссылке из документа не доверяем: повторяем проверку редактора и схемы.
+  if (!src || !isHttpUrl(src)) {
+    return "";
+  }
+  const label = escapeHtml(alt ?? "Изображение");
+  // Картинка на чужом сайте: оборачиваем ссылкой — в полном размере откроется,
+  // даже когда почтовый клиент картинки не грузит.
+  return `<a href="${escapeHtml(src)}" style="display:block;margin:0 0 16px">
+  <img src="${escapeHtml(src)}" alt="${label}" style="display:block;max-width:100%;height:auto;border-radius:8px" />
+</a>`;
+}
+
+function inlinesHtml(nodes: RichTextInline[]): string {
+  return nodes
+    .map((node) => {
+      if (node.type === "hardBreak") {
+        return "<br />";
+      }
+      return marksHtml(node.text, node.marks ?? []);
+    })
+    .join("");
+}
+
+function marksHtml(text: string, marks: RichTextMark[]): string {
+  return marks.reduce((html, mark) => {
+    if (mark.type === "bold") {
+      return `<strong>${html}</strong>`;
+    }
+    if (mark.type === "italic") {
+      return `<em>${html}</em>`;
+    }
+    // Ссылка ещё раз по проверке: письмо рисуется и по документу из БД.
+    if (isHttpUrl(mark.attrs.href)) {
+      return `<a href="${escapeHtml(mark.attrs.href)}" style="color:#1c7ed6" target="_blank" rel="noopener noreferrer">${html}</a>`;
+    }
+    return html;
+  }, escapeHtml(text));
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 // Черновик из обычного текста: пустая строка делит абзацы, перенос строки —
 // жёсткий перенос внутри абзаца. Так сиды и шаблон приглашения становятся документом.
 export function docFromPlainText(text: string): RichTextDoc {
